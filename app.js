@@ -402,8 +402,9 @@ async function saveAdminCreds() {
 /* --- CLIENT EDITOR LOGIC --- */
 
 function openClientEditor(client = null) {
-    const modal = document.getElementById('client-editor-modal');
-    modal.classList.remove('hidden');
+    const modal = document.getElementById('admin-modal');
+    // Use 'active' class for the fade-in effect
+    modal.classList.add('active');
     
     if(client) {
         // EDIT MODE
@@ -421,6 +422,9 @@ function openClientEditor(client = null) {
         document.getElementById('ce-name').value = "";
         document.getElementById('ce-code').value = "rose2026"; // Default
     }
+}
+function closeClientEditor() {
+    document.getElementById('admin-modal').classList.remove('active');
 }
 
 async function saveClientChanges() {
