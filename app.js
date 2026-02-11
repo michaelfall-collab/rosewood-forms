@@ -431,3 +431,78 @@ async function loadFormBuilderList() {
     // Apply Grid Styling
     container.className = "card-grid";
 }
+
+/* --- ROSEWOOD STUDIO LOGIC --- */
+
+let CURRENT_STUDIO_FORM = "";
+
+async function loadFormBuilder(formName) {
+    // 1. Switch to Studio View
+    document.getElementById('view-admin').classList.add('hidden');
+    document.getElementById('view-studio').classList.remove('hidden');
+    document.getElementById('studio-form-title').innerText = "Editing: " + formName;
+    CURRENT_STUDIO_FORM = formName;
+    
+    const list = document.getElementById('studio-list');
+    list.innerHTML = "<div class='spinner'></div>";
+    
+    // 2. Fetch Schema
+    const schema = await apiCall('getSchema', { formName });
+    list.innerHTML = "";
+    
+    if(schema.length === 0) {
+        list.innerHTML = "<div style='opacity:0.5; margin-top:50px;'>Canvas Empty. Add a question from the toolbar.</div>";
+    }
+
+    // 3. Render with Staggered Animation
+    schema.forEach((field, index) => {
+        setTimeout(() => {
+            renderStudioCard(field);
+        }, index * 100); // 100ms delay per card for "Cascade" effect
+    });
+}
+
+function renderStudioCard(field) {
+    const list = document.getElementById('studio-list');
+    const card = document.createElement('div');
+    card.className = "studio-card";
+    
+    // Modern Layout
+    card.innerHTML = `
+        <div class="studio-card-meta">
+            <span>${field.section}</span>
+            <span class="type-badge ${field.type}">${field.type}</span>
+        </div>
+        <div style="font-family:'Libre Baskerville'; font-size:16px; margin-bottom:5px;">${field.label}</div>
+        <div style="font-size:11px; opacity:0.5; font-family:monospace;">ID: ${field.key}</div>
+    `;
+    
+    // Click to Edit (Placeholder for now)
+    card.onclick = () => {
+        // Highlighting logic could go here
+        alert("Edit properties for: " + field.label);
+    };
+    
+    list.appendChild(card);
+}
+
+function closeStudio() {
+    document.getElementById('view-studio').classList.add('hidden');
+    document.getElementById('view-admin').classList.remove('hidden');
+}
+
+function addStudioQuestion() {
+    // For now, visual only
+    renderStudioCard({
+        section: "New Section",
+        label: "New Question (Click to Edit)",
+        type: "text",
+        key: "new_question"
+    });
+    // Scroll to bottom
+    window.scrollTo(0, document.body.scrollHeight);
+}
+
+function saveStudioChanges() {
+    alert("Layout saved to cloud! (Simulation)");
+}
