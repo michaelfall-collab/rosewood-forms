@@ -89,23 +89,16 @@
     </div>
 
     <div id="view-studio" class="hidden">
-    <div class="glass-header-bar" style="position:fixed; top:0; left:0; right:0; z-index:1000; background:rgba(255,255,255,0.8); backdrop-filter:blur(10px);">
-        <button onclick="closeStudio()" class="btn-soft">← Exit Editor</button>
-        <button onclick="saveStudioChanges()" class="btn-main">Save Cloud Template</button>
-    </div>
-
-    <div class="studio-paper" id="studio-canvas">
-        <div style="text-align: right; margin-bottom: 60px;">
-            <img src="favicon.png" style="width: 50px; opacity: 0.8;">
-            <div style="font-family: 'Libre Baskerville'; font-size: 12px; letter-spacing: 2px; color: var(--rw-red); margin-top: 10px;">ROSEWOOD</div>
-            <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--bark);">Marketing</div>
+        <div class="studio-top-banner">
+            <button onclick="closeStudio()" class="btn-soft">Exit Studio</button>
+            <div style="color: #fff; font-family: 'Libre Baskerville'; font-size: 18px; letter-spacing: 1px;">Rosewood Studio</div>
+            <button onclick="saveStudioChanges()" class="btn-main" style="background:var(--rw-red);">Save Cloud Template</button>
         </div>
-
-        <input id="studio-form-title-display" style="font-family: 'Libre Baskerville'; font-size: 28px; border: none; width: 100%; margin-bottom: 40px;" placeholder="Form Title...">
-        
-        <div id="studio-questions-list"></div>
-
-        <button onclick="addStudioQuestion()" class="btn-soft" style="margin-top: 40px; width: 100%; border: 1px dashed #ccc;">+ Add New Question Block</button>
+    
+        <div class="studio-paper" style="margin-top: 120px;" id="studio-canvas">
+            <div id="studio-questions-list"></div>
+            <button onclick="addStudioQuestion()" class="btn-soft" style="margin-top: 40px; width: 100%; border: 1px dashed #ccc;">+ Add New Question Block</button>
+        </div>
     </div>
 </div>
     
