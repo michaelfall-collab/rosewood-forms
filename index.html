@@ -91,13 +91,26 @@
     <div id="view-studio" class="hidden">
         <div class="studio-top-banner">
             <button onclick="closeStudio()" class="btn-soft">Exit Studio</button>
-            <div style="color: #fff; font-family: 'Libre Baskerville'; font-size: 18px; letter-spacing: 1px;">Rosewood Studio</div>
+            <div style="font-family:'Libre Baskerville'; color:#fff; letter-spacing:1px; font-size:18px;">Rosewood Studio</div>
             <button onclick="saveStudioChanges()" class="btn-main" style="background:var(--rw-red);">Save Cloud Template</button>
         </div>
     
-        <div class="studio-paper" style="margin-top: 120px;" id="studio-canvas">
+        <div class="studio-paper" id="studio-canvas">
+            <div style="text-align: right; margin-bottom: 60px;">
+                <img src="favicon.png" style="width: 55px; opacity: 0.8;">
+                <div style="font-family:'Libre Baskerville'; font-size:12px; letter-spacing:2px; color:var(--rw-red); margin-top:10px;">ROSEWOOD</div>
+                <div style="font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--bark);">Marketing</div>
+            </div>
+    
+            <input id="studio-form-title-display" 
+                style="font-family:'Libre Baskerville'; font-size:32px; border:none; width:100%; margin-bottom:40px; color:var(--text-main);" 
+                placeholder="Untitled Template...">
+            
             <div id="studio-questions-list"></div>
-            <button onclick="addStudioQuestion()" class="btn-soft" style="margin-top: 40px; width: 100%; border: 1px dashed #ccc;">+ Add New Question Block</button>
+    
+            <button onclick="addStudioQuestion()" class="btn-soft" style="margin-top:40px; width:100%; border:1px dashed #ccc; padding:20px;">
+                + Add New Question Block
+            </button>
         </div>
     </div>
 </div>
