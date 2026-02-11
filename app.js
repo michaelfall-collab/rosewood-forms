@@ -380,3 +380,50 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+/* --- ADMIN NAVIGATION --- */
+
+function switchAdminTab(tab) {
+    const btnClients = document.getElementById('nav-clients');
+    const btnForms = document.getElementById('nav-forms');
+    const tableBody = document.getElementById('client-table-body');
+    
+    if (tab === 'clients') {
+        // STYLE: Highlight Clients
+        btnClients.style.background = "#fff";
+        btnClients.style.boxShadow = "0 2px 5px rgba(0,0,0,0.05)";
+        btnClients.style.opacity = "1";
+        
+        btnForms.style.background = "transparent";
+        btnForms.style.boxShadow = "none";
+        btnForms.style.opacity = "0.6";
+        
+        // ACTION: Reload Client Table
+        initAdmin(); 
+    } 
+    else if (tab === 'forms') {
+        // STYLE: Highlight Forms
+        btnForms.style.background = "#fff";
+        btnForms.style.boxShadow = "0 2px 5px rgba(0,0,0,0.05)";
+        btnForms.style.opacity = "1";
+        
+        btnClients.style.background = "transparent";
+        btnClients.style.boxShadow = "none";
+        btnClients.style.opacity = "0.6";
+        
+        // ACTION: Show Forms List (Simple view for now)
+        tableBody.innerHTML = "";
+        if(ALL_FORMS.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:40px; opacity:0.5;">No forms found.</td></tr>`;
+        } else {
+            ALL_FORMS.forEach(f => {
+                tableBody.innerHTML += `
+                <tr>
+                    <td colspan="4" style="font-weight:600;">${f}</td>
+                    <td style="text-align:right;">
+                        <button class="btn-soft" onclick="openFormPicker({name:'Template Viewer', answers:{}}, '${f}')">Edit Template</button>
+                    </td>
+                </tr>`;
+            });
+        }
+    }
+}
