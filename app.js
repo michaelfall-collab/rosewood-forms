@@ -470,12 +470,13 @@ function closeStudio() {
     switchAdminTab('forms');
 }
 
+// Replace renderStudioCanvas with this improved version
 function renderStudioCanvas() {
     const list = document.getElementById('studio-questions-list');
     list.innerHTML = "";
     
-    // 1. FILTER: We only show rows that ARE NOT headers or markers
-    const visibleSchema = STUDIO_SCHEMA.filter(f => f.type !== 'header' && f.key !== 'init_marker');
+    // Filter out technical markers
+    const visibleSchema = STUDIO_SCHEMA.filter(f => f.key !== 'init_marker');
 
     visibleSchema.forEach((field, index) => {
         const block = document.createElement('div');
@@ -483,7 +484,6 @@ function renderStudioCanvas() {
         
         let inputHtml = "";
 
-        // Handle Slick Multiple Choice Logic
         if (field.type === 'select') {
             const options = field.options || [];
             inputHtml = `
@@ -494,33 +494,65 @@ function renderStudioCanvas() {
                             <button onclick="removeOption(${index}, ${i})">&times;</button>
                         </div>
                     `).join('')}
-                    <button class="btn-soft small" style="padding: 4px 10px;" onclick="addOption(${index})">+ Option</button>
+                    <input type="text" class="btn-soft small" style="width:120px; border:1px solid #ddd; padding:4px 10px;" 
+                           placeholder="+ Add Option" onkeypress="if(event.key==='Enter') addOptionInline(${index}, this)">
                 </div>
             `;
         } else {
-            // Standard placeholder for text/textarea
-            inputHtml = `<div style="height: 30px; border-bottom: 1px dashed #eee; width: 60%; opacity: 0.5;"></div>`;
+            inputHtml = `<div style="height: 30px; border-bottom: 1px dashed #eee; width: 60%; opacity: 0.3;"></div>`;
         }
 
         block.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                <input class="studio-pdf-label" value="${field.label}" 
-                    onchange="updateStudioField(${index}, 'label', this.value)">
+                <input class="studio-pdf-label" value="${field.label}" onchange="updateStudioField(${index}, 'label', this.value)">
                 
-                <select onchange="updateStudioField(${index}, 'type', this.value)" style="font-size:10px; opacity:0.5; border:none; background:none;">
-                    <option value="text" ${field.type==='text'?'selected':''}>Text</option>
-                    <option value="textarea" ${field.type==='textarea'?'selected':''}>Textarea</option>
-                    <option value="select" ${field.type==='select'?'selected':''}>Choice</option>
+                <select class="studio-type-selector" onchange="updateStudioField(${index}, 'type', this.value)">
+                    <option value="text" ${field.type==='text'?'selected':''}>Short Answer</option>
+                    <option value="textarea" ${field.type==='textarea'?'selected':''}>Long Answer</option>
+                    <option value="select" ${field.type==='select'?'selected':''}>Multiple Choice</option>
                 </select>
             </div>
             ${inputHtml}
-            <div style="font-size: 10px; color: #ccc; margin-top: 10px;">KEY: ${field.key}</div>
         `;
-        
         list.appendChild(block);
     });
 }
 
+// Inline Option Logic (No Chrome Popup)
+function addOptionInline(fieldIndex, inputEl) {
+    const val = inputEl.value.trim();
+    if (val) {
+        if (!STUDIO_SCHEMA[fieldIndex].options) STUDIO_SCHEMA[fieldIndex].options = [];
+        STUDIO_SCHEMA[fieldIndex].options.push(val);
+        inputEl.value = "";
+        renderStudioCanvas();
+    }
+}
+
+// FIX: Ensure saveStudioChanges actually calls the backend
+async function saveStudioChanges() {
+    const name = document.getElementById('studio-form-title-display').value || "Unnamed Form";
+    const btn = document.querySelector('.studio-top-banner .btn-main');
+    
+    const originalText = btn.innerText;
+    btn.innerText = "Syncing...";
+
+    // This calls the saveFormSchema function we added to code.gs previously
+    const res = await apiCall('saveFormSchema', { 
+        formName: name, 
+        schema: STUDIO_SCHEMA 
+    });
+
+    if(res.success) {
+        btn.innerText = "Cloud Synced";
+        setTimeout(() => btn.innerText = originalText, 2000);
+        // Refresh local list of forms
+        if(!ALL_FORMS.includes(name)) ALL_FORMS.push(name);
+    } else {
+        alert("Sync Error: " + res.message);
+        btn.innerText = originalText;
+    }
+}
 // Slick Multi-Choice Handlers
 function addOption(fieldIndex) {
     const opt = prompt("Enter option name:");
