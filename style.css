@@ -90,24 +90,61 @@ tr:hover td { background: rgba(255,255,255,0.4); }
 }
 .glass-backdrop.active { opacity: 1; pointer-events: all; }
 
-/* The Studio View (Document Style) */
+/* --- ROSEWOOD STUDIO: DIGITAL PAPER --- */
 #view-studio {
-    position: fixed; top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    background: #F5F5F7; /* Apple Neutral Gray */
-    z-index: 500; overflow-y: auto;
-    display: flex; flex-direction: column;
+    background: #F0F0F2; /* Slightly darker desk background */
+    min-height: 100vh; padding: 60px 20px;
 }
 
 .studio-paper {
-    background: #FFFFFF;
-    width: 100%; max-width: 850px;
-    min-height: 100vh;
-    margin: 40px auto;
+    background: white;
+    width: 100%;
+    max-width: 850px; /* Standard Letter aspect ratio */
+    margin: 0 auto;
+    min-height: 1100px;
     padding: 80px 100px;
-    box-shadow: 0 10px 50px rgba(0,0,0,0.05);
-    border-radius: 4px; /* Subtle document look */
+    box-shadow: 0 0 1px rgba(0,0,0,0.1), 0 20px 40px rgba(0,0,0,0.05);
+    border-radius: 2px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
 }
+
+/* Question Blocks & Dividers */
+.studio-question-block {
+    padding: 30px 0;
+    border-bottom: 1px solid #F0F0F0; /* The thin divider */
+    position: relative;
+    transition: background 0.2s;
+}
+.studio-question-block:last-child { border-bottom: none; }
+.studio-question-block:hover { background: #FAFAFA; border-radius: 8px; margin-left: -20px; padding-left: 20px; width: calc(100% + 40px); }
+
+/* PDF Font Styles */
+.studio-pdf-label {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 16px;
+    color: var(--bark);
+    line-height: 1.5;
+    margin-bottom: 12px;
+    display: block;
+    width: 100%;
+    border: none; background: transparent;
+}
+.studio-pdf-label:focus { outline: none; border-bottom: 1px solid var(--rw-red); }
+
+/* Slick Multiple Choice Creator */
+.choice-pill-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.choice-pill {
+    background: #F5F5F7;
+    border: 1px solid #E5E5E7;
+    padding: 6px 12px;
+    border-radius: 50px;
+    font-size: 12px;
+    display: flex; align-items: center; gap: 8px;
+}
+.choice-pill button { background: none; border: none; color: #999; cursor: pointer; padding: 0; font-size: 14px; }
+.choice-pill button:hover { color: var(--rw-red); }
 
 /* Premium Block Hover */
 .studio-block {
