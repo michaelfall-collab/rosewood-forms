@@ -1,6 +1,6 @@
 // --- CONFIGURATION ---
 // PASTE YOUR GOOGLE SCRIPT URL HERE
-const API_URL = "https://script.google.com/macros/s/AKfycbwOHiy3ASAHxtgH8cdFZQFyYhN7OXkLPSqZmU0Cz8e1PvDftrgJfKLW5LRAZTwWWaqc5w/exec"; 
+const API_URL = "https://script.google.com/macros/s/AKfycbyM3lx3DdRNu2ia48nAD2A5Nc7oaDDrC0UqROso0VY7a3Qn9nXfd2SI1pxHhlyfDx3r5A/exec"; 
 
 // --- STATE ---
 let USER_DATA = null;
