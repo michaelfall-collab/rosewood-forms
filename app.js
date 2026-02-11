@@ -312,6 +312,7 @@ function openClientEditor(client = null) {
         document.getElementById('ce-name').value = client.name;
         document.getElementById('ce-code').value = client.code;
         document.getElementById('ce-tier').value = client.tier;
+        document.getElementById('ce-status').value = client.status || "Active";
         // document.getElementById('ce-status').value = client.status; // Add status to DB later if needed
     } else {
         // NEW MODE
