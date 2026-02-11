@@ -434,25 +434,19 @@ function switchAdminTab(tab) {
 
 /* --- ROSEWOOD STUDIO LOGIC --- */
 
-let STUDIO_SCHEMA = []; // Stores the current form design
-
 async function openStudio(formName) {
-    // 1. Switch View
     document.getElementById('view-admin').classList.add('hidden');
-    document.getElementById('view-studio').classList.remove('hidden');
-    
-    const nameInput = document.getElementById('studio-form-name');
-    const canvas = document.getElementById('studio-canvas');
     const studio = document.getElementById('view-studio');
     studio.classList.remove('hidden');
-    // Set the form title
-    document.getElementById('studio-form-name').value = formName;
     
-    nameInput.value = formName;
+    // Set Title Input
+    const titleInput = document.getElementById('studio-form-title-display');
+    titleInput.value = (formName === 'New Form') ? "" : formName;
+    
     STUDIO_SCHEMA = [];
-    canvas.innerHTML = "<div style='text-align:center; padding:50px; opacity:0.5;'>Loading design...</div>";
+    document.getElementById('studio-questions-list').innerHTML = "<div style='text-align:center; padding:50px; opacity:0.3;'>Fetching Cloud Data...</div>";
     
-    // 2. Load Schema (if existing)
+    // LOAD EXISTING QUESTIONS
     if(formName !== 'New Form') {
         const res = await apiCall('getSchema', { formName });
         if(res.success && res.schema.length > 0) {
@@ -463,14 +457,6 @@ async function openStudio(formName) {
     renderStudioCanvas();
 }
 
-function closeStudio() {
-    document.getElementById('view-studio').classList.add('hidden');
-    document.getElementById('view-admin').classList.remove('hidden');
-    // Refresh admin to see changes
-    switchAdminTab('forms');
-}
-
-// Replace renderStudioCanvas with this improved version
 function renderStudioCanvas() {
     const list = document.getElementById('studio-questions-list');
     list.innerHTML = "";
@@ -494,17 +480,19 @@ function renderStudioCanvas() {
                             <button onclick="removeOption(${index}, ${i})">&times;</button>
                         </div>
                     `).join('')}
-                    <input type="text" class="btn-soft small" style="width:120px; border:1px solid #ddd; padding:4px 10px;" 
-                           placeholder="+ Add Option" onkeypress="if(event.key==='Enter') addOptionInline(${index}, this)">
+                    <div style="display:flex; gap:5px; margin-top:10px;">
+                        <input type="text" id="opt-input-${index}" class="btn-soft small" style="width:120px; border:1px solid #ddd; padding:4px 12px;" placeholder="+ Option Name">
+                        <button class="btn-main small" onclick="addOptionManual(${index})">Add</button>
+                    </div>
                 </div>
             `;
         } else {
-            inputHtml = `<div style="height: 30px; border-bottom: 1px dashed #eee; width: 60%; opacity: 0.3;"></div>`;
+            inputHtml = `<div style="height: 30px; border-bottom: 1px dashed #eee; width: 60%; opacity: 0.3; margin-top:10px;"></div>`;
         }
 
         block.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                <input class="studio-pdf-label" value="${field.label}" onchange="updateStudioField(${index}, 'label', this.value)">
+                <input class="studio-pdf-label" value="${field.label}" onchange="updateStudioField(${index}, 'label', this.value)" placeholder="Write your question here...">
                 
                 <select class="studio-type-selector" onchange="updateStudioField(${index}, 'type', this.value)">
                     <option value="text" ${field.type==='text'?'selected':''}>Short Answer</option>
@@ -518,51 +506,40 @@ function renderStudioCanvas() {
     });
 }
 
-// Inline Option Logic (No Chrome Popup)
-function addOptionInline(fieldIndex, inputEl) {
-    const val = inputEl.value.trim();
-    if (val) {
-        if (!STUDIO_SCHEMA[fieldIndex].options) STUDIO_SCHEMA[fieldIndex].options = [];
-        STUDIO_SCHEMA[fieldIndex].options.push(val);
-        inputEl.value = "";
+// Logic to add options without needing "Enter"
+function addOptionManual(index) {
+    const input = document.getElementById(`opt-input-${index}`);
+    const val = input.value.trim();
+    if(val) {
+        if(!STUDIO_SCHEMA[index].options) STUDIO_SCHEMA[index].options = [];
+        STUDIO_SCHEMA[index].options.push(val);
         renderStudioCanvas();
     }
 }
 
-// FIX: Ensure saveStudioChanges actually calls the backend
+// THE CLOUD SAVE FIX
 async function saveStudioChanges() {
-    const name = document.getElementById('studio-form-title-display').value || "Unnamed Form";
+    const name = document.getElementById('studio-form-title-display').value || "Unnamed Template";
     const btn = document.querySelector('.studio-top-banner .btn-main');
     
     const originalText = btn.innerText;
-    btn.innerText = "Syncing...";
+    btn.innerText = "Syncing with Cloud...";
 
-    // This calls the saveFormSchema function we added to code.gs previously
+    // This calls the action we added to code.gs
     const res = await apiCall('saveFormSchema', { 
         formName: name, 
         schema: STUDIO_SCHEMA 
     });
 
     if(res.success) {
-        btn.innerText = "Cloud Synced";
+        btn.innerText = "Template Synced";
         setTimeout(() => btn.innerText = originalText, 2000);
-        // Refresh local list of forms
         if(!ALL_FORMS.includes(name)) ALL_FORMS.push(name);
     } else {
         alert("Sync Error: " + res.message);
         btn.innerText = originalText;
     }
 }
-// Slick Multi-Choice Handlers
-function addOption(fieldIndex) {
-    const opt = prompt("Enter option name:");
-    if (opt) {
-        if (!STUDIO_SCHEMA[fieldIndex].options) STUDIO_SCHEMA[fieldIndex].options = [];
-        STUDIO_SCHEMA[fieldIndex].options.push(opt);
-        renderStudioCanvas();
-    }
-}
-
 function removeOption(fieldIndex, optIndex) {
     STUDIO_SCHEMA[fieldIndex].options.splice(optIndex, 1);
     renderStudioCanvas();
