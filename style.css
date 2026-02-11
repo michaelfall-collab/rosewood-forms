@@ -1,320 +1,137 @@
-/* ROSEWOOD BRAND THEME v2.0 */
-@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Open+Sans:wght@300;400;600;700&display=swap');
+/* --- ROSEWOOD "VISION" THEME (v4.0) --- */
+@import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
 
 :root {
-    /* Brand Palette */
-    --rw-red: #A92F3D; 
-    --bark: #493832; 
-    --birch: #E4E0D5; 
-    --paper: #FAFAF9; /* Warm White */
-    --pure-white: #FFFFFF;
-    
-    /* UI Variables */
-    --shadow-soft: 0 10px 30px rgba(73, 56, 50, 0.08);
-    --shadow-sharp: 0 4px 12px rgba(73, 56, 50, 0.15);
-    --border: #E5E0D8;
+    /* Brand & Glass Palette */
+    --glass-surface: rgba(255, 255, 255, 0.65); /* Translucent white */
+    --glass-border: rgba(255, 255, 255, 0.4);
+    --glass-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    --text-main: #1d1d1f; /* Apple "Almost Black" */
+    --text-muted: #86868b;
+    --accent: #A92F3D; /* Rosewood Red */
+    --bg-gradient: radial-gradient(circle at 50% 0%, #f5f5f7 0%, #e8e8ed 100%);
 }
 
 body {
-    background-color: var(--paper);
-    color: var(--bark);
-    font-family: 'Open Sans', sans-serif;
-    margin: 0;
+    background: var(--bg-gradient);
+    color: var(--text-main);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+    margin: 0; min-height: 100vh;
     -webkit-font-smoothing: antialiased;
 }
 
-/* TYPOGRAPHY */
-h1, h2, h3, .brand-font { font-family: 'Libre Baskerville', serif; }
-h1 { font-weight: 400; letter-spacing: -0.5px; }
-
-/* UTILS */
+/* --- UTILITIES --- */
 .hidden { display: none !important; }
-.full-screen-center {
-    height: 100vh; display: flex; align-items: center; justify-content: center;
-    background: radial-gradient(circle at center, #fff 0%, var(--paper) 100%);
+.full-screen-center { 
+    display: flex; justify-content: center; align-items: center; 
+    height: 100vh; width: 100vw; 
 }
 
-/* LOGIN CARD - EXCLUSIVE FEEL */
+/* --- GLASS COMPONENTS --- */
+
+/* 1. The Login Card */
 .login-card {
-    background: var(--pure-white);
-    padding: 60px 50px;
-    width: 400px;
-    text-align: center;
-    border: 1px solid var(--birch);
-    box-shadow: var(--shadow-soft);
-    position: relative;
-}
-/* Topo Texture Accent using CSS Gradients */
-.login-card::before {
-    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 6px;
-    background: var(--rw-red);
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(25px) saturate(180%);
+    -webkit-backdrop-filter: blur(25px) saturate(180%);
+    padding: 60px 40px;
+    border-radius: 24px;
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    text-align: center; width: 340px;
 }
 
-.logo-small { height: 70px; margin-bottom: 25px; opacity: 0.9; }
-
-.modern-input {
-    width: 100%; padding: 16px; margin-bottom: 15px;
-    border: 1px solid var(--border); background: #FCFCFA;
-    font-family: 'Open Sans', sans-serif; font-size: 15px; color: var(--bark);
-    transition: all 0.3s; box-sizing: border-box;
-}
-.modern-input:focus {
-    outline: none; border-color: var(--rw-red); background: white;
-    box-shadow: 0 0 0 3px rgba(169, 47, 61, 0.1);
+/* 2. The Main Layout (Admin) */
+.admin-container {
+    max-width: 1000px; margin: 60px auto;
+    padding: 0 20px;
 }
 
-/* --- SOFT UI BUTTONS --- */
-/* The Primary Action (Save) - Soft Dark, not Red */
-.btn-main {
-    background-color: var(--bark); /* Dark Brown instead of Red */
-    color: #fff;
-    border: none; padding: 12px 24px;
-    border-radius: 50px; /* Pill Shape */
-    font-family: 'Open Sans', sans-serif; font-weight: 600; font-size: 14px;
-    cursor: pointer; transition: all 0.2s ease;
-    box-shadow: 0 4px 12px rgba(73, 56, 50, 0.15);
-    display: inline-flex; align-items: center; justify-content: center;
-}
-.btn-main:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(73, 56, 50, 0.2); }
-.btn-main:active { transform: scale(0.96); } /* Soft Click Animation */
-
-/* The Secondary Action (Edit/View) - Soft Gray Pill */
-.btn-soft {
-    background-color: #F2F0EB; /* Soft Birch/Paper */
-    color: var(--bark);
-    border: 1px solid transparent; padding: 8px 18px;
-    border-radius: 50px; /* Pill Shape */
-    font-size: 13px; font-weight: 600;
-    cursor: pointer; transition: all 0.2s ease;
-    display: inline-flex; align-items: center; gap: 6px;
-}
-.btn-soft:hover { background-color: #E5E0D8; transform: translateY(-1px); }
-.btn-soft:active { transform: scale(0.96); background-color: #D3CEC4; }
-
-/* Red warning button (Delete) - softer */
-.btn-danger {
-    background: #FFF0F0; color: #D32F2F;
-    border: none; padding: 10px 20px; border-radius: 50px;
-    font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;
-}
-.btn-danger:hover { background: #FFEBEB; transform: scale(1.02); }
-
-/* ADMIN DASHBOARD LAYOUT */
-.top-nav {
-    background: var(--pure-white);
-    padding: 25px 60px;
-    border-bottom: 1px solid var(--birch);
+.glass-header-bar {
     display: flex; justify-content: space-between; align-items: center;
-}
-.nav-brand { font-size: 22px; color: var(--bark); letter-spacing: 0.5px; }
-
-.container { max-width: 1100px; margin: 50px auto; padding: 0 40px; }
-
-/* ADMIN TABLE STYLING */
-.table-card {
-    background: var(--pure-white); border: 1px solid var(--birch);
-    box-shadow: var(--shadow-soft); border-radius: 4px; overflow: hidden;
-}
-.modern-table { width: 100%; border-collapse: collapse; text-align: left; }
-.modern-table th { 
-    background: #F4F2EE; padding: 18px 25px; 
-    font-family: 'Open Sans', sans-serif; font-size: 11px; font-weight: 700; 
-    text-transform: uppercase; letter-spacing: 1px; color: var(--bark); opacity: 0.7;
-}
-.modern-table td { 
-    padding: 20px 25px; border-bottom: 1px solid #F0Ece6; 
-    font-size: 14px; color: var(--bark);
-}
-.modern-table tr:last-child td { border-bottom: none; }
-.modern-table tr:hover td { background: #FAFAF9; }
-
-.status-pill {
-    background: var(--birch); color: var(--bark);
-    padding: 4px 10px; border-radius: 4px;
-    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
-}
-.tier-gold { color: #A48325; background: #FFF9E6; }
-.tier-silver { color: #5F6C7B; background: #F0F4F8; }
-.tier-bronze { color: #8C6B5D; background: #FAF5F3; }
-
-/* MODALS */
-.modal-overlay {
-    position: fixed; top:0; left:0; width:100%; height:100%; 
-    background: rgba(73, 56, 50, 0.4); backdrop-filter: blur(2px);
-    z-index: 100; display: flex; justify-content: center; align-items: center;
-}
-.modal-header {
-    background: #FDFBF7; padding: 20px 30px; border-bottom: 1px solid var(--birch);
-    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 40px;
 }
 
-.tab-btn {
-    padding: 15px 0; background: none; border: none; 
-    font-family: 'Open Sans'; font-size: 13px; font-weight: 600; 
-    color: #888; cursor: pointer; border-bottom: 2px solid transparent;
-}
-.tab-btn:hover { color: var(--rw-red); }
-.tab-btn.active { color: var(--rw-red); border-bottom-color: var(--rw-red); }
-
-.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
-
-/* --- ROSEWOOD STUDIO (FORM BUILDER) --- */
-
-/* The Canvas */
-.studio-canvas {
-    background: #F0F2F5; /* Neutral Studio Grey */
-    background-image: radial-gradient(#E1E4E8 1px, transparent 1px);
-    background-size: 20px 20px; /* Dot Grid Pattern */
-    min-height: 80vh;
-    border-radius: 12px;
-    border: 1px solid #D0D7DE;
-    position: relative;
-    padding: 60px;
-    display: flex; flex-direction: column; gap: 20px; align-items: center;
+/* 3. The Table (Floating Glass) */
+.glass-table-container {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 10px 40px -10px rgba(0,0,0,0.05);
+    overflow: hidden; padding: 5px;
 }
 
-/* Floating Toolbar */
-.studio-toolbar {
-    position: absolute; right: 30px; top: 30px;
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(12px); /* THE BLUR EFFECT */
-    border: 1px solid rgba(255,255,255,0.5);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-    border-radius: 16px;
-    padding: 20px;
-    width: 60px;
-    display: flex; flex-direction: column; gap: 15px; align-items: center;
-    transition: all 0.3s;
-    z-index: 10;
+table { width: 100%; border-collapse: collapse; }
+th { 
+    text-align: left; padding: 20px; 
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.05);
 }
-.studio-toolbar:hover { width: 180px; align-items: flex-start; }
-.studio-tool {
-    cursor: pointer; display: flex; align-items: center; gap: 15px;
-    color: var(--bark); opacity: 0.7; transition: 0.2s; white-space: nowrap; overflow: hidden;
+td { 
+    padding: 20px; font-size: 14px; font-weight: 500;
+    border-bottom: 1px solid rgba(0,0,0,0.03); color: var(--text-main);
 }
-.studio-tool:hover { opacity: 1; color: var(--rw-red); transform: translateX(5px); }
-.tool-icon { font-size: 20px; width: 24px; text-align: center; }
-.tool-label { font-size: 13px; font-weight: 700; opacity: 0; transition: 0.2s; }
-.studio-toolbar:hover .tool-label { opacity: 1; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,0.4); }
 
-/* The Question Card (Draggable feel) */
-.studio-card {
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(5px);
-    width: 100%; max-width: 700px;
-    border-radius: 10px;
-    padding: 25px;
-    box-shadow: 0 4px 20px rgba(73, 56, 50, 0.06);
-    border-left: 5px solid transparent;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    position: relative;
-    cursor: default;
-    animation: slideUp 0.5s ease forwards;
-    opacity: 0; transform: translateY(20px);
-}
-.studio-card:hover {
-    transform: translateY(-5px) scale(1.01);
-    box-shadow: 0 15px 30px rgba(73, 56, 50, 0.12);
-    border-left-color: var(--rw-red);
-    background: #fff;
-}
-.studio-card-meta {
-    font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
-    color: #999; margin-bottom: 8px; display: flex; justify-content: space-between;
-}
-
-/* Animations */
-@keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
-
-/* Badge for Type */
-.type-badge {
-    background: #eee; padding: 2px 6px; border-radius: 4px; font-weight: 700; color: #555;
-}
-.type-badge.text { background: #E3F2FD; color: #1565C0; }
-.type-badge.select { background: #E8F5E9; color: #2E7D32; }
-
-/* --- ROSEWOOD GLASS UI (v3.0) --- */
-
-/* --- GLASS MODAL FIXES --- */
+/* 4. MODALS (The "Vision Pro" Look) */
 .glass-backdrop {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(25, 20, 18, 0.6); /* Slightly darker for focus */
-    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-    z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(50, 50, 50, 0.3); /* Darker dim */
+    backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+    z-index: 9999; /* Ensure it's on top */
     display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
 }
 .glass-backdrop.active { opacity: 1; pointer-events: all; }
 
-/* Ensure card doesn't get stuck */
 .glass-card {
-    background: #FFFFFF; /* Pure white for crispness */
-    width: 600px; max-width: 90vw; 
-    border-radius: 24px; /* Soft corners */
-    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-    transform: scale(0.95); opacity: 0;
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    background: rgba(255, 255, 255, 0.85); /* Milky Glass */
+    backdrop-filter: blur(40px) saturate(150%);
+    -webkit-backdrop-filter: blur(40px) saturate(150%);
+    width: 600px; max-width: 90vw; max-height: 85vh;
+    border-radius: 28px;
+    border: 1px solid rgba(255,255,255,0.6);
+    box-shadow: 0 50px 100px -20px rgba(0,0,0,0.3); /* Heavy depth shadow */
     display: flex; flex-direction: column;
-    max-height: 90vh; /* Prevent overflow */
+    transform: scale(0.96); transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+    overflow: hidden;
 }
-.glass-backdrop.active .glass-card { transform: scale(1); opacity: 1; }
+.glass-backdrop.active .glass-card { transform: scale(1); }
 
-/* Header */
-.glass-header {
-    padding: 30px 40px 20px 40px; 
-    border-bottom: 1px solid rgba(0,0,0,0.05);
-    display: flex; justify-content: space-between; align-items: flex-start;
+/* --- BUTTONS (Soft Touch) --- */
+.btn-soft {
+    background: rgba(255,255,255,0.8);
+    border: 1px solid rgba(0,0,0,0.05);
+    color: var(--text-main);
+    padding: 10px 18px; border-radius: 100px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    display: inline-flex; align-items: center; gap: 6px;
 }
-.glass-title { font-family: 'Libre Baskerville'; font-size: 22px; color: var(--bark); margin: 0; }
-.glass-subtitle { 
-    font-family: 'Open Sans'; font-size: 11px; font-weight: 700; 
-    color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; 
-}
-
-/* Scrollable Content */
-.glass-content {
-    flex: 1; padding: 40px; overflow-y: auto;
-    scroll-behavior: smooth;
+.btn-soft:hover { 
+    background: #fff; transform: scale(1.02); 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
 }
 
-/* Notion-Style Inputs */
-.notion-group {
-    margin-bottom: 25px; opacity: 0; transform: translateY(10px);
-    animation: fadeUp 0.4s forwards;
+.btn-main {
+    background: var(--text-main); color: #fff;
+    border: none; padding: 12px 24px; border-radius: 100px;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: all 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
-.notion-label {
-    display: block; font-size: 12px; font-weight: 600; color: #888;
-    margin-bottom: 6px; transition: color 0.2s;
-}
-.notion-input {
-    width: 100%; padding: 12px 0; 
-    border: none; border-bottom: 1px solid #E0E0E0;
-    background: transparent;
-    font-family: 'Open Sans', sans-serif; font-size: 15px; color: #333;
-    transition: all 0.2s; box-sizing: border-box;
-}
-.notion-input:focus {
-    outline: none; border-bottom: 1px solid var(--rw-red);
-    background: rgba(0,0,0,0.02); padding-left: 10px; /* Subtle shift on focus */
-}
-.notion-select {
-    width: 100%; padding: 10px; border-radius: 6px;
-    border: 1px solid #E0E0E0; background: #fff;
-    font-size: 14px; color: #333;
-}
+.btn-main:hover { transform: scale(1.03); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
 
-/* Footer Actions */
-.glass-footer {
-    padding: 20px 40px; 
-    background: rgba(250, 250, 249, 0.8);
-    border-top: 1px solid rgba(0,0,0,0.05);
-    display: flex; justify-content: flex-end; gap: 10px;
+/* --- INPUTS --- */
+.modern-input, .glass-input {
+    width: 100%; padding: 14px; margin-bottom: 15px;
+    background: rgba(0,0,0,0.03); border: 1px solid transparent;
+    border-radius: 12px; font-size: 15px; color: var(--text-main);
+    transition: 0.2s; box-sizing: border-box;
 }
-
-/* Stagger Animations */
-.notion-group:nth-child(1) { animation-delay: 0.05s; }
-.notion-group:nth-child(2) { animation-delay: 0.1s; }
-.notion-group:nth-child(3) { animation-delay: 0.15s; }
-.notion-group:nth-child(4) { animation-delay: 0.2s; }
-.notion-group:nth-child(5) { animation-delay: 0.25s; }
-
-@keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+.modern-input:focus { 
+    background: #fff; border-color: var(--accent); outline: none; 
+    box-shadow: 0 0 0 4px rgba(169, 47, 61, 0.1); 
+}
