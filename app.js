@@ -419,7 +419,7 @@ async function loadFormBuilderList() {
             <h3>${f}</h3>
             <p style="font-size:12px; opacity:0.6;">Active Questionnaire</p>
             <div style="margin-top:15px;">
-                <button class="btn-small" onclick="loadForm('${f}')">Edit Questions</button>
+                <button class="btn-small" onclick="loadFormBuilder('${f}')">Edit Questions</button>
             </div>
         `;
         // We reuse the existing loadForm function, but we might need to tweak it 
