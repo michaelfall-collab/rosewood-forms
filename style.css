@@ -128,3 +128,11 @@ h1 { font-weight: 400; letter-spacing: -0.5px; }
     background: #FDFBF7; padding: 20px 30px; border-bottom: 1px solid var(--birch);
     display: flex; justify-content: space-between; align-items: center;
 }
+
+.tab-btn {
+    padding: 15px 0; background: none; border: none; 
+    font-family: 'Open Sans'; font-size: 13px; font-weight: 600; 
+    color: #888; cursor: pointer; border-bottom: 2px solid transparent;
+}
+.tab-btn:hover { color: var(--rw-red); }
+.tab-btn.active { color: var(--rw-red); border-bottom-color: var(--rw-red); }
