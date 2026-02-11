@@ -279,6 +279,7 @@ function openSettings() {
 async function saveAdminCreds() {
     const u = document.getElementById('set-user').value;
     const p = document.getElementById('set-pass').value;
+    const e = document.getElementById('set-email').value; // NEW
     
     if(!u || !p) { alert("Please enter both fields."); return; }
     
