@@ -5,6 +5,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyM3lx3DdRNu2ia48nAD2A5
 // --- STATE ---
 let USER_DATA = null;
 let CURRENT_ADMIN_CLIENT = null;
+let ALL_FORMS = [];
 
 // --- CORE API FUNCTION ---
 async function apiCall(action, payload = {}) {
@@ -152,6 +153,7 @@ async function initAdmin() {
         
         // 2. Fetch Data from Google
         const data = await apiCall('adminData');
+        ALL_FORMS = data.forms || [];
         
         tbody.innerHTML = ""; // Clear loading message
         
@@ -196,13 +198,19 @@ async function openClientView(name, id) {
     const profile = await apiCall('getClientProfile', { clientId: id });
     CURRENT_ADMIN_CLIENT = profile; 
     
-    // 2. Populate Form Dropdown
-    const forms = ['Website', 'CRM', 'Onboarding']; 
+    // 2. Populate Form Dropdown (INCLUDES INTERNAL FORMS)
     const sel = document.getElementById('modal-form-select');
-    sel.innerHTML = '<option value="">-- Select Form to View --</option>';
-    forms.forEach(f => {
-        sel.innerHTML += `<option value="${f}">${f}</option>`;
-    });
+    sel.innerHTML = '<option value="">-- Select Form to Edit --</option>';
+    
+    // Use the dynamic list we fetched in initAdmin()
+    if(ALL_FORMS.length > 0) {
+        ALL_FORMS.forEach(f => {
+            sel.innerHTML += `<option value="${f}">${f}</option>`;
+        });
+    } else {
+        // Fallback if list is empty
+        sel.innerHTML += `<option value="Website">Website</option>`;
+    }
 }
 
 async function loadClientFormView() {
@@ -211,60 +219,112 @@ async function loadClientFormView() {
     
     if(!formName) return;
     
-    container.innerHTML = "<div style='text-align:center; opacity:0.5;'>Fetching answers...</div>";
+    container.innerHTML = "<div style='text-align:center; opacity:0.5;'>Fetching data...</div>";
     
     // Fetch schema & answers
     const schema = await apiCall('getSchema', { formName });
+    // Use the latest answers from the client object
     const answers = CURRENT_ADMIN_CLIENT.answers || {};
     
     container.innerHTML = "";
     
-    // Render Read-Only View
     if(!schema || schema.length === 0) {
         container.innerHTML = "<p>Form is empty.</p>";
         return;
     }
 
+    // --- RENDER INPUTS (EDIT MODE) ---
     schema.forEach(field => {
         const div = document.createElement('div');
-        div.style.marginBottom = "25px";
+        div.className = "q-block"; // Re-using your client-side styling
         
-        const label = document.createElement('div');
-        label.style.fontFamily = "'Open Sans', sans-serif";
-        label.style.fontWeight = "700";
-        label.style.fontSize = "11px";
-        label.style.letterSpacing = "0.5px";
-        label.style.color = "#A92F3D"; // Rosewood Red
-        label.style.textTransform = "uppercase";
-        label.style.marginBottom = "8px";
-        label.innerText = field.label;
+        const label = document.createElement('label');
+        label.className = "q-label";
+        label.innerHTML = `${field.label} <span style="opacity:0.4; font-weight:normal; font-size:10px; margin-left:5px;">(${field.visibility})</span>`;
         div.appendChild(label);
         
-        const val = document.createElement('div');
-        val.style.padding = "15px";
-        val.style.background = "#fff";
-        val.style.border = "1px solid #E5E0D8";
-        val.style.borderRadius = "4px";
-        val.style.fontSize = "14px";
-        val.style.lineHeight = "1.5";
-        val.style.color = "#493832";
+        let input;
         
-        // Check if answer exists
-        const userAns = answers[field.key];
-        val.innerText = userAns || "—";
-        
-        // Highlight filled answers
-        if(userAns) {
-            val.style.borderLeft = "4px solid #493832"; 
-            val.style.background = "#FAFAF9";
+        if (field.type === 'textarea') {
+            input = document.createElement('textarea');
+            input.rows = 3;
+            input.className = "modern-input admin-input-field"; // Added marker class
+        } else if (field.type === 'select') {
+            input = document.createElement('select');
+            input.className = "modern-input admin-input-field";
+            // Add options
+            if(field.options) {
+                field.options.forEach(opt => {
+                    const o = document.createElement('option');
+                    o.value = opt.trim();
+                    o.innerText = opt.trim();
+                    input.appendChild(o);
+                });
+            }
         } else {
-            val.style.opacity = "0.5";
-            val.style.fontStyle = "italic";
+            input = document.createElement('input');
+            input.type = "text";
+            input.className = "modern-input admin-input-field";
         }
+
+        // PRE-FILL DATA
+        input.value = answers[field.key] || "";
         
-        div.appendChild(val);
+        // METADATA FOR SAVING
+        input.setAttribute('data-key', field.key);
+        
+        div.appendChild(input);
         container.appendChild(div);
     });
+
+    // --- ADD SAVE BUTTON ---
+    const btnDiv = document.createElement('div');
+    btnDiv.style.marginTop = "30px";
+    btnDiv.style.textAlign = "right";
+    btnDiv.innerHTML = `
+        <button onclick="saveAdminClientForm('${formName}')" class="btn-main" style="background-color:var(--rw-red);">
+            Save Changes
+        </button>
+    `;
+    container.appendChild(btnDiv);
+}
+
+async function saveAdminClientForm(formName) {
+    // 1. Collect Data
+    const inputs = document.querySelectorAll('.admin-input-field');
+    const payload = {};
+    
+    inputs.forEach(input => {
+        const key = input.getAttribute('data-key');
+        if(key) {
+            payload[key] = input.value;
+        }
+    });
+    
+    const btn = document.querySelector('#modal-content .btn-main');
+    const originalText = btn.innerText;
+    btn.innerText = "Saving to Database...";
+
+    // 2. Send to Google (Re-using the 'saveData' action)
+    // Note: We pass the CLIENT'S Name as 'u' so the backend knows who to update.
+    const res = await apiCall('saveData', { 
+        u: CURRENT_ADMIN_CLIENT.name, 
+        data: payload 
+    });
+
+    if(res.success) {
+        alert("Success! " + formName + " updated for " + CURRENT_ADMIN_CLIENT.name);
+        
+        // Refresh the local data object so if we switch forms, we don't lose these changes
+        if(!CURRENT_ADMIN_CLIENT.answers) CURRENT_ADMIN_CLIENT.answers = {};
+        Object.assign(CURRENT_ADMIN_CLIENT.answers, payload);
+        
+        btn.innerText = "Changes Saved";
+        setTimeout(() => btn.innerText = originalText, 2000);
+    } else {
+        alert("Error: " + res.message);
+        btn.innerText = originalText;
+    }
 }
 
 // --- ADMIN SETTINGS (PASSWORD CHANGE) ---
