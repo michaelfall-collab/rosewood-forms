@@ -198,9 +198,13 @@
                      <label class="q-label">Status</label>
                      <select id="ce-status" class="modern-input">
                         <option value="Active">Active</option>
-                        <option value="On Hold">On Hold</option>
-                     </select>
+                        <option value="Graduated">Graduated</option> </select>
                 </div>
+            </div>
+            
+            <div style="display:flex; justify-content:space-between; margin-top:20px;">
+                <button onclick="deleteClient()" id="btn-delete-client" class="btn-text" style="color:#d32f2f; font-size:12px;">Delete Client</button>
+                <button onclick="saveClientChanges()" class="btn-main small" style="width:auto;">Save Client</button>
             </div>
             
             <button onclick="saveClientChanges()" class="btn-main">Save Client</button>
