@@ -443,6 +443,10 @@ async function openStudio(formName) {
     
     const nameInput = document.getElementById('studio-form-name');
     const canvas = document.getElementById('studio-canvas');
+    const studio = document.getElementById('view-studio');
+    studio.classList.remove('hidden');
+    // Set the form title
+    document.getElementById('studio-form-name').value = formName;
     
     nameInput.value = formName;
     STUDIO_SCHEMA = [];
@@ -563,4 +567,21 @@ async function saveStudioChanges() {
         alert("Error: " + res.message);
         btn.innerText = originalText;
     }
+}
+function renderFormTemplatesGrid() {
+    const container = document.querySelector('.glass-table-container');
+    container.innerHTML = `
+        <div style="padding: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;">
+            <div class="template-card new-form" onclick="openStudio('New Form')">
+                <div class="plus-icon">+</div>
+                <div class="card-label">Create New Template</div>
+            </div>
+            ${ALL_FORMS.map(form => `
+                <div class="template-card" onclick="openStudio('${form}')">
+                    <div class="form-icon">📄</div>
+                    <div class="card-label">${form}</div>
+                </div>
+            `).join('')}
+        </div>
+    `;
 }
