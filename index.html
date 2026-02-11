@@ -16,9 +16,18 @@
             <p style="opacity:0.6; margin-top:0; margin-bottom:30px; font-size:14px; font-style:italic; font-family:'Libre Baskerville'">Secure Client Portal</p>
             
             <input type="text" id="login-user" placeholder="Username" class="modern-input">
-            <input type="password" id="login-pass" placeholder="Password" class="modern-input">
+            
+            <div style="position:relative;">
+                <input type="password" id="login-pass" placeholder="Password" class="modern-input" style="padding-right:40px;">
+                <span onclick="toggleLoginPass()" style="position:absolute; right:12px; top:12px; cursor:pointer; opacity:0.5;">👁️</span>
+            </div>
+            
             <button onclick="handleLogin()" class="btn-main">Enter Portal</button>
             <div id="login-msg" style="color:var(--rw-red); font-size:13px; margin-top:15px; min-height:20px;"></div>
+
+            <p style="font-size:12px; margin-top:20px; color:#666;">
+                New Client? <span onclick="openSignUpModal()" style="color:var(--rw-red); font-weight:700; cursor:pointer; text-decoration:underline;">Create Account</span>
+            </p>
         </div>
     </div>
 
@@ -88,6 +97,20 @@
                 
                 <button onclick="saveAdminCreds()" class="btn-main">Update Credentials</button>
             </div>
+        </div>
+    </div>
+    
+    <div id="signup-modal" class="modal-overlay hidden">
+        <div class="login-card" style="width:350px; padding:40px;">
+            <h3 style="margin-top:0;">Create Account</h3>
+            <p style="font-size:13px; opacity:0.6; margin-bottom:20px;">Join the Rosewood Client Portal.</p>
+            
+            <input id="su-name" class="modern-input" placeholder="Company Name">
+            <input id="su-user" class="modern-input" placeholder="Desired Username">
+            <input id="su-pass" type="password" class="modern-input" placeholder="Password">
+            
+            <button onclick="submitSignUp()" class="btn-main">Create Account</button>
+            <button onclick="document.getElementById('signup-modal').classList.add('hidden')" class="btn-text" style="margin-top:10px;">Cancel</button>
         </div>
     </div>
     
