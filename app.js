@@ -507,3 +507,20 @@ function addStudioQuestion() {
 function saveStudioChanges() {
     alert("Layout saved to cloud! (Simulation)");
 }
+
+/* --- QUALITY OF LIFE --- */
+
+// Trigger Login on Enter Key
+document.getElementById('login-pass').addEventListener("keypress", function(event) {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    handleLogin();
+  }
+});
+
+document.getElementById('login-user').addEventListener("keypress", function(event) {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    document.getElementById('login-pass').focus(); // Move to password field
+  }
+});
