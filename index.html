@@ -32,6 +32,7 @@
     </div>
 
     <div id="view-admin" class="hidden">
+        
         <nav class="top-nav">
             <div style="display:flex; align-items:center; gap:15px;">
                 <img src="logo.png" style="height:35px;">
@@ -51,30 +52,36 @@
         </div>
 
         <main class="container">
-          <div id="panel-clients">
-            <div style="display:flex; justify-content:space-between; align-items:end; margin-bottom:30px;">
-              <div>
-                <h1 style="margin:0; font-size:32px;">Client Database</h1>
-                <p style="margin:5px 0 0 0; opacity:0.6;">Manage questionnaires and project data.</p>
-              </div>
-              <button class="btn-main small" onclick="openClientEditor()">+ New Client</button>
+            
+            <div id="panel-clients">
+                <div style="display:flex; justify-content:space-between; align-items:end; margin-bottom:30px;">
+                    <div>
+                        <h1 style="margin:0; font-size:32px;">Client Database</h1>
+                        <p style="margin:5px 0 0 0; opacity:0.6;">Manage questionnaires and project data.</p>
+                    </div>
+                    <button class="btn-main small" onclick="openClientEditor()">+ New Client</button>
+                </div>
+
+                <div class="table-card">
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>Client Name</th>
+                                <th>Code</th>
+                                <th>Membership Tier</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="client-table-body">
+                            </tbody>
+                    </table>
+                </div>
             </div>
 
-            <div class="table-card">
-                <table class="modern-table">
-                    <thead>
-                        <tr>
-                            <th>Client Name</th>
-                            <th>Code</th>
-                            <th>Membership Tier</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="client-table-body">
-                        </tbody>
-                </table>
-            </div>
+            <div id="panel-forms" class="hidden">
+                </div>
+
         </main>
     </div>
 
