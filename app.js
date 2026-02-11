@@ -140,74 +140,91 @@ function goHome() {
 }
 
 
-// --- ADMIN PORTAL LOGIC ---
+/* --- ADMIN DASHBOARD LOGIC --- */
 
 async function initAdmin() {
-    // 1. Switch Views
+    // 1. Switch View
     document.getElementById('view-login').classList.add('hidden');
     document.getElementById('view-admin').classList.remove('hidden');
     
     const tbody = document.getElementById('client-table-body');
-    if(tbody) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px;">Loading database...</td></tr>';
-        
-        // 2. Fetch Data from Google
-        const data = await apiCall('adminData');
-        ALL_FORMS = data.forms || [];
-        
-        tbody.innerHTML = ""; // Clear loading message
-        
-        // 3. Build the Table
-        if(data.clients && data.clients.length > 0) {
-            data.clients.forEach(c => {
-                // ... inside the loop ...
+    tbody.innerHTML = "<tr><td colspan='5' style='text-align:center; opacity:0.5;'>Loading Rosewood Database...</td></tr>";
 
-                // ACTION COLUMN (The fix!)
-                const tdAction = document.createElement('td');
-                tdAction.style.display = "flex";
-                tdAction.style.gap = "8px"; // Space between buttons
-                
-                // 1. EDIT PROFILE BUTTON (Replaces "View")
-                const btnEdit = document.createElement('button');
-                btnEdit.className = "btn-soft"; // New soft class
-                btnEdit.innerText = "Profile";
-                btnEdit.onclick = () => openClientEditor(client); // Calls the unified editor
-                tdAction.appendChild(btnEdit);
-                
-                // 2. FORMS BUTTON (New! Dedicated button for forms)
-                const btnForms = document.createElement('button');
-                btnForms.className = "btn-soft";
-                btnForms.innerHTML = "Forms";
-                // Opens a simple form picker (we'll add this tiny function below)
-                btnForms.onclick = () => openFormPicker(client); 
-                tdAction.appendChild(btnForms);
-                
-                tr.appendChild(tdAction);
-                tbody.appendChild(tr);
-                
-                // Tier Styling Logic
-                let tierClass = "tier-bronze";
-                if(c.tier === "Gold") tierClass = "tier-gold";
-                if(c.tier === "Silver") tierClass = "tier-silver";
-                
-                tr.innerHTML = `
-                    <td style="font-weight:600;">${c.name}</td>
-                    <td style="font-family:monospace; color:#666;">${c.code}</td>
-                    <td><span class="status-pill ${tierClass}">${c.tier}</span></td>
-                    <td><span class="status-pill" style="background:#e6fffa; color:#047857;">Active</span></td>
-                    <td>
-                        <button class="btn-text" style="font-size:12px; margin-right:10px;" onclick="openClientEditor({id:'${c.id}', name:'${c.name}', code:'${c.code}', tier:'${c.tier}'})">EDIT</button>
-                        <button class="btn-text" style="font-size:12px; font-weight:700;" onclick="openClientView('${c.name}', '${c.id}')">VIEW &rarr;</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        } else {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No clients found.</td></tr>';
-        }
+    // 2. Fetch Data
+    const data = await apiCall('adminData');
+    
+    if(!data || !data.clients) {
+        tbody.innerHTML = "<tr><td colspan='5' style='text-align:center; color:red;'>Error loading data.</td></tr>";
+        return;
     }
+    
+    // Save Global State
+    ALL_FORMS = data.forms || [];
+    
+    // 3. Render Table
+    renderAdminDashboard(data.clients);
 }
 
+function renderAdminDashboard(clients) {
+    const tbody = document.getElementById('client-table-body');
+    tbody.innerHTML = ""; // Clear loader
+    
+    clients.forEach(client => {
+        // Skip header row if it exists in data
+        if(client.id === "ID") return;
+        
+        const tr = document.createElement('tr');
+        
+        // Col 1: Name (Bold)
+        const tdName = document.createElement('td');
+        tdName.style.fontWeight = "700";
+        tdName.innerText = client.name;
+        tr.appendChild(tdName);
+        
+        // Col 2: Code (Monospace style)
+        const tdCode = document.createElement('td');
+        tdCode.innerHTML = `<span style="font-family:monospace; background:rgba(0,0,0,0.05); padding:4px 8px; border-radius:6px;">${client.code}</span>`;
+        tr.appendChild(tdCode);
+        
+        // Col 3: Tier
+        const tdTier = document.createElement('td');
+        tdTier.innerText = client.tier;
+        tr.appendChild(tdTier);
+        
+        // Col 4: Status (Badge)
+        const tdStatus = document.createElement('td');
+        const isLive = (client.status === "Active");
+        tdStatus.innerHTML = `<span style="
+            background: ${isLive ? '#E8F5E9' : '#FFEBEE'}; 
+            color: ${isLive ? '#2E7D32' : '#C62828'};
+            padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;">
+            ${client.status || 'Active'}
+        </span>`;
+        tr.appendChild(tdStatus);
+        
+        // Col 5: Actions (The Soft Buttons)
+        const tdAction = document.createElement('td');
+        tdAction.style.display = "flex";
+        tdAction.style.gap = "8px"; 
+        
+        // Profile Button
+        const btnProfile = document.createElement('button');
+        btnProfile.className = "btn-soft";
+        btnProfile.innerHTML = "Profile";
+        btnProfile.onclick = () => openClientEditor(client);
+        tdAction.appendChild(btnProfile);
+        
+        // Forms Button
+        const btnForms = document.createElement('button');
+        btnForms.className = "btn-soft";
+        btnForms.innerHTML = "Forms";
+        btnForms.onclick = () => openFormPicker(client); 
+        tdAction.appendChild(btnForms);
+
+        tr.appendChild(tdAction);
+        tbody.appendChild(tr);
+    });
+}
 // --- ADMIN CLIENT DETAIL MODAL ---
 
 async function openClientView(name, id) {
