@@ -269,36 +269,35 @@ tr:hover td { background: rgba(255,255,255,0.4); }
 .template-icon { font-size: 32px; margin-bottom: 15px; opacity: 0.8; }
 .template-title { font-weight: 600; font-size: 14px; color: var(--text-main); }
 
-/* --- ROSEWOOD STUDIO: PREMIUM HEADER --- */
+/* --- ROSEWOOD STUDIO: OBSIDIAN BANNER --- */
 .studio-top-banner {
     position: fixed; top: 0; left: 0; right: 0;
-    height: 80px; /* Thicker banner */
-    background: #1A1716; /* Deep contrasting dark bark */
+    height: 90px; /* Thicker, premium height */
+    background: #1A1716; /* Deep Obsidian Bark */
     display: flex; align-items: center; justify-content: space-between;
     padding: 0 60px;
     z-index: 1000;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
 }
 
 .studio-top-banner .btn-soft {
-    background: rgba(255,255,255,0.1);
-    color: #fff;
-    border: 1px solid rgba(255,255,255,0.2);
-    padding: 10px 24px;
+    background: rgba(255,255,255,0.08);
+    color: #fff; border: 1px solid rgba(255,255,255,0.1);
+    padding: 12px 24px; border-radius: 50px;
+}
+.studio-top-banner .btn-soft:hover { background: rgba(255,255,255,0.15); }
+
+/* Adjust Paper to account for thicker banner */
+.studio-paper {
+    margin-top: 130px !important;
+    padding: 100px 120px !important;
 }
 
-.studio-top-banner .btn-soft:hover {
-    background: rgba(255,255,255,0.2);
-}
-
-/* Fix for Type Selector Text Size */
+/* Premium Select Box */
 .studio-type-selector {
-    font-size: 13px; /* Larger, readable text */
-    font-weight: 600;
-    color: var(--text-muted);
-    border: none;
-    background: none;
-    cursor: pointer;
+    font-size: 13px; font-weight: 700; color: var(--text-muted);
+    border: 1px solid transparent; background: transparent;
+    padding: 5px 10px; border-radius: 6px; cursor: pointer;
+    transition: 0.2s;
 }
-
-/* Textarea is now "Long Answer" */
+.studio-type-selector:hover { background: rgba(0,0,0,0.05); color: var(--rw-red); }
