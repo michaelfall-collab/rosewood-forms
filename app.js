@@ -356,3 +356,35 @@ function switchAdminTab(tab) {
     // 3. Load Data if needed
     if(tab === 'forms') loadFormBuilderList(); // We will build this next!
 }
+
+/* --- LOGIN EXTRAS --- */
+function toggleLoginPass() {
+    const x = document.getElementById("login-pass");
+    x.type = (x.type === "password") ? "text" : "password";
+}
+
+function openSignUpModal() {
+    document.getElementById('signup-modal').classList.remove('hidden');
+}
+
+async function submitSignUp() {
+    const name = document.getElementById('su-name').value;
+    const user = document.getElementById('su-user').value;
+    const pass = document.getElementById('su-pass').value;
+    
+    if(!name || !user || !pass) { alert("All fields required."); return; }
+    
+    const btn = document.querySelector('#signup-modal .btn-main');
+    btn.innerText = "Creating...";
+    
+    // Calls new API action
+    const res = await apiCall('signUp', { name, user, pass });
+    
+    if(res.success) {
+        alert("Account created! Please log in.");
+        location.reload();
+    } else {
+        alert("Error: " + res.message);
+        btn.innerText = "Create Account";
+    }
+}
