@@ -171,7 +171,8 @@ async function initAdmin() {
                     <td><span class="status-pill ${tierClass}">${c.tier}</span></td>
                     <td><span class="status-pill" style="background:#e6fffa; color:#047857;">Active</span></td>
                     <td>
-                        <button class="btn-text" style="font-size:12px; font-weight:700;" onclick="openClientView('${c.name}', '${c.id}')">VIEW DETAILS &rarr;</button>
+                        <button class="btn-text" style="font-size:12px; margin-right:10px;" onclick="openClientEditor({id:'${c.id}', name:'${c.name}', code:'${c.code}', tier:'${c.tier}'})">EDIT</button>
+                        <button class="btn-text" style="font-size:12px; font-weight:700;" onclick="openClientView('${c.name}', '${c.id}')">VIEW &rarr;</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -387,4 +388,46 @@ async function submitSignUp() {
         alert("Error: " + res.message);
         btn.innerText = "Create Account";
     }
+}
+
+/* --- FORM TEMPLATES TAB LOGIC --- */
+
+async function loadFormBuilderList() {
+    const container = document.getElementById('panel-forms');
+    container.innerHTML = "<div style='text-align:center; padding:40px;'>Loading templates...</div>";
+    
+    // Reuse adminData to get forms, or call specific
+    const data = await apiCall('adminData');
+    const forms = data.forms || [];
+    
+    container.innerHTML = "";
+    
+    // Add "New Template" Card
+    const newCard = document.createElement('div');
+    newCard.className = "form-card";
+    newCard.style.borderStyle = "dashed";
+    newCard.style.textAlign = "center";
+    newCard.innerHTML = "<h3 style='color:var(--rw-red);'>+ New Template</h3>";
+    newCard.onclick = () => alert("Builder coming in next update!");
+    container.appendChild(newCard);
+    
+    // List Existing Templates
+    forms.forEach(f => {
+        const card = document.createElement('div');
+        card.className = "form-card";
+        card.innerHTML = `
+            <h3>${f}</h3>
+            <p style="font-size:12px; opacity:0.6;">Active Questionnaire</p>
+            <div style="margin-top:15px;">
+                <button class="btn-small" onclick="loadForm('${f}')">Edit Questions</button>
+            </div>
+        `;
+        // We reuse the existing loadForm function, but we might need to tweak it 
+        // to know we are in "Admin Edit Mode" vs "Client Entry Mode".
+        // For now, this lets you SEE the questions.
+        container.appendChild(card);
+    });
+    
+    // Apply Grid Styling
+    container.className = "card-grid";
 }
