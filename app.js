@@ -511,9 +511,10 @@ async function saveStudioChanges() {
 
 function renderStudioCanvas() {
     const list = document.getElementById('studio-questions-list');
+    if(!list) return;
     list.innerHTML = "";
     
-    // Filter out technical markers
+    // Filter technical markers
     const visibleSchema = STUDIO_SCHEMA.filter(f => f.key !== 'init_marker');
 
     visibleSchema.forEach((field, index) => {
@@ -532,8 +533,10 @@ function renderStudioCanvas() {
                             <button onclick="removeOption(${index}, ${i})">&times;</button>
                         </div>
                     `).join('')}
-                    <div style="display:flex; gap:5px; margin-top:10px;">
-                        <input type="text" id="opt-input-${index}" class="btn-soft small" style="width:120px; border:1px solid #ddd; padding:4px 12px;" placeholder="+ Option Name">
+                    <div style="display:flex; gap:10px; margin-top:10px;">
+                        <input type="text" id="opt-input-${index}" class="btn-soft small" 
+                            style="width:140px; border:1px solid #ddd; padding:6px 12px; background:#fff;" 
+                            placeholder="+ Option Name">
                         <button class="btn-main small" onclick="addOptionManual(${index})">Add</button>
                     </div>
                 </div>
@@ -544,7 +547,9 @@ function renderStudioCanvas() {
 
         block.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                <input class="studio-pdf-label" value="${field.label}" onchange="updateStudioField(${index}, 'label', this.value)" placeholder="Write your question here...">
+                <input class="studio-pdf-label" value="${field.label}" 
+                    onchange="updateStudioField(${index}, 'label', this.value)" 
+                    placeholder="Enter your question here...">
                 
                 <select class="studio-type-selector" onchange="updateStudioField(${index}, 'type', this.value)">
                     <option value="text" ${field.type==='text'?'selected':''}>Short Answer</option>
@@ -580,29 +585,47 @@ function addOptionManual(index) {
     }
 }
 
-// THE CLOUD SAVE FIX
+// THE SAVE FIX
 async function saveStudioChanges() {
-    const name = document.getElementById('studio-form-title-display').value || "Unnamed Template";
-    const btn = document.querySelector('.studio-top-banner .btn-main');
+    // 1. Get current title from the display input
+    const titleInput = document.getElementById('studio-form-title-display');
+    const name = titleInput ? titleInput.value.trim() : "Unnamed Template";
     
-    const originalText = btn.innerText;
-    btn.innerText = "Syncing with Cloud...";
+    // 2. Get the button for UI feedback
+    const btn = document.getElementById('btn-save-studio');
+    
+    if(!name) {
+        alert("Please provide a Template Name.");
+        return;
+    }
 
-    // This calls the action we added to code.gs
+    const originalText = btn.innerText;
+    btn.innerText = "Syncing...";
+    btn.disabled = true;
+
+    // 3. Send to GAS
     const res = await apiCall('saveFormSchema', { 
         formName: name, 
         schema: STUDIO_SCHEMA 
     });
 
     if(res.success) {
-        btn.innerText = "Template Synced";
-        setTimeout(() => btn.innerText = originalText, 2000);
+        btn.innerText = "Cloud Synced";
+        btn.style.background = "#2E7D32"; // Success Green
+        setTimeout(() => {
+            btn.innerText = originalText;
+            btn.style.background = "var(--rw-red)";
+            btn.disabled = false;
+        }, 2000);
+        // Refresh local form list
         if(!ALL_FORMS.includes(name)) ALL_FORMS.push(name);
     } else {
         alert("Sync Error: " + res.message);
         btn.innerText = originalText;
+        btn.disabled = false;
     }
 }
+
 function removeOption(fieldIndex, optIndex) {
     STUDIO_SCHEMA[fieldIndex].options.splice(optIndex, 1);
     renderStudioCanvas();
