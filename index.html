@@ -88,39 +88,25 @@
         </main>
     </div>
 
-    <div id="view-studio" class="hidden">
-        <nav class="top-nav" style="border-bottom:none; background: #fafaf9;">
-            <div style="display:flex; align-items:center; gap:15px;">
-                <button onclick="closeStudio()" class="btn-text" style="font-size:16px;">&larr; Exit Studio</button>
-                <div style="width:1px; height:20px; background:#ddd;"></div>
-                <div id="studio-form-title" class="brand-font" style="font-size:18px;">Form Name</div>
-            </div>
-            <button class="btn-main small" onclick="saveStudioChanges()">Save Layout</button>
-        </nav>
-
-        <main class="container" style="max-width:1400px; margin-top:20px;">
-            <div class="studio-canvas" id="studio-canvas">
-                
-                <div class="studio-toolbar">
-                    <div class="studio-tool" onclick="addStudioQuestion()">
-                        <div class="tool-icon">+</div>
-                        <span class="tool-label">Add Question</span>
-                    </div>
-                    <div class="studio-tool" onclick="alert('Coming Soon: Section Breaks')">
-                        <div class="tool-icon">T</div>
-                        <span class="tool-label">Add Section</span>
-                    </div>
-                    <div class="studio-tool" style="margin-top:auto; color:#d32f2f;" onclick="alert('Select a question to delete')">
-                        <div class="tool-icon">x</div>
-                        <span class="tool-label">Delete</span>
-                    </div>
+    <div id="view-studio" class="hidden" style="background:#F5F5F7; min-height:100vh; padding-bottom:100px;">
+        
+        <div class="glass-header-bar" style="position:sticky; top:0; z-index:100; background:rgba(245, 245, 247, 0.9); padding:20px 40px; margin:0; border-bottom:1px solid rgba(0,0,0,0.05);">
+            <div style="display:flex; align-items:center; gap:20px;">
+                <button onclick="closeStudio()" class="btn-soft">← Back</button>
+                <div style="h1">
+                    <input id="studio-form-name" type="text" value="New Form" 
+                        style="background:transparent; border:none; font-family:'Libre Baskerville'; font-size:20px; font-weight:700; color:var(--text-main); width:300px;">
                 </div>
-
-                <div id="studio-list" style="width:100%; display:flex; flex-direction:column; align-items:center; gap:15px; padding-bottom:100px;"></div>
-                
             </div>
-        </main>
-    </div>
+            <div style="display:flex; gap:10px;">
+                <button onclick="addStudioQuestion()" class="btn-soft" style="color:var(--accent);">+ Add Question</button>
+                <button onclick="saveStudioChanges()" class="btn-main">Save Design</button>
+            </div>
+        </div>
+
+        <div id="studio-canvas" class="glass-card" style="margin:40px auto; max-width:800px; min-height:800px; padding:60px; transform:none; opacity:1;">
+            </div>
+
     </div>
     
     <div id="form-picker-modal" class="glass-backdrop">
