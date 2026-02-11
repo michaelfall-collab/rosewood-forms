@@ -268,3 +268,37 @@ tr:hover td { background: rgba(255,255,255,0.4); }
 }
 .template-icon { font-size: 32px; margin-bottom: 15px; opacity: 0.8; }
 .template-title { font-weight: 600; font-size: 14px; color: var(--text-main); }
+
+/* --- ROSEWOOD STUDIO: PREMIUM HEADER --- */
+.studio-top-banner {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 80px; /* Thicker banner */
+    background: #1A1716; /* Deep contrasting dark bark */
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 60px;
+    z-index: 1000;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.studio-top-banner .btn-soft {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 10px 24px;
+}
+
+.studio-top-banner .btn-soft:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+/* Fix for Type Selector Text Size */
+.studio-type-selector {
+    font-size: 13px; /* Larger, readable text */
+    font-weight: 600;
+    color: var(--text-muted);
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+/* Textarea is now "Long Answer" */
