@@ -228,7 +228,13 @@ async function loadClientFormView() {
     const title = document.getElementById('zen-title');
     const subtitle = document.getElementById('zen-subtitle');
     
-    viewer.classList.add('active'); // Triggers CSS fade/slide
+    viewer.classList.add('active'); 
+    
+    // FIX: Add "Form" to the end if it's missing
+    const displayName = formName.toLowerCase().includes('form') ? formName : formName + " Form";
+    
+    title.innerText = displayName;
+    subtitle.innerText = "EDITING: " + CURRENT_ADMIN_CLIENT.name;
     title.innerText = formName;
     subtitle.innerText = "EDITING: " + CURRENT_ADMIN_CLIENT.name;
     body.innerHTML = "<div style='text-align:center; padding-top:100px; opacity:0.5;'>Fetching data...</div>";
