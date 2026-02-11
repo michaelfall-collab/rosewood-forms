@@ -108,3 +108,72 @@ function goHome() {
 function logout() {
     location.reload();
 }
+// --- ADMIN MODAL LOGIC ---
+let CURRENT_ADMIN_CLIENT = null;
+
+async function openClientView(name, id) {
+    document.getElementById('admin-modal').classList.remove('hidden');
+    document.getElementById('modal-title').innerText = name;
+    document.getElementById('modal-content').innerHTML = "Loading client data...";
+    
+    // 1. Fetch Client Data
+    const profile = await apiCall('getClientProfile', { clientId: id });
+    CURRENT_ADMIN_CLIENT = profile; // Save for later
+    
+    // 2. Populate Form Dropdown
+    const forms = ['Website', 'CRM', 'Onboarding']; // Or fetch from server
+    const sel = document.getElementById('modal-form-select');
+    sel.innerHTML = '<option value="">-- Select Form --</option>';
+    forms.forEach(f => {
+        sel.innerHTML += `<option value="${f}">${f}</option>`;
+    });
+}
+
+async function loadClientFormView() {
+    const formName = document.getElementById('modal-form-select').value;
+    const container = document.getElementById('modal-content');
+    
+    if(!formName) return;
+    
+    container.innerHTML = "Loading answers...";
+    
+    // Fetch empty form schema
+    const schema = await apiCall('getSchema', { formName });
+    const answers = CURRENT_ADMIN_CLIENT.answers || {};
+    
+    container.innerHTML = "";
+    
+    // Render (Read-Only)
+    schema.forEach(field => {
+        const div = document.createElement('div');
+        div.style.marginBottom = "20px";
+        
+        const label = document.createElement('div');
+        label.style.fontWeight = "bold";
+        label.style.fontSize = "12px";
+        label.style.color = "#666";
+        label.style.marginBottom = "5px";
+        label.innerText = field.label;
+        div.appendChild(label);
+        
+        const val = document.createElement('div');
+        val.style.padding = "10px";
+        val.style.background = "#f9f9f9";
+        val.style.border = "1px solid #eee";
+        val.style.borderRadius = "4px";
+        val.innerText = answers[field.key] || "(No Answer)";
+        
+        // Highlight if answered
+        if(answers[field.key]) {
+            val.style.borderLeft = "3px solid #A92F3D";
+            val.style.background = "#fff";
+        }
+        
+        div.appendChild(val);
+        container.appendChild(div);
+    });
+}
+
+function closeModal() {
+    document.getElementById('admin-modal').classList.add('hidden');
+}
