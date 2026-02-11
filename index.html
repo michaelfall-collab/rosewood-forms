@@ -121,30 +121,6 @@
             </div>
         </main>
     </div>
-
-    <div id="settings-modal" class="modal-overlay hidden">
-        <div class="login-card" style="width:450px; padding:0; text-align:left; overflow:hidden;">
-            <div class="modal-header">
-                <h3 style="margin:0;">Admin Security</h3>
-                <button onclick="document.getElementById('settings-modal').classList.add('hidden')" class="btn-text" style="font-size:20px;">&times;</button>
-            </div>
-            <div style="padding:30px;">
-                <p style="font-size:13px; opacity:0.7; margin-bottom:20px;">
-                    Update your administrator credentials below. A confirmation email will be sent to sent to the <strong>Notification Email</strong> saved below.
-                </p>
-
-                <label style="font-size:11px; font-weight:700; text-transform:uppercase; display:block; margin-bottom:5px;">Notification Email</label>
-                <input id="set-email" class="modern-input" placeholder="michaelfall@rosewood.us.com">
-                
-                <label style="font-size:11px; font-weight:700; text-transform:uppercase; display:block; margin-bottom:5px;">New Username</label>
-                <input id="set-user" class="modern-input" placeholder="admin">
-                
-                <label style="font-size:11px; font-weight:700; text-transform:uppercase; display:block; margin-bottom:5px;">New Password</label>
-                <input id="set-pass" class="modern-input" type="password" placeholder="••••••••">
-                
-                <button onclick="saveAdminCreds()" class="btn-main">Update Credentials</button>
-            </div>
-        </div>
     </div>
     
     <div id="form-picker-modal" class="glass-backdrop">
@@ -155,20 +131,6 @@
             </div>
             <div id="form-list-container" class="glass-content" style="padding-top:10px;">
                 </div>
-        </div>
-    </div>
-    
-    <div id="signup-modal" class="modal-overlay hidden">
-        <div class="login-card" style="width:350px; padding:40px;">
-            <h3 style="margin-top:0;">Create Account</h3>
-            <p style="font-size:13px; opacity:0.6; margin-bottom:20px;">Join the Rosewood Client Portal.</p>
-            
-            <input id="su-name" class="modern-input" placeholder="Company Name">
-            <input id="su-user" class="modern-input" placeholder="Desired Username">
-            <input id="su-pass" type="password" class="modern-input" placeholder="Password">
-            
-            <button onclick="submitSignUp()" class="btn-main">Create Account</button>
-            <button onclick="document.getElementById('signup-modal').classList.add('hidden')" class="btn-text" style="margin-top:10px;">Cancel</button>
         </div>
     </div>
     
