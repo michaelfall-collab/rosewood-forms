@@ -289,3 +289,43 @@ async function loadClientFormView() {
 function closeModal() {
     document.getElementById('admin-modal').classList.add('hidden');
 }
+/* --- ADMIN SETTINGS --- */
+function openSettings() {
+    document.getElementById('settings-modal').classList.remove('hidden');
+    // Pre-fill current (optional, or leave blank for security)
+    document.getElementById('set-user').value = ""; 
+    document.getElementById('set-pass').value = "";
+}
+
+async function saveAdminCreds() {
+    const u = document.getElementById('set-user').value;
+    const p = document.getElementById('set-pass').value;
+    
+    if(!u || !p) { alert("Please enter both fields."); return; }
+    
+    const btn = document.querySelector('#settings-modal .btn-main');
+    btn.innerText = "Updating...";
+    
+    // We add a new action "updateCreds" to your API
+    // Note: You need to add this 'else if' to your doGet/doPost in code.gs if not there
+    // For now, let's assume you added updateAdminCreds to the API router.
+    
+    // Quick Fix: Since I didn't give you the Router update in Part 1, 
+    // let's assume you will update code.gs to handle action: "updateCreds"
+    
+    /* IN CODE.GS Router (doPost):
+       else if (action === "updateCreds") {
+          response = updateAdminCreds(request.u, request.p);
+       }
+    */
+    
+    const res = await apiCall('updateCreds', { u, p });
+    
+    if(res.success) {
+        alert("Credentials updated! Please log in again.");
+        location.reload();
+    } else {
+        alert("Error: " + res.message);
+        btn.innerText = "Update Credentials";
+    }
+}
