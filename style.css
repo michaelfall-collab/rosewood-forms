@@ -301,3 +301,35 @@ tr:hover td { background: rgba(255,255,255,0.4); }
     transition: 0.2s;
 }
 .studio-type-selector:hover { background: rgba(0,0,0,0.05); color: var(--rw-red); }
+
+/* --- Z-INDEX FIXES --- */
+
+/* 1. Force Studio Layer to Top */
+#view-studio {
+    z-index: 9000 !important; /* Above everything */
+    position: fixed !important;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    overflow-y: auto; /* Allow scrolling */
+}
+
+/* 2. Force Banner even higher */
+.studio-top-banner {
+    z-index: 9001 !important; /* Above the paper */
+    position: fixed; top: 0; left: 0; width: 100%;
+    cursor: default; /* Ensure mouse sees it */
+}
+
+/* 3. Make sure the button is clickable */
+#btn-save-studio {
+    position: relative;
+    z-index: 9002 !important;
+    cursor: pointer !important;
+    pointer-events: auto !important; /* Force click capture */
+}
+
+/* 4. Ensure Paper is pushed down */
+.studio-paper {
+    margin-top: 140px !important; /* Clear the banner */
+    position: relative;
+    z-index: 9000;
+}
