@@ -561,11 +561,22 @@ function renderStudioCanvas() {
 // Logic to add options without needing "Enter"
 function addOptionManual(index) {
     const input = document.getElementById(`opt-input-${index}`);
+    if(!input) return;
+    
     const val = input.value.trim();
     if(val) {
+        // Ensure the options array exists
         if(!STUDIO_SCHEMA[index].options) STUDIO_SCHEMA[index].options = [];
+        
         STUDIO_SCHEMA[index].options.push(val);
-        renderStudioCanvas();
+        input.value = "";
+        
+        // RE-RENDER immediately so the new pill appears
+        renderStudioCanvas(); 
+        
+        // Refocus the input for rapid entry
+        const newInput = document.getElementById(`opt-input-${index}`);
+        if(newInput) newInput.focus();
     }
 }
 
