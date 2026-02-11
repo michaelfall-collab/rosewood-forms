@@ -151,3 +151,57 @@ tr:hover td { background: rgba(255,255,255,0.4); }
     75% { transform: translateX(-5px); }
     100% { transform: translateX(0); }
 }
+
+/* --- ROSEWOOD STUDIO (Notion-Style) --- */
+.studio-block {
+    position: relative;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+}
+.studio-block:hover {
+    background: #F9F9FA;
+    border-color: rgba(0,0,0,0.05);
+}
+
+/* The Label Editor */
+.studio-label-input {
+    font-family: 'Libre Baskerville'; font-size: 16px; color: var(--text-main);
+    width: 100%; border: none; background: transparent; padding: 0;
+}
+.studio-label-input:focus { outline: none; border-bottom: 1px solid var(--accent); }
+
+/* The Type Badge */
+.type-badge {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
+    background: #eee; padding: 2px 6px; border-radius: 4px; color: #666;
+    margin-bottom: 5px; display: inline-block; cursor: pointer;
+}
+
+/* Controls that appear on hover */
+.studio-controls {
+    position: absolute; right: 10px; top: 10px;
+    opacity: 0; transition: 0.2s; display: flex; gap: 5px;
+}
+.studio-block:hover .studio-controls { opacity: 1; }
+
+/* The "Card" Grid for the Dashboard */
+.template-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;
+    padding: 20px 0;
+}
+.template-card {
+    background: rgba(255,255,255,0.6);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 16px; padding: 25px;
+    text-align: center; cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.template-card:hover {
+    background: #fff; transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+.template-icon { font-size: 32px; margin-bottom: 15px; opacity: 0.8; }
+.template-title { font-weight: 600; font-size: 14px; color: var(--text-main); }
