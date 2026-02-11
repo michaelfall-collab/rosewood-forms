@@ -6,6 +6,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbx551oCMIdzsB1CcmDSCwrS
 let USER_DATA = null;
 let CURRENT_ADMIN_CLIENT = null;
 let ALL_FORMS = [];
+let STUDIO_SCHEMA = [];
 
 // --- CORE API FUNCTION ---
 async function apiCall(action, payload = {}) {
@@ -715,3 +716,4 @@ function renderFormTemplatesGrid() {
         </div>
     `;
 }
+
