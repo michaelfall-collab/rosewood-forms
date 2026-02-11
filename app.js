@@ -343,3 +343,16 @@ async function saveClientChanges() {
         btn.innerText = "Save Client";
     }
 }
+function switchAdminTab(tab) {
+    // 1. UI Toggles
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-'+tab).classList.add('active');
+    
+    // 2. View Toggles
+    document.getElementById('panel-clients').classList.add('hidden');
+    document.getElementById('panel-forms').classList.add('hidden');
+    document.getElementById('panel-'+tab).classList.remove('hidden');
+    
+    // 3. Load Data if needed
+    if(tab === 'forms') loadFormBuilderList(); // We will build this next!
+}
