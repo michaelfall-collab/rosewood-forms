@@ -177,3 +177,115 @@ async function loadClientFormView() {
 function closeModal() {
     document.getElementById('admin-modal').classList.add('hidden');
 }
+// --- ADMIN PORTAL LOGIC ---
+
+async function initAdmin() {
+    // 1. Switch Views
+    document.getElementById('view-login').classList.add('hidden');
+    document.getElementById('view-admin').classList.remove('hidden');
+    
+    const tbody = document.getElementById('client-table-body');
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px;">Loading database...</td></tr>';
+    
+    // 2. Fetch Data from Google
+    const data = await apiCall('adminData');
+    
+    tbody.innerHTML = ""; // Clear loading message
+    
+    // 3. Build the Table
+    if(data.clients && data.clients.length > 0) {
+        data.clients.forEach(c => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="font-weight:600;">${c.name}</td>
+                <td style="font-family:monospace; color:#666;">${c.code}</td>
+                <td><span style="font-size:12px; background:#eee; padding:2px 6px; border-radius:4px;">${c.tier}</span></td>
+                <td><span class="status-pill">Active</span></td>
+                <td>
+                    <button class="btn-small" onclick="openClientView('${c.name}', '${c.id}')">View</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } else {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No clients found.</td></tr>';
+    }
+}
+
+// --- ADMIN MODAL LOGIC ---
+let CURRENT_ADMIN_CLIENT = null;
+
+async function openClientView(name, id) {
+    document.getElementById('admin-modal').classList.remove('hidden');
+    document.getElementById('modal-title').innerText = name;
+    document.getElementById('modal-content').innerHTML = "Loading client data...";
+    
+    // 1. Fetch Detailed Client Profile
+    const profile = await apiCall('getClientProfile', { clientId: id });
+    CURRENT_ADMIN_CLIENT = profile; 
+    
+    // 2. Populate Form Dropdown
+    const forms = ['Website', 'CRM', 'Onboarding']; 
+    const sel = document.getElementById('modal-form-select');
+    sel.innerHTML = '<option value="">-- Select Form --</option>';
+    forms.forEach(f => {
+        sel.innerHTML += `<option value="${f}">${f}</option>`;
+    });
+}
+
+async function loadClientFormView() {
+    const formName = document.getElementById('modal-form-select').value;
+    const container = document.getElementById('modal-content');
+    
+    if(!formName) return;
+    
+    container.innerHTML = "Loading answers...";
+    
+    // Fetch schema & answers
+    const schema = await apiCall('getSchema', { formName });
+    const answers = CURRENT_ADMIN_CLIENT.answers || {};
+    
+    container.innerHTML = "";
+    
+    // Render Read-Only View
+    if(schema.length === 0) {
+        container.innerHTML = "Form is empty.";
+        return;
+    }
+
+    schema.forEach(field => {
+        const div = document.createElement('div');
+        div.style.marginBottom = "20px";
+        
+        const label = document.createElement('div');
+        label.style.fontWeight = "bold";
+        label.style.fontSize = "12px";
+        label.style.color = "#666";
+        label.style.marginBottom = "5px";
+        label.innerText = field.label;
+        div.appendChild(label);
+        
+        const val = document.createElement('div');
+        val.style.padding = "10px";
+        val.style.background = "#f9f9f9";
+        val.style.border = "1px solid #eee";
+        val.style.borderRadius = "4px";
+        
+        // Check if answer exists
+        const userAns = answers[field.key];
+        val.innerText = userAns || "(No Answer)";
+        
+        // Highlight filled answers
+        if(userAns) {
+            val.style.borderLeft = "3px solid #A92F3D"; // Rosewood Red
+            val.style.background = "#fff";
+        }
+        
+        div.appendChild(val);
+        container.appendChild(div);
+    });
+}
+
+function closeModal() {
+    document.getElementById('admin-modal').classList.add('hidden');
+}
