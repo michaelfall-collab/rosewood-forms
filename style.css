@@ -135,3 +135,11 @@ tr:hover td { background: rgba(255,255,255,0.4); }
     background: #fff; border-color: var(--accent); outline: none; 
     box-shadow: 0 0 0 4px rgba(169, 47, 61, 0.1); 
 }
+
+/* Logo Sizing */
+.logo-login {
+    width: 60px; /* Much smaller and sharper */
+    height: auto;
+    margin-bottom: 20px;
+    opacity: 0.9;
+}
