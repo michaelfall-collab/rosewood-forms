@@ -40,7 +40,7 @@
                     <h1 style="margin:0; font-size:32px;">Client Database</h1>
                     <p style="margin:5px 0 0 0; opacity:0.6;">Manage questionnaires and project data.</p>
                 </div>
-                <button class="btn-main small" style="opacity:0.5; cursor:not-allowed;">+ New Client</button>
+                <button class="btn-main small" onclick="openClientEditor()">+ New Client</button>
             </div>
 
             <div class="table-card">
@@ -94,6 +94,41 @@
                      </select>
             </div>
             <div id="modal-content" style="padding:30px;">Select a form to view.</div>
+        </div>
+    </div>
+
+    <div id="client-editor-modal" class="modal-overlay hidden">
+        <div class="login-card" style="width:400px; padding:40px; text-align:left;">
+            <div class="modal-header" style="margin:-40px -40px 30px -40px;">
+                <h3 id="ce-title" style="margin:0;">New Client</h3>
+                <button onclick="document.getElementById('client-editor-modal').classList.add('hidden')" class="btn-text" style="font-size:20px;">&times;</button>
+            </div>
+            
+            <input type="hidden" id="ce-id"> <label class="q-label">Company Name</label>
+            <input id="ce-name" class="modern-input" placeholder="e.g. Acme Corp">
+            
+            <label class="q-label">Access Code</label>
+            <input id="ce-code" class="modern-input" placeholder="e.g. acme2026">
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                <div>
+                    <label class="q-label">Tier</label>
+                    <select id="ce-tier" class="modern-input">
+                        <option value="Bronze">Bronze</option>
+                        <option value="Silver">Silver</option>
+                        <option value="Gold">Gold</option>
+                    </select>
+                </div>
+                <div>
+                     <label class="q-label">Status</label>
+                     <select id="ce-status" class="modern-input">
+                        <option value="Active">Active</option>
+                        <option value="On Hold">On Hold</option>
+                     </select>
+                </div>
+            </div>
+            
+            <button onclick="saveClientChanges()" class="btn-main">Save Client</button>
         </div>
     </div>
 
