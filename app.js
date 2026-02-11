@@ -1,6 +1,6 @@
 // --- CONFIGURATION ---
 // UPDATED URL (The one you confirmed works)
-const API_URL = "https://script.google.com/macros/s/AKfycbyM3lx3DdRNu2ia48nAD2A5Nc7oaDDrC0UqROso0VY7a3Qn9nXfd2SI1pxHhlyfDx3r5A/exec"; 
+const API_URL = "https://script.google.com/macros/s/AKfycbx551oCMIdzsB1CcmDSCwrSxQ0kgavsOQFJcnkm3LF7Sq3mqaOunwDEPhg7xPC_LKZuig/exec"; 
 
 // --- STATE ---
 let USER_DATA = null;
