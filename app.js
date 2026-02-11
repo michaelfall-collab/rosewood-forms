@@ -471,34 +471,69 @@ function closeStudio() {
 }
 
 function renderStudioCanvas() {
-    const canvas = document.getElementById('studio-canvas');
-    canvas.innerHTML = "";
+    const list = document.getElementById('studio-questions-list');
+    list.innerHTML = "";
     
-    if(STUDIO_SCHEMA.length === 0) {
-        canvas.innerHTML = "<div style='text-align:center; color:#ccc; padding:40px;'>This form is empty. Add a question to start.</div>";
-        return;
-    }
+    // 1. FILTER: We only show rows that ARE NOT headers or markers
+    const visibleSchema = STUDIO_SCHEMA.filter(f => f.type !== 'header' && f.key !== 'init_marker');
 
-    STUDIO_SCHEMA.forEach((field, index) => {
-        const div = document.createElement('div');
-        div.className = "studio-block";
+    visibleSchema.forEach((field, index) => {
+        const block = document.createElement('div');
+        block.className = "studio-question-block";
         
-        div.innerHTML = `
-            <div class="studio-controls">
-                <button class="btn-soft" style="padding:4px 8px; font-size:10px;" onclick="deleteStudioField(${index})">🗑</button>
-            </div>
-            
-            <div class="type-badge" onclick="cycleType(${index})">${field.type} (Click to Change)</div>
-            
-            <input class="studio-label-input" value="${field.label}" 
-                onchange="updateStudioField(${index}, 'label', this.value)" placeholder="Enter Question text...">
+        let inputHtml = "";
+
+        // Handle Slick Multiple Choice Logic
+        if (field.type === 'select') {
+            const options = field.options || [];
+            inputHtml = `
+                <div class="choice-pill-container">
+                    ${options.map((opt, i) => `
+                        <div class="choice-pill">
+                            ${opt}
+                            <button onclick="removeOption(${index}, ${i})">&times;</button>
+                        </div>
+                    `).join('')}
+                    <button class="btn-soft small" style="padding: 4px 10px;" onclick="addOption(${index})">+ Option</button>
+                </div>
+            `;
+        } else {
+            // Standard placeholder for text/textarea
+            inputHtml = `<div style="height: 30px; border-bottom: 1px dashed #eee; width: 60%; opacity: 0.5;"></div>`;
+        }
+
+        block.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <input class="studio-pdf-label" value="${field.label}" 
+                    onchange="updateStudioField(${index}, 'label', this.value)">
                 
-            <input type="text" style="font-size:10px; color:#999; border:none; background:transparent; width:100%; margin-top:5px;"
-                value="${field.key}" onchange="updateStudioField(${index}, 'key', this.value)" placeholder="database_key_name">
+                <select onchange="updateStudioField(${index}, 'type', this.value)" style="font-size:10px; opacity:0.5; border:none; background:none;">
+                    <option value="text" ${field.type==='text'?'selected':''}>Text</option>
+                    <option value="textarea" ${field.type==='textarea'?'selected':''}>Textarea</option>
+                    <option value="select" ${field.type==='select'?'selected':''}>Choice</option>
+                </select>
+            </div>
+            ${inputHtml}
+            <div style="font-size: 10px; color: #ccc; margin-top: 10px;">KEY: ${field.key}</div>
         `;
         
-        canvas.appendChild(div);
+        list.appendChild(block);
     });
+}
+
+// Slick Multi-Choice Handlers
+function addOption(fieldIndex) {
+    const opt = prompt("Enter option name:");
+    if (opt) {
+        if (!STUDIO_SCHEMA[fieldIndex].options) STUDIO_SCHEMA[fieldIndex].options = [];
+        STUDIO_SCHEMA[fieldIndex].options.push(opt);
+        renderStudioCanvas();
+    }
+}
+
+function removeOption(fieldIndex, optIndex) {
+    STUDIO_SCHEMA[fieldIndex].options.splice(optIndex, 1);
+    renderStudioCanvas();
 }
 
 function addStudioQuestion() {
