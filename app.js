@@ -213,46 +213,57 @@ async function openClientView(name, id) {
     }
 }
 
+/* --- 2030 FORM VIEWER LOGIC --- */
+
 async function loadClientFormView() {
     const formName = document.getElementById('modal-form-select').value;
-    const container = document.getElementById('modal-content');
-    
     if(!formName) return;
     
-    container.innerHTML = "<div style='text-align:center; opacity:0.5;'>Fetching data...</div>";
+    // 1. Close the old modal to clear the stage
+    document.getElementById('admin-modal').classList.add('hidden');
     
-    // Fetch schema & answers
+    // 2. Open the Zen Viewer
+    const viewer = document.getElementById('zen-viewer');
+    const body = document.getElementById('zen-body');
+    const title = document.getElementById('zen-title');
+    const subtitle = document.getElementById('zen-subtitle');
+    
+    viewer.classList.add('active'); // Triggers CSS fade/slide
+    title.innerText = formName;
+    subtitle.innerText = "EDITING: " + CURRENT_ADMIN_CLIENT.name;
+    body.innerHTML = "<div style='text-align:center; padding-top:100px; opacity:0.5;'>Fetching data...</div>";
+    
+    // 3. Fetch Data
     const schema = await apiCall('getSchema', { formName });
-    // Use the latest answers from the client object
     const answers = CURRENT_ADMIN_CLIENT.answers || {};
     
-    container.innerHTML = "";
+    body.innerHTML = ""; // Clear loader
     
     if(!schema || schema.length === 0) {
-        container.innerHTML = "<p>Form is empty.</p>";
+        body.innerHTML = "<p style='text-align:center; margin-top:50px;'>This form has no questions yet.</p>";
         return;
     }
 
-    // --- RENDER INPUTS (EDIT MODE) ---
+    // 4. Render 'Clean' Inputs
     schema.forEach(field => {
-        const div = document.createElement('div');
-        div.className = "q-block"; // Re-using your client-side styling
+        const group = document.createElement('div');
+        group.className = "zen-group";
         
+        // CLEAN LABEL: No IDs, no visibility tags
         const label = document.createElement('label');
-        label.className = "q-label";
-        label.innerHTML = `${field.label} <span style="opacity:0.4; font-weight:normal; font-size:10px; margin-left:5px;">(${field.visibility})</span>`;
-        div.appendChild(label);
+        label.className = "zen-label";
+        label.innerText = field.label; 
+        group.appendChild(label);
         
         let input;
         
         if (field.type === 'textarea') {
             input = document.createElement('textarea');
-            input.rows = 3;
-            input.className = "modern-input admin-input-field"; // Added marker class
+            input.rows = 4;
+            input.className = "zen-input zen-field"; // 'zen-field' marker for saving
         } else if (field.type === 'select') {
             input = document.createElement('select');
-            input.className = "modern-input admin-input-field";
-            // Add options
+            input.className = "zen-input zen-field";
             if(field.options) {
                 field.options.forEach(opt => {
                     const o = document.createElement('option');
@@ -264,29 +275,58 @@ async function loadClientFormView() {
         } else {
             input = document.createElement('input');
             input.type = "text";
-            input.className = "modern-input admin-input-field";
+            input.className = "zen-input zen-field";
         }
 
-        // PRE-FILL DATA
+        // Pre-fill & Metadata
         input.value = answers[field.key] || "";
+        input.setAttribute('data-key', field.key); // Hidden but essential for saving
         
-        // METADATA FOR SAVING
-        input.setAttribute('data-key', field.key);
-        
-        div.appendChild(input);
-        container.appendChild(div);
+        group.appendChild(input);
+        body.appendChild(group);
+    });
+}
+
+function closeZenViewer() {
+    document.getElementById('zen-viewer').classList.remove('active');
+    // Re-open the main admin modal so we don't lose context? 
+    // Or just go back to table. Let's go back to table for a cleaner feel.
+    // If you prefer, uncomment the line below:
+    // document.getElementById('admin-modal').classList.remove('hidden');
+}
+
+async function saveZenForm() {
+    const inputs = document.querySelectorAll('.zen-field');
+    const payload = {};
+    
+    inputs.forEach(input => {
+        const key = input.getAttribute('data-key');
+        if(key) payload[key] = input.value;
+    });
+    
+    const btn = document.querySelector('#zen-viewer .btn-main');
+    const originalText = btn.innerText;
+    btn.innerText = "Saving...";
+
+    const res = await apiCall('saveData', { 
+        u: CURRENT_ADMIN_CLIENT.name, 
+        data: payload 
     });
 
-    // --- ADD SAVE BUTTON ---
-    const btnDiv = document.createElement('div');
-    btnDiv.style.marginTop = "30px";
-    btnDiv.style.textAlign = "right";
-    btnDiv.innerHTML = `
-        <button onclick="saveAdminClientForm('${formName}')" class="btn-main" style="background-color:var(--rw-red);">
-            Save Changes
-        </button>
-    `;
-    container.appendChild(btnDiv);
+    if(res.success) {
+        // Update local state so we don't need to re-fetch
+        if(!CURRENT_ADMIN_CLIENT.answers) CURRENT_ADMIN_CLIENT.answers = {};
+        Object.assign(CURRENT_ADMIN_CLIENT.answers, payload);
+        
+        btn.innerText = "Saved";
+        setTimeout(() => { 
+            btn.innerText = originalText;
+            closeZenViewer(); 
+        }, 1000);
+    } else {
+        alert("Error: " + res.message);
+        btn.innerText = originalText;
+    }
 }
 
 async function saveAdminClientForm(formName) {
