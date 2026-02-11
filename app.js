@@ -385,45 +385,182 @@ window.addEventListener('DOMContentLoaded', () => {
 function switchAdminTab(tab) {
     const btnClients = document.getElementById('nav-clients');
     const btnForms = document.getElementById('nav-forms');
-    const tableBody = document.getElementById('client-table-body');
+    // We reuse the 'glass-table-container' div but clear it for Grid Mode
+    const container = document.querySelector('.glass-table-container');
     
     if (tab === 'clients') {
-        // STYLE: Highlight Clients
-        btnClients.style.background = "#fff";
-        btnClients.style.boxShadow = "0 2px 5px rgba(0,0,0,0.05)";
-        btnClients.style.opacity = "1";
+        // ... (Styling logic remains the same) ...
+        btnClients.style.background = "#fff"; btnClients.style.opacity = "1";
+        btnForms.style.background = "transparent"; btnForms.style.opacity = "0.6";
         
-        btnForms.style.background = "transparent";
-        btnForms.style.boxShadow = "none";
-        btnForms.style.opacity = "0.6";
-        
-        // ACTION: Reload Client Table
+        // Restore Table Layout
+        container.style.background = "rgba(255,255,255,0.5)";
+        container.innerHTML = `<table><thead><tr><th>Client Name</th><th>Access Code</th><th>Tier</th><th>Status</th><th>Actions</th></tr></thead><tbody id="client-table-body"></tbody></table>`;
         initAdmin(); 
     } 
     else if (tab === 'forms') {
-        // STYLE: Highlight Forms
-        btnForms.style.background = "#fff";
-        btnForms.style.boxShadow = "0 2px 5px rgba(0,0,0,0.05)";
-        btnForms.style.opacity = "1";
+        // ... (Styling logic) ...
+        btnForms.style.background = "#fff"; btnForms.style.opacity = "1";
+        btnClients.style.background = "transparent"; btnClients.style.opacity = "0.6";
         
-        btnClients.style.background = "transparent";
-        btnClients.style.boxShadow = "none";
-        btnClients.style.opacity = "0.6";
+        // RENDER CARD GRID
+        container.style.background = "transparent"; // Remove glass bg for grid
+        container.style.boxShadow = "none";
+        container.style.border = "none";
         
-        // ACTION: Show Forms List (Simple view for now)
-        tableBody.innerHTML = "";
-        if(ALL_FORMS.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:40px; opacity:0.5;">No forms found.</td></tr>`;
-        } else {
-            ALL_FORMS.forEach(f => {
-                tableBody.innerHTML += `
-                <tr>
-                    <td colspan="4" style="font-weight:600;">${f}</td>
-                    <td style="text-align:right;">
-                        <button class="btn-soft" onclick="openFormPicker({name:'Template Viewer', answers:{}}, '${f}')">Edit Template</button>
-                    </td>
-                </tr>`;
-            });
+        let html = `<div class="template-grid">`;
+        
+        // Add "New Form" Card
+        html += `
+            <div class="template-card" onclick="openStudio('New Form')">
+                <div class="template-icon" style="color:var(--accent);">+</div>
+                <div class="template-title">Create New Form</div>
+            </div>`;
+        
+        // Add Existing Forms
+        ALL_FORMS.forEach(f => {
+            html += `
+            <div class="template-card" onclick="openStudio('${f}')">
+                <div class="template-icon">📄</div>
+                <div class="template-title">${f}</div>
+                <div style="font-size:10px; color:#999; margin-top:5px;">Click to Edit</div>
+            </div>`;
+        });
+        
+        html += `</div>`;
+        container.innerHTML = html;
+    }
+}
+
+/* --- ROSEWOOD STUDIO LOGIC --- */
+
+let STUDIO_SCHEMA = []; // Stores the current form design
+
+async function openStudio(formName) {
+    // 1. Switch View
+    document.getElementById('view-admin').classList.add('hidden');
+    document.getElementById('view-studio').classList.remove('hidden');
+    
+    const nameInput = document.getElementById('studio-form-name');
+    const canvas = document.getElementById('studio-canvas');
+    
+    nameInput.value = formName;
+    STUDIO_SCHEMA = [];
+    canvas.innerHTML = "<div style='text-align:center; padding:50px; opacity:0.5;'>Loading design...</div>";
+    
+    // 2. Load Schema (if existing)
+    if(formName !== 'New Form') {
+        const res = await apiCall('getSchema', { formName });
+        if(res.success && res.schema.length > 0) {
+            STUDIO_SCHEMA = res.schema;
         }
+    }
+    
+    renderStudioCanvas();
+}
+
+function closeStudio() {
+    document.getElementById('view-studio').classList.add('hidden');
+    document.getElementById('view-admin').classList.remove('hidden');
+    // Refresh admin to see changes
+    switchAdminTab('forms');
+}
+
+function renderStudioCanvas() {
+    const canvas = document.getElementById('studio-canvas');
+    canvas.innerHTML = "";
+    
+    if(STUDIO_SCHEMA.length === 0) {
+        canvas.innerHTML = "<div style='text-align:center; color:#ccc; padding:40px;'>This form is empty. Add a question to start.</div>";
+        return;
+    }
+
+    STUDIO_SCHEMA.forEach((field, index) => {
+        const div = document.createElement('div');
+        div.className = "studio-block";
+        
+        div.innerHTML = `
+            <div class="studio-controls">
+                <button class="btn-soft" style="padding:4px 8px; font-size:10px;" onclick="deleteStudioField(${index})">🗑</button>
+            </div>
+            
+            <div class="type-badge" onclick="cycleType(${index})">${field.type} (Click to Change)</div>
+            
+            <input class="studio-label-input" value="${field.label}" 
+                onchange="updateStudioField(${index}, 'label', this.value)" placeholder="Enter Question text...">
+                
+            <input type="text" style="font-size:10px; color:#999; border:none; background:transparent; width:100%; margin-top:5px;"
+                value="${field.key}" onchange="updateStudioField(${index}, 'key', this.value)" placeholder="database_key_name">
+        `;
+        
+        canvas.appendChild(div);
+    });
+}
+
+function addStudioQuestion() {
+    // Add default text field
+    STUDIO_SCHEMA.push({
+        section: "General",
+        label: "New Question",
+        key: "question_" + Date.now(),
+        type: "text",
+        options: [],
+        visibility: "Public"
+    });
+    renderStudioCanvas();
+    // Scroll to bottom
+    window.scrollTo(0, document.body.scrollHeight);
+}
+
+function deleteStudioField(index) {
+    if(confirm("Delete this question?")) {
+        STUDIO_SCHEMA.splice(index, 1);
+        renderStudioCanvas();
+    }
+}
+
+function updateStudioField(index, prop, val) {
+    STUDIO_SCHEMA[index][prop] = val;
+}
+
+function cycleType(index) {
+    const types = ['text', 'textarea', 'select', 'header'];
+    const current = STUDIO_SCHEMA[index].type;
+    let next = types[(types.indexOf(current) + 1) % types.length];
+    
+    STUDIO_SCHEMA[index].type = next;
+    
+    // If select, ask for options (Simple prompt for now)
+    if(next === 'select') {
+        const opts = prompt("Enter options separated by comma:", "Yes,No,Maybe");
+        if(opts) STUDIO_SCHEMA[index].options = opts.split(',');
+    }
+    
+    renderStudioCanvas();
+}
+
+async function saveStudioChanges() {
+    const name = document.getElementById('studio-form-name').value;
+    const btn = document.querySelector('#view-studio .btn-main');
+    
+    if(!name) return alert("Please name your form.");
+    
+    const originalText = btn.innerText;
+    btn.innerText = "Saving...";
+    
+    const res = await apiCall('saveFormSchema', { 
+        formName: name, 
+        schema: STUDIO_SCHEMA 
+    });
+    
+    if(res.success) {
+        alert("Form Saved Successfully!");
+        // Update local list
+        if(!ALL_FORMS.includes(name)) ALL_FORMS.push(name);
+        btn.innerText = "Saved";
+        setTimeout(() => btn.innerText = originalText, 2000);
+    } else {
+        alert("Error: " + res.message);
+        btn.innerText = originalText;
     }
 }
