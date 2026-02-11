@@ -4,69 +4,95 @@ const API_URL = "https://script.google.com/macros/s/AKfycbwOHiy3ASAHxtgH8cdFZQFy
 
 // --- STATE ---
 let USER_DATA = null;
+let CURRENT_ADMIN_CLIENT = null;
 
-// --- FUNCTIONS ---
-
+// --- CORE API FUNCTION ---
 async function apiCall(action, payload = {}) {
-    document.getElementById('loader').classList.remove('hidden');
+    // Show global loader if available
+    const loader = document.getElementById('loader');
+    if(loader) loader.classList.remove('hidden');
+    
     payload.action = action;
     
-    // We use the "Beacon" pattern to talk to Google
     try {
         const response = await fetch(API_URL, {
             method: "POST",
             body: JSON.stringify(payload)
         });
         const data = await response.json();
-        document.getElementById('loader').classList.add('hidden');
+        if(loader) loader.classList.add('hidden');
         return data;
     } catch (e) {
-        document.getElementById('loader').classList.add('hidden');
+        if(loader) loader.classList.add('hidden');
         alert("Connection Error: " + e.message);
-        return { success: false };
+        return { success: false, message: e.message };
     }
 }
 
+// --- LOGIN LOGIC ---
 async function handleLogin() {
     const u = document.getElementById('login-user').value;
     const p = document.getElementById('login-pass').value;
     
+    const msg = document.getElementById('login-msg');
+    msg.innerText = "Verifying credentials...";
+    
     const res = await apiCall('login', { u, p });
     
     if (res.success) {
-        USER_DATA = res;
-        initDashboard();
+        msg.innerText = ""; // Clear error
+        if(res.type === 'admin') {
+            initAdmin();
+        } else {
+            USER_DATA = res;
+            initDashboard();
+        }
     } else {
-        document.getElementById('login-msg').innerText = "Invalid Credentials";
+        msg.innerText = res.message || "Invalid Credentials";
     }
 }
 
+function logout() {
+    location.reload();
+}
+
+// --- CLIENT PORTAL LOGIC ---
 function initDashboard() {
     document.getElementById('view-login').classList.add('hidden');
     document.getElementById('view-dashboard').classList.remove('hidden');
     
-    document.getElementById('welcome-hero').innerText = "Hello, " + USER_DATA.clientName;
-    document.getElementById('tier-badge').innerText = USER_DATA.tier + " Membership";
+    // Safety check for user data
+    if(!USER_DATA) return;
+
+    // Display User Info
+    const welcomeHero = document.getElementById('welcome-hero');
+    if(welcomeHero) welcomeHero.innerText = "Hello, " + USER_DATA.clientName;
     
+    const tierBadge = document.getElementById('tier-badge');
+    if(tierBadge) tierBadge.innerText = (USER_DATA.tier || "Bronze") + " Membership";
+    
+    // Load Client Forms
     const grid = document.getElementById('form-grid');
-    grid.innerHTML = "";
-    
-    // We hardcode the standard forms for now, or fetch them if you prefer
-    const forms = ['Website', 'CRM', 'Onboarding'];
-    
-    forms.forEach(f => {
-        const card = document.createElement('div');
-        card.className = "form-card";
-        card.innerHTML = `<h3>${f}</h3><p style="opacity:0.6; font-size:13px;">View & Edit</p>`;
-        card.onclick = () => loadForm(f);
-        grid.appendChild(card);
-    });
+    if(grid) {
+        grid.innerHTML = "";
+        const forms = ['Website', 'CRM', 'Onboarding'];
+        
+        forms.forEach(f => {
+            const card = document.createElement('div');
+            card.className = "form-card";
+            card.innerHTML = `<h3>${f}</h3><p style="opacity:0.6; font-size:13px;">View & Edit</p>`;
+            card.onclick = () => loadForm(f);
+            grid.appendChild(card);
+        });
+    }
 }
 
 async function loadForm(formName) {
     document.getElementById('view-dashboard').classList.add('hidden');
     document.getElementById('view-editor').classList.remove('hidden');
-    document.getElementById('form-name-header').innerText = formName;
+    
+    const header = document.getElementById('form-name-header');
+    if(header) header.innerText = formName;
     
     const container = document.getElementById('form-builder-area');
     container.innerHTML = "Loading...";
@@ -76,6 +102,11 @@ async function loadForm(formName) {
     
     container.innerHTML = "";
     
+    if(!schema || schema.length === 0) {
+        container.innerHTML = "No questions found for this form.";
+        return;
+    }
+
     schema.forEach(field => {
         const div = document.createElement('div');
         div.className = "q-block";
@@ -94,6 +125,8 @@ async function loadForm(formName) {
         }
         input.className = "q-input";
         input.value = answers[field.key] || "";
+        // Lock input for this demo (or add save logic later)
+        // input.disabled = true; 
         
         div.appendChild(input);
         container.appendChild(div);
@@ -105,78 +138,7 @@ function goHome() {
     document.getElementById('view-dashboard').classList.remove('hidden');
 }
 
-function logout() {
-    location.reload();
-}
-// --- ADMIN MODAL LOGIC ---
-let CURRENT_ADMIN_CLIENT = null;
 
-async function openClientView(name, id) {
-    document.getElementById('admin-modal').classList.remove('hidden');
-    document.getElementById('modal-title').innerText = name;
-    document.getElementById('modal-content').innerHTML = "Loading client data...";
-    
-    // 1. Fetch Client Data
-    const profile = await apiCall('getClientProfile', { clientId: id });
-    CURRENT_ADMIN_CLIENT = profile; // Save for later
-    
-    // 2. Populate Form Dropdown
-    const forms = ['Website', 'CRM', 'Onboarding']; // Or fetch from server
-    const sel = document.getElementById('modal-form-select');
-    sel.innerHTML = '<option value="">-- Select Form --</option>';
-    forms.forEach(f => {
-        sel.innerHTML += `<option value="${f}">${f}</option>`;
-    });
-}
-
-async function loadClientFormView() {
-    const formName = document.getElementById('modal-form-select').value;
-    const container = document.getElementById('modal-content');
-    
-    if(!formName) return;
-    
-    container.innerHTML = "Loading answers...";
-    
-    // Fetch empty form schema
-    const schema = await apiCall('getSchema', { formName });
-    const answers = CURRENT_ADMIN_CLIENT.answers || {};
-    
-    container.innerHTML = "";
-    
-    // Render (Read-Only)
-    schema.forEach(field => {
-        const div = document.createElement('div');
-        div.style.marginBottom = "20px";
-        
-        const label = document.createElement('div');
-        label.style.fontWeight = "bold";
-        label.style.fontSize = "12px";
-        label.style.color = "#666";
-        label.style.marginBottom = "5px";
-        label.innerText = field.label;
-        div.appendChild(label);
-        
-        const val = document.createElement('div');
-        val.style.padding = "10px";
-        val.style.background = "#f9f9f9";
-        val.style.border = "1px solid #eee";
-        val.style.borderRadius = "4px";
-        val.innerText = answers[field.key] || "(No Answer)";
-        
-        // Highlight if answered
-        if(answers[field.key]) {
-            val.style.borderLeft = "3px solid #A92F3D";
-            val.style.background = "#fff";
-        }
-        
-        div.appendChild(val);
-        container.appendChild(div);
-    });
-}
-
-function closeModal() {
-    document.getElementById('admin-modal').classList.add('hidden');
-}
 // --- ADMIN PORTAL LOGIC ---
 
 async function initAdmin() {
@@ -185,40 +147,49 @@ async function initAdmin() {
     document.getElementById('view-admin').classList.remove('hidden');
     
     const tbody = document.getElementById('client-table-body');
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px;">Loading database...</td></tr>';
-    
-    // 2. Fetch Data from Google
-    const data = await apiCall('adminData');
-    
-    tbody.innerHTML = ""; // Clear loading message
-    
-    // 3. Build the Table
-    if(data.clients && data.clients.length > 0) {
-        data.clients.forEach(c => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td style="font-weight:600;">${c.name}</td>
-                <td style="font-family:monospace; color:#666;">${c.code}</td>
-                <td><span style="font-size:12px; background:#eee; padding:2px 6px; border-radius:4px;">${c.tier}</span></td>
-                <td><span class="status-pill">Active</span></td>
-                <td>
-                    <button class="btn-small" onclick="openClientView('${c.name}', '${c.id}')">View</button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-    } else {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No clients found.</td></tr>';
+    if(tbody) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px;">Loading database...</td></tr>';
+        
+        // 2. Fetch Data from Google
+        const data = await apiCall('adminData');
+        
+        tbody.innerHTML = ""; // Clear loading message
+        
+        // 3. Build the Table
+        if(data.clients && data.clients.length > 0) {
+            data.clients.forEach(c => {
+                const tr = document.createElement('tr');
+                
+                // Tier Styling Logic
+                let tierClass = "tier-bronze";
+                if(c.tier === "Gold") tierClass = "tier-gold";
+                if(c.tier === "Silver") tierClass = "tier-silver";
+                
+                tr.innerHTML = `
+                    <td style="font-weight:600;">${c.name}</td>
+                    <td style="font-family:monospace; color:#666;">${c.code}</td>
+                    <td><span class="status-pill ${tierClass}">${c.tier}</span></td>
+                    <td><span class="status-pill" style="background:#e6fffa; color:#047857;">Active</span></td>
+                    <td>
+                        <button class="btn-text" style="font-size:12px; font-weight:700;" onclick="openClientView('${c.name}', '${c.id}')">VIEW DETAILS &rarr;</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No clients found.</td></tr>';
+        }
     }
 }
 
-// --- ADMIN MODAL LOGIC ---
-let CURRENT_ADMIN_CLIENT = null;
+// --- ADMIN CLIENT DETAIL MODAL ---
 
 async function openClientView(name, id) {
-    document.getElementById('admin-modal').classList.remove('hidden');
+    const modal = document.getElementById('admin-modal');
+    modal.classList.remove('hidden');
+    
     document.getElementById('modal-title').innerText = name;
-    document.getElementById('modal-content').innerHTML = "Loading client data...";
+    document.getElementById('modal-content').innerHTML = "<div style='text-align:center; opacity:0.5;'>Loading client profile...</div>";
     
     // 1. Fetch Detailed Client Profile
     const profile = await apiCall('getClientProfile', { clientId: id });
@@ -227,7 +198,7 @@ async function openClientView(name, id) {
     // 2. Populate Form Dropdown
     const forms = ['Website', 'CRM', 'Onboarding']; 
     const sel = document.getElementById('modal-form-select');
-    sel.innerHTML = '<option value="">-- Select Form --</option>';
+    sel.innerHTML = '<option value="">-- Select Form to View --</option>';
     forms.forEach(f => {
         sel.innerHTML += `<option value="${f}">${f}</option>`;
     });
@@ -239,7 +210,7 @@ async function loadClientFormView() {
     
     if(!formName) return;
     
-    container.innerHTML = "Loading answers...";
+    container.innerHTML = "<div style='text-align:center; opacity:0.5;'>Fetching answers...</div>";
     
     // Fetch schema & answers
     const schema = await apiCall('getSchema', { formName });
@@ -248,37 +219,46 @@ async function loadClientFormView() {
     container.innerHTML = "";
     
     // Render Read-Only View
-    if(schema.length === 0) {
-        container.innerHTML = "Form is empty.";
+    if(!schema || schema.length === 0) {
+        container.innerHTML = "<p>Form is empty.</p>";
         return;
     }
 
     schema.forEach(field => {
         const div = document.createElement('div');
-        div.style.marginBottom = "20px";
+        div.style.marginBottom = "25px";
         
         const label = document.createElement('div');
-        label.style.fontWeight = "bold";
-        label.style.fontSize = "12px";
-        label.style.color = "#666";
-        label.style.marginBottom = "5px";
+        label.style.fontFamily = "'Open Sans', sans-serif";
+        label.style.fontWeight = "700";
+        label.style.fontSize = "11px";
+        label.style.letterSpacing = "0.5px";
+        label.style.color = "#A92F3D"; // Rosewood Red
+        label.style.textTransform = "uppercase";
+        label.style.marginBottom = "8px";
         label.innerText = field.label;
         div.appendChild(label);
         
         const val = document.createElement('div');
-        val.style.padding = "10px";
-        val.style.background = "#f9f9f9";
-        val.style.border = "1px solid #eee";
+        val.style.padding = "15px";
+        val.style.background = "#fff";
+        val.style.border = "1px solid #E5E0D8";
         val.style.borderRadius = "4px";
+        val.style.fontSize = "14px";
+        val.style.lineHeight = "1.5";
+        val.style.color = "#493832";
         
         // Check if answer exists
         const userAns = answers[field.key];
-        val.innerText = userAns || "(No Answer)";
+        val.innerText = userAns || "—";
         
         // Highlight filled answers
         if(userAns) {
-            val.style.borderLeft = "3px solid #A92F3D"; // Rosewood Red
-            val.style.background = "#fff";
+            val.style.borderLeft = "4px solid #493832"; 
+            val.style.background = "#FAFAF9";
+        } else {
+            val.style.opacity = "0.5";
+            val.style.fontStyle = "italic";
         }
         
         div.appendChild(val);
@@ -286,10 +266,8 @@ async function loadClientFormView() {
     });
 }
 
-function closeModal() {
-    document.getElementById('admin-modal').classList.add('hidden');
-}
-/* --- ADMIN SETTINGS --- */
+// --- ADMIN SETTINGS (PASSWORD CHANGE) ---
+
 function openSettings() {
     document.getElementById('settings-modal').classList.remove('hidden');
     // Pre-fill current (optional, or leave blank for security)
@@ -304,21 +282,11 @@ async function saveAdminCreds() {
     if(!u || !p) { alert("Please enter both fields."); return; }
     
     const btn = document.querySelector('#settings-modal .btn-main');
+    const originalText = btn.innerText;
     btn.innerText = "Updating...";
     
-    // We add a new action "updateCreds" to your API
-    // Note: You need to add this 'else if' to your doGet/doPost in code.gs if not there
-    // For now, let's assume you added updateAdminCreds to the API router.
-    
-    // Quick Fix: Since I didn't give you the Router update in Part 1, 
-    // let's assume you will update code.gs to handle action: "updateCreds"
-    
-    /* IN CODE.GS Router (doPost):
-       else if (action === "updateCreds") {
-          response = updateAdminCreds(request.u, request.p);
-       }
-    */
-    
+    // We send 'updateCreds' action. 
+    // MAKE SURE your code.gs doPost() handles 'updateCreds'!
     const res = await apiCall('updateCreds', { u, p });
     
     if(res.success) {
@@ -326,6 +294,6 @@ async function saveAdminCreds() {
         location.reload();
     } else {
         alert("Error: " + res.message);
-        btn.innerText = "Update Credentials";
+        btn.innerText = originalText;
     }
 }
