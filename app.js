@@ -160,7 +160,30 @@ async function initAdmin() {
         // 3. Build the Table
         if(data.clients && data.clients.length > 0) {
             data.clients.forEach(c => {
-                const tr = document.createElement('tr');
+                // ... inside the loop ...
+
+                // ACTION COLUMN (The fix!)
+                const tdAction = document.createElement('td');
+                tdAction.style.display = "flex";
+                tdAction.style.gap = "8px"; // Space between buttons
+                
+                // 1. EDIT PROFILE BUTTON (Replaces "View")
+                const btnEdit = document.createElement('button');
+                btnEdit.className = "btn-soft"; // New soft class
+                btnEdit.innerText = "Profile";
+                btnEdit.onclick = () => openClientEditor(client); // Calls the unified editor
+                tdAction.appendChild(btnEdit);
+                
+                // 2. FORMS BUTTON (New! Dedicated button for forms)
+                const btnForms = document.createElement('button');
+                btnForms.className = "btn-soft";
+                btnForms.innerHTML = "Forms";
+                // Opens a simple form picker (we'll add this tiny function below)
+                btnForms.onclick = () => openFormPicker(client); 
+                tdAction.appendChild(btnForms);
+                
+                tr.appendChild(tdAction);
+                tbody.appendChild(tr);
                 
                 // Tier Styling Logic
                 let tierClass = "tier-bronze";
@@ -652,3 +675,69 @@ document.getElementById('login-user').addEventListener("keypress", function(even
     document.getElementById('login-pass').focus(); // Move to password field
   }
 });
+
+/* --- NEW FORM PICKER LOGIC --- */
+
+function openFormPicker(client) {
+    // Save the client we are working on
+    CURRENT_ADMIN_CLIENT = client;
+
+    // Use a simple native prompt for now (or we can reuse the glass modal if you prefer)
+    // Let's reuse the glass modal but strictly for form picking to keep it "30/10" elegant.
+    
+    const modal = document.getElementById('admin-modal');
+    const content = modal.querySelector('.glass-content');
+    const title = document.getElementById('ce-title');
+    const sub = modal.querySelector('.glass-subtitle');
+    
+    // Customize the modal for Form Picking
+    title.innerText = "Select a Form";
+    sub.innerText = "EDITING: " + client.name;
+    
+    // Clear content and add buttons for each form
+    content.innerHTML = `<div style="display:flex; flex-direction:column; gap:10px; padding-top:10px;"></div>`;
+    const container = content.querySelector('div');
+
+    if(ALL_FORMS.length === 0) {
+        container.innerHTML = "<p>No forms configured.</p>";
+    } else {
+        ALL_FORMS.forEach(form => {
+            const btn = document.createElement('button');
+            btn.className = "btn-soft"; // Re-using your new soft style
+            btn.style.justifyContent = "space-between"; // Push arrow to right
+            btn.style.padding = "15px 20px";
+            btn.innerHTML = `<span>${form}</span> <span style="opacity:0.3;">→</span>`;
+            
+            btn.onclick = () => {
+                // Manually set the value so the viewer knows what to load
+                // We create a fake input since we deleted the dropdown
+                const fakeSelect = document.createElement('input');
+                fakeSelect.id = 'modal-form-select';
+                fakeSelect.value = form;
+                document.body.appendChild(fakeSelect); // Temp attach
+                
+                loadClientFormView(); // Launch the editor
+                
+                fakeSelect.remove(); // Cleanup
+            };
+            container.appendChild(btn);
+        });
+    }
+
+    // Hide the footer since we don't need "Save Client" here
+    modal.querySelector('.glass-footer').style.display = 'none';
+    
+    // Show Modal
+    modal.classList.add('active');
+    
+    // Add a "Cancel" listener to reset the footer when closed
+    const closeBtn = modal.querySelector('.btn-text');
+    const oldClose = closeBtn.onclick;
+    closeBtn.onclick = () => {
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.querySelector('.glass-footer').style.display = 'flex'; // Reset footer
+            // restore original close function if needed, or just let it be
+        }, 300);
+    };
+}
