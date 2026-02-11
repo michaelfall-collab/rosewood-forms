@@ -88,26 +88,26 @@
         </main>
     </div>
 
-    <div id="view-studio" class="hidden" style="background:#F5F5F7; min-height:100vh; padding-bottom:100px;">
-        
-        <div class="glass-header-bar" style="position:sticky; top:0; z-index:100; background:rgba(245, 245, 247, 0.9); padding:20px 40px; margin:0; border-bottom:1px solid rgba(0,0,0,0.05);">
-            <div style="display:flex; align-items:center; gap:20px;">
-                <button onclick="closeStudio()" class="btn-soft">← Back</button>
-                <div style="h1">
-                    <input id="studio-form-name" type="text" value="New Form" 
-                        style="background:transparent; border:none; font-family:'Libre Baskerville'; font-size:20px; font-weight:700; color:var(--text-main); width:300px;">
-                </div>
-            </div>
-            <div style="display:flex; gap:10px;">
-                <button onclick="addStudioQuestion()" class="btn-soft" style="color:var(--accent);">+ Add Question</button>
-                <button onclick="saveStudioChanges()" class="btn-main">Save Design</button>
-            </div>
+    <div id="view-studio" class="hidden">
+    <div class="glass-header-bar" style="position:fixed; top:0; left:0; right:0; z-index:1000; background:rgba(255,255,255,0.8); backdrop-filter:blur(10px);">
+        <button onclick="closeStudio()" class="btn-soft">← Exit Editor</button>
+        <button onclick="saveStudioChanges()" class="btn-main">Save Cloud Template</button>
+    </div>
+
+    <div class="studio-paper" id="studio-canvas">
+        <div style="text-align: right; margin-bottom: 60px;">
+            <img src="favicon.png" style="width: 50px; opacity: 0.8;">
+            <div style="font-family: 'Libre Baskerville'; font-size: 12px; letter-spacing: 2px; color: var(--rw-red); margin-top: 10px;">ROSEWOOD</div>
+            <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--bark);">Marketing</div>
         </div>
 
-        <div id="studio-canvas" class="glass-card" style="margin:40px auto; max-width:800px; min-height:800px; padding:60px; transform:none; opacity:1;">
-            </div>
+        <input id="studio-form-title-display" style="font-family: 'Libre Baskerville'; font-size: 28px; border: none; width: 100%; margin-bottom: 40px;" placeholder="Form Title...">
+        
+        <div id="studio-questions-list"></div>
 
+        <button onclick="addStudioQuestion()" class="btn-soft" style="margin-top: 40px; width: 100%; border: 1px dashed #ccc;">+ Add New Question Block</button>
     </div>
+</div>
     
     <div id="form-picker-modal" class="glass-backdrop">
         <div class="glass-card" style="width: 400px; height: auto;">
