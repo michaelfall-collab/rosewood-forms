@@ -136,3 +136,5 @@ h1 { font-weight: 400; letter-spacing: -0.5px; }
 }
 .tab-btn:hover { color: var(--rw-red); }
 .tab-btn.active { color: var(--rw-red); border-bottom-color: var(--rw-red); }
+
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
