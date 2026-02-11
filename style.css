@@ -214,71 +214,92 @@ h1 { font-weight: 400; letter-spacing: -0.5px; }
 .type-badge.text { background: #E3F2FD; color: #1565C0; }
 .type-badge.select { background: #E8F5E9; color: #2E7D32; }
 
-/* --- 2030 FORM VIEWER (ZEN MODE) --- */
+/* --- ROSEWOOD GLASS UI (v3.0) --- */
 
-/* The Full-Screen Backdrop */
-.zen-backdrop {
+/* The Backdrop (Shared by all modals) */
+.glass-backdrop {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: rgba(40, 30, 25, 0.4); /* Rosewood tint */
-    backdrop-filter: blur(8px); /* The "Frosted Glass" effect */
-    z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.4s;
-    display: flex; justify-content: flex-end; /* Aligns panel to right */
+    background: rgba(25, 20, 18, 0.4); /* Darker, richer tint */
+    backdrop-filter: blur(12px); /* Heavy premium blur */
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+    display: flex; align-items: center; justify-content: center; /* Center everything */
 }
-.zen-backdrop.active { opacity: 1; pointer-events: all; }
+.glass-backdrop.active { opacity: 1; pointer-events: all; }
 
-/* The Slide-Over Panel */
-.zen-panel {
-    background: var(--paper);
-    width: 600px; max-width: 90vw; height: 100%;
-    box-shadow: -10px 0 40px rgba(0,0,0,0.1);
-    transform: translateX(100%); transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+/* The Floating Card */
+.glass-card {
+    background: rgba(255, 255, 255, 0.85); /* Milky white transparency */
+    width: 700px; max-width: 90vw; 
+    max-height: 85vh; /* Floating, not full height */
+    border-radius: 24px; /* Super rounded modern look */
+    box-shadow: 
+        0 20px 50px -10px rgba(0,0,0,0.15), 
+        0 0 0 1px rgba(255,255,255,0.5) inset; /* Inner glow */
+    transform: scale(0.95) translateY(10px); 
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); /* Apple-style spring */
     display: flex; flex-direction: column;
-    overflow: hidden; /* Important for scrolling inside */
+    overflow: hidden; 
 }
-.zen-backdrop.active .zen-panel { transform: translateX(0); }
+.glass-backdrop.active .glass-card { transform: scale(1) translateY(0); }
 
-/* Header Area */
-.zen-header {
-    padding: 30px 40px; background: rgba(255,255,255,0.8);
-    border-bottom: 1px solid var(--border);
-    display: flex; justify-content: space-between; align-items: center;
+/* Header */
+.glass-header {
+    padding: 30px 40px 20px 40px; 
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    display: flex; justify-content: space-between; align-items: flex-start;
 }
-.zen-title { font-family: 'Libre Baskerville'; font-size: 24px; color: var(--rw-red); }
+.glass-title { font-family: 'Libre Baskerville'; font-size: 22px; color: var(--bark); margin: 0; }
+.glass-subtitle { 
+    font-family: 'Open Sans'; font-size: 11px; font-weight: 700; 
+    color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; 
+}
 
-/* The Scrollable Content Area */
-.zen-content {
+/* Scrollable Content */
+.glass-content {
     flex: 1; padding: 40px; overflow-y: auto;
     scroll-behavior: smooth;
 }
 
-/* 2030 Input Styling */
-.zen-group {
-    margin-bottom: 30px; opacity: 0; transform: translateY(10px);
-    animation: zenFadeUp 0.5s forwards;
+/* Notion-Style Inputs */
+.notion-group {
+    margin-bottom: 25px; opacity: 0; transform: translateY(10px);
+    animation: fadeUp 0.4s forwards;
 }
-/* Stagger Animation Delays (up to 10 items) */
-.zen-group:nth-child(1) { animation-delay: 0.05s; }
-.zen-group:nth-child(2) { animation-delay: 0.1s; }
-.zen-group:nth-child(3) { animation-delay: 0.15s; }
-.zen-group:nth-child(4) { animation-delay: 0.2s; }
-.zen-group:nth-child(5) { animation-delay: 0.25s; }
+.notion-label {
+    display: block; font-size: 12px; font-weight: 600; color: #888;
+    margin-bottom: 6px; transition: color 0.2s;
+}
+.notion-input {
+    width: 100%; padding: 12px 0; 
+    border: none; border-bottom: 1px solid #E0E0E0;
+    background: transparent;
+    font-family: 'Open Sans', sans-serif; font-size: 15px; color: #333;
+    transition: all 0.2s; box-sizing: border-box;
+}
+.notion-input:focus {
+    outline: none; border-bottom: 1px solid var(--rw-red);
+    background: rgba(0,0,0,0.02); padding-left: 10px; /* Subtle shift on focus */
+}
+.notion-select {
+    width: 100%; padding: 10px; border-radius: 6px;
+    border: 1px solid #E0E0E0; background: #fff;
+    font-size: 14px; color: #333;
+}
 
-.zen-label {
-    display: block; font-size: 12px; font-weight: 700; color: #888;
-    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;
-    transition: color 0.3s;
+/* Footer Actions */
+.glass-footer {
+    padding: 20px 40px; 
+    background: rgba(250, 250, 249, 0.8);
+    border-top: 1px solid rgba(0,0,0,0.05);
+    display: flex; justify-content: flex-end; gap: 10px;
 }
-.zen-input {
-    width: 100%; padding: 18px; border: 1px solid transparent;
-    background: #F2F0EB; /* Slightly darker than paper */
-    border-radius: 8px; font-family: 'Open Sans', sans-serif; font-size: 16px;
-    color: var(--bark); transition: all 0.3s; box-sizing: border-box;
-}
-.zen-input:focus {
-    background: #fff; border-color: var(--rw-red); outline: none;
-    box-shadow: 0 4px 20px rgba(169, 47, 61, 0.1);
-}
-.zen-group:focus-within .zen-label { color: var(--rw-red); }
 
-/* Keyframe for "Alive" feel */
-@keyframes zenFadeUp { to { opacity: 1; transform: translateY(0); } }
+/* Stagger Animations */
+.notion-group:nth-child(1) { animation-delay: 0.05s; }
+.notion-group:nth-child(2) { animation-delay: 0.1s; }
+.notion-group:nth-child(3) { animation-delay: 0.15s; }
+.notion-group:nth-child(4) { animation-delay: 0.2s; }
+.notion-group:nth-child(5) { animation-delay: 0.25s; }
+
+@keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
