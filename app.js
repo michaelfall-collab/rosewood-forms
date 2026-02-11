@@ -297,3 +297,49 @@ async function saveAdminCreds() {
         btn.innerText = originalText;
     }
 }
+/* --- CLIENT EDITOR LOGIC --- */
+
+function openClientEditor(client = null) {
+    const modal = document.getElementById('client-editor-modal');
+    modal.classList.remove('hidden');
+    
+    if(client) {
+        // EDIT MODE
+        document.getElementById('ce-title').innerText = "Edit Client";
+        document.getElementById('ce-id').value = client.id;
+        document.getElementById('ce-name').value = client.name;
+        document.getElementById('ce-code').value = client.code;
+        document.getElementById('ce-tier').value = client.tier;
+        // document.getElementById('ce-status').value = client.status; // Add status to DB later if needed
+    } else {
+        // NEW MODE
+        document.getElementById('ce-title').innerText = "New Client";
+        document.getElementById('ce-id').value = ""; // Empty ID = New
+        document.getElementById('ce-name').value = "";
+        document.getElementById('ce-code').value = "rose2026"; // Default
+    }
+}
+
+async function saveClientChanges() {
+    const id = document.getElementById('ce-id').value;
+    const name = document.getElementById('ce-name').value;
+    const code = document.getElementById('ce-code').value;
+    const tier = document.getElementById('ce-tier').value;
+    
+    if(!name || !code) { alert("Name and Code required."); return; }
+    
+    const btn = document.querySelector('#client-editor-modal .btn-main');
+    btn.innerText = "Saving...";
+    
+    // Calls API (Make sure 'saveClient' is in code.gs!)
+    const res = await apiCall('saveClient', { id, name, code, tier });
+    
+    if(res.success) {
+        document.getElementById('client-editor-modal').classList.add('hidden');
+        initAdmin(); // Refresh list
+        btn.innerText = "Save Client";
+    } else {
+        alert("Error: " + res.message);
+        btn.innerText = "Save Client";
+    }
+}
