@@ -679,50 +679,38 @@ document.getElementById('login-user').addEventListener("keypress", function(even
 /* --- NEW FORM PICKER LOGIC --- */
 
 function openFormPicker(client) {
-    // Save the client we are working on
     CURRENT_ADMIN_CLIENT = client;
-
-    // Use a simple native prompt for now (or we can reuse the glass modal if you prefer)
-    // Let's reuse the glass modal but strictly for form picking to keep it "30/10" elegant.
+    const modal = document.getElementById('form-picker-modal');
+    const container = document.getElementById('form-list-container');
     
-    const modal = document.getElementById('admin-modal');
-    const content = modal.querySelector('.glass-content');
-    const title = document.getElementById('ce-title');
-    const sub = modal.querySelector('.glass-subtitle');
+    container.innerHTML = ""; // Clear old buttons
     
-    // Customize the modal for Form Picking
-    title.innerText = "Select a Form";
-    sub.innerText = "EDITING: " + client.name;
-    
-    // Clear content and add buttons for each form
-    content.innerHTML = `<div style="display:flex; flex-direction:column; gap:10px; padding-top:10px;"></div>`;
-    const container = content.querySelector('div');
-
-    if(ALL_FORMS.length === 0) {
-        container.innerHTML = "<p>No forms configured.</p>";
-    } else {
-        ALL_FORMS.forEach(form => {
-            const btn = document.createElement('button');
-            btn.className = "btn-soft"; // Re-using your new soft style
-            btn.style.justifyContent = "space-between"; // Push arrow to right
-            btn.style.padding = "15px 20px";
-            btn.innerHTML = `<span>${form}</span> <span style="opacity:0.3;">→</span>`;
+    ALL_FORMS.forEach(form => {
+        const btn = document.createElement('button');
+        btn.className = "btn-soft"; 
+        btn.style.width = "100%";
+        btn.style.marginBottom = "10px";
+        btn.style.justifyContent = "space-between";
+        btn.innerHTML = `<span>${form}</span> <span>→</span>`;
+        
+        btn.onclick = () => {
+            modal.classList.remove('active'); // Close picker
             
-            btn.onclick = () => {
-                // Manually set the value so the viewer knows what to load
-                // We create a fake input since we deleted the dropdown
-                const fakeSelect = document.createElement('input');
-                fakeSelect.id = 'modal-form-select';
-                fakeSelect.value = form;
-                document.body.appendChild(fakeSelect); // Temp attach
-                
-                loadClientFormView(); // Launch the editor
-                
-                fakeSelect.remove(); // Cleanup
-            };
-            container.appendChild(btn);
-        });
-    }
+            // Hack to pass form name to the viewer
+            const fakeSelect = document.createElement('input');
+            fakeSelect.id = 'modal-form-select';
+            fakeSelect.value = form;
+            document.body.appendChild(fakeSelect);
+            
+            loadClientFormView(); // Open the main editor
+            
+            setTimeout(() => fakeSelect.remove(), 500);
+        };
+        container.appendChild(btn);
+    });
+    
+    modal.classList.add('active');
+}
 
     // Hide the footer since we don't need "Save Client" here
     modal.querySelector('.glass-footer').style.display = 'none';
