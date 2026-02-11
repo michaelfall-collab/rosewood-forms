@@ -327,6 +327,7 @@ async function saveClientChanges() {
     const name = document.getElementById('ce-name').value;
     const code = document.getElementById('ce-code').value;
     const tier = document.getElementById('ce-tier').value;
+    const status = document.getElementById('ce-status').value;
     
     if(!name || !code) { alert("Name and Code required."); return; }
     
@@ -334,7 +335,7 @@ async function saveClientChanges() {
     btn.innerText = "Saving...";
     
     // Calls API (Make sure 'saveClient' is in code.gs!)
-    const res = await apiCall('saveClient', { id, name, code, tier });
+    const res = await apiCall('saveClient', { id, name, code, tier, status });
     
     if(res.success) {
         document.getElementById('client-editor-modal').classList.add('hidden');
@@ -345,6 +346,22 @@ async function saveClientChanges() {
         btn.innerText = "Save Client";
     }
 }
+/* --- NEW DELETE FUNCTION --- */
+async function deleteClient() {
+    const id = document.getElementById('ce-id').value;
+    if(!id) return; // Can't delete a new client
+    
+    if(confirm("Are you sure you want to PERMANENTLY delete this client?")) {
+        const res = await apiCall('deleteClient', { clientId: id });
+        if(res.success) {
+            document.getElementById('client-editor-modal').classList.add('hidden');
+            initAdmin(); // Refresh table
+        } else {
+            alert(res.message);
+        }
+    }
+}
+
 function switchAdminTab(tab) {
     // 1. UI Toggles
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
