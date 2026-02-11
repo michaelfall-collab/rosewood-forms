@@ -435,26 +435,78 @@ function switchAdminTab(tab) {
 /* --- ROSEWOOD STUDIO LOGIC --- */
 
 async function openStudio(formName) {
+    // 1. Hide Admin, Show Studio
     document.getElementById('view-admin').classList.add('hidden');
-    const studio = document.getElementById('view-studio');
-    studio.classList.remove('hidden');
+    document.getElementById('view-studio').classList.remove('hidden');
     
-    // Set Title Input
+    // 2. Setup Title
     const titleInput = document.getElementById('studio-form-title-display');
     titleInput.value = (formName === 'New Form') ? "" : formName;
     
-    STUDIO_SCHEMA = [];
-    document.getElementById('studio-questions-list').innerHTML = "<div style='text-align:center; padding:50px; opacity:0.3;'>Fetching Cloud Data...</div>";
+    // 3. Reset Schema and Show Loader
+    STUDIO_SCHEMA = []; // Ensure this is declared at the top of app.js
+    const list = document.getElementById('studio-questions-list');
+    list.innerHTML = "<div style='text-align:center; padding:50px; opacity:0.3;'>Accessing Rosewood Cloud...</div>";
     
-    // LOAD EXISTING QUESTIONS
+    // 4. Load Existing Data
     if(formName !== 'New Form') {
         const res = await apiCall('getSchema', { formName });
-        if(res.success && res.schema.length > 0) {
+        if(res.success && res.schema) {
+            // Map incoming data to our internal schema format
             STUDIO_SCHEMA = res.schema;
         }
     }
     
     renderStudioCanvas();
+}
+    
+function closeStudio() {
+    if(confirm("Exit Studio? Any unsaved changes will be lost.")) {
+        document.getElementById('view-studio').classList.add('hidden');
+        document.getElementById('view-admin').classList.remove('hidden');
+        initAdmin(); // Refresh the dashboard
+    }
+}
+function closeStudio() {
+    if(confirm("Exit Studio? Any unsaved changes will be lost.")) {
+        document.getElementById('view-studio').classList.add('hidden');
+        document.getElementById('view-admin').classList.remove('hidden');
+        initAdmin(); // Refresh the dashboard
+    }
+}
+
+async function saveStudioChanges() {
+    const name = document.getElementById('studio-form-title-display').value.trim();
+    const btn = document.getElementById('btn-save-studio');
+    
+    if(!name) {
+        alert("Please provide a Template Name before saving.");
+        return;
+    }
+
+    const originalText = btn.innerText;
+    btn.innerText = "Syncing...";
+    btn.disabled = true;
+
+    // Send to Google Script
+    const res = await apiCall('saveFormSchema', { 
+        formName: name, 
+        schema: STUDIO_SCHEMA 
+    });
+
+    if(res.success) {
+        btn.innerText = "Template Saved";
+        btn.style.background = "#2E7D32"; // Success Green
+        setTimeout(() => {
+            btn.innerText = originalText;
+            btn.style.background = "var(--rw-red)";
+            btn.disabled = false;
+        }, 2000);
+    } else {
+        alert("Cloud Sync Failed: " + res.message);
+        btn.innerText = originalText;
+        btn.disabled = false;
+    }
 }
 
 function renderStudioCanvas() {
