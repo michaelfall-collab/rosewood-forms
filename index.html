@@ -78,6 +78,40 @@
         </main>
     </div>
 
+    <div id="view-studio" class="hidden">
+        <nav class="top-nav" style="border-bottom:none; background: #fafaf9;">
+            <div style="display:flex; align-items:center; gap:15px;">
+                <button onclick="closeStudio()" class="btn-text" style="font-size:16px;">&larr; Exit Studio</button>
+                <div style="width:1px; height:20px; background:#ddd;"></div>
+                <div id="studio-form-title" class="brand-font" style="font-size:18px;">Form Name</div>
+            </div>
+            <button class="btn-main small" onclick="saveStudioChanges()">Save Layout</button>
+        </nav>
+
+        <main class="container" style="max-width:1400px; margin-top:20px;">
+            <div class="studio-canvas" id="studio-canvas">
+                
+                <div class="studio-toolbar">
+                    <div class="studio-tool" onclick="addStudioQuestion()">
+                        <div class="tool-icon">+</div>
+                        <span class="tool-label">Add Question</span>
+                    </div>
+                    <div class="studio-tool" onclick="alert('Coming Soon: Section Breaks')">
+                        <div class="tool-icon">T</div>
+                        <span class="tool-label">Add Section</span>
+                    </div>
+                    <div class="studio-tool" style="margin-top:auto; color:#d32f2f;" onclick="alert('Select a question to delete')">
+                        <div class="tool-icon">x</div>
+                        <span class="tool-label">Delete</span>
+                    </div>
+                </div>
+
+                <div id="studio-list" style="width:100%; display:flex; flex-direction:column; align-items:center; gap:15px; padding-bottom:100px;"></div>
+                
+            </div>
+        </main>
+    </div>
+
     <div id="settings-modal" class="modal-overlay hidden">
         <div class="login-card" style="width:450px; padding:0; text-align:left; overflow:hidden;">
             <div class="modal-header">
