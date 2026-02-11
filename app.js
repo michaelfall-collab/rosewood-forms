@@ -26,41 +26,58 @@ async function apiCall(action, payload = {}) {
     }
 }
 
-// --- LOGIN LOGIC ---
 async function handleLogin() {
     const u = document.getElementById('login-user').value;
     const p = document.getElementById('login-pass').value;
-    const btn = document.querySelector('#view-login button'); // The Login Button
+    const msg = document.getElementById('login-msg'); // The new text area
+    const btn = document.querySelector('.login-card .btn-main');
+    
+    // Clear previous errors
+    msg.innerText = "";
     
     if(!u || !p) {
-        alert("Please enter username and password.");
+        msg.innerText = "Please enter username and password.";
+        // Shake animation effect (optional but nice)
+        document.querySelector('.login-card').style.animation = "shake 0.3s";
+        setTimeout(() => document.querySelector('.login-card').style.animation = "", 300);
         return;
     }
 
     // UI Feedback
     const originalText = btn.innerText;
     btn.innerText = "Verifying...";
+    btn.style.opacity = "0.7";
     
     const res = await apiCall('login', { u, p });
     
     if(res.success) {
         USER_DATA = res.user;
         
-        // Hide Login, Show Admin
-        document.getElementById('view-login').classList.add('hidden');
-        
-        if(USER_DATA.role === 'admin') {
-            initAdmin();
-        } else {
-            // Client View (Future)
-            alert("Client View coming soon!");
-        }
+        // Success! Fade out login, fade in admin
+        document.getElementById('view-login').style.opacity = '0';
+        setTimeout(() => {
+            document.getElementById('view-login').classList.add('hidden');
+            
+            if(USER_DATA.role === 'admin') {
+                initAdmin();
+            } else {
+                msg.innerText = "Client view under construction.";
+                document.getElementById('view-login').style.opacity = '1';
+                document.getElementById('view-login').classList.remove('hidden');
+            }
+        }, 500);
+
     } else {
-        alert("Login Failed: " + res.message);
+        // Failure
+        msg.innerText = "Incorrect username or password.";
         btn.innerText = originalText;
+        btn.style.opacity = "1";
+        
+        // Shake animation
+        document.querySelector('.login-card').style.animation = "shake 0.3s";
+        setTimeout(() => document.querySelector('.login-card').style.animation = "", 300);
     }
 }
-
 function toggleLoginPass() {
     const input = document.getElementById('login-pass');
     const icon = document.querySelector('#view-login svg'); // Selects the eye icon
