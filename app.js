@@ -3,45 +3,37 @@ const API_URL = "https://script.google.com/macros/s/AKfycbx551oCMIdzsB1CcmDSCwrS
 
 // --- STATE ---
 let USER_DATA = null;
-let CURRENT_ADMIN_CLIENT = null;
 let ALL_FORMS = [];
 let STUDIO_SCHEMA = [];
 let CURRENT_STUDIO_FORM = null;
+let CURRENT_ADMIN_CLIENT = null;
 
-// --- ROSEWOOD UI SYSTEM (Custom Alerts) ---
+// --- ROSEWOOD UI SYSTEM ---
 const RosewoodUI = {
     modal: () => document.getElementById('rw-modal'),
     title: () => document.getElementById('rw-modal-title'),
     msg: () => document.getElementById('rw-modal-msg'),
     actions: () => document.getElementById('rw-modal-actions'),
     
-    close: function() {
-        this.modal().classList.remove('active');
-    },
+    close: function() { this.modal().classList.remove('active'); },
     
     show: function(title, text, buttons) {
         return new Promise((resolve) => {
             this.title().innerText = title;
-            this.msg().innerHTML = text; // allow bolding
+            this.msg().innerHTML = text;
             this.actions().innerHTML = "";
-            
             buttons.forEach(btn => {
                 const b = document.createElement('button');
                 b.className = btn.class || "btn-soft";
                 b.innerText = btn.text;
-                b.onclick = () => {
-                    this.close();
-                    resolve(btn.value);
-                };
+                b.onclick = () => { this.close(); resolve(btn.value); };
                 this.actions().appendChild(b);
             });
-            
             this.modal().classList.add('active');
         });
     }
 };
 
-// Global Helpers to replace native calls
 async function rwAlert(text, title="System Notice") {
     await RosewoodUI.show(title, text, [{ text: "Okay", value: true, class: "btn-main" }]);
 }
@@ -49,11 +41,11 @@ async function rwAlert(text, title="System Notice") {
 async function rwConfirm(text, title="Confirmation Required") {
     return await RosewoodUI.show(title, text, [
         { text: "Cancel", value: false, class: "btn-soft" },
-        { text: "Confirm", value: true, class: "btn-main" } // Rosewood Red
+        { text: "Confirm", value: true, class: "btn-main" }
     ]);
 }
 
-// --- CORE API FUNCTION ---
+// --- API ---
 async function apiCall(action, payload = {}) {
     payload.action = action;
     try {
@@ -68,45 +60,42 @@ async function apiCall(action, payload = {}) {
     }
 }
 
-/* --- AUTH & INIT --- */
+/* --- LOGIN & ROUTING --- */
 async function handleLogin() {
     const u = document.getElementById('login-user').value;
     const p = document.getElementById('login-pass').value;
-    const msg = document.getElementById('login-msg');
     const btn = document.querySelector('.login-card .btn-main');
     
-    msg.innerText = "";
-    if(!u || !p) {
-        msg.innerText = "Please enter username and password.";
-        shakeLogin();
-        return;
-    }
+    if(!u || !p) { shakeLogin(); return; }
 
     const originalText = btn.innerText;
     btn.innerText = "Verifying...";
-    btn.style.opacity = "0.7";
     
     const res = await apiCall('login', { u, p });
     
     if(res.success) {
         USER_DATA = res.user;
+        
+        // Hide Login
         document.getElementById('view-login').style.opacity = '0';
         setTimeout(() => {
             document.getElementById('view-login').classList.add('hidden');
+            
+            // ROUTING LOGIC
             if(USER_DATA.role === 'admin') {
                 initAdmin();
             } else {
-                msg.innerText = "Client view under construction.";
-                document.getElementById('view-login').style.opacity = '1';
-                document.getElementById('view-login').classList.remove('hidden');
+                initClientDashboard();
             }
         }, 500);
     } else {
-        msg.innerText = "Incorrect username or password.";
         btn.innerText = originalText;
-        btn.style.opacity = "1";
         shakeLogin();
+        rwAlert("Incorrect credentials. Please try again.");
     }
+}
+function logout() {
+    location.reload();
 }
 
 function shakeLogin() {
@@ -120,7 +109,208 @@ function toggleLoginPass() {
     if (input.type === "password") input.type = "text";
     else input.type = "password";
 }
+/* --- CLIENT PORTAL LOGIC --- */
 
+async function initClientDashboard() {
+    // 1. Set Theming
+    document.body.className = `tier-${USER_DATA.tier.toLowerCase()}`;
+    
+    // 2. Setup UI
+    document.getElementById('view-client-dashboard').classList.remove('hidden');
+    document.getElementById('client-dash-name').innerText = USER_DATA.name;
+    document.getElementById('client-tier-badge').innerText = USER_DATA.tier + " Member";
+    
+    const grid = document.getElementById('client-forms-grid');
+    grid.innerHTML = "<div style='opacity:0.5;'>Loading your forms...</div>";
+    
+    // 3. Fetch Data
+    const res = await apiCall('clientData', { id: USER_DATA.id });
+    
+    grid.innerHTML = ""; // Clear loader
+    
+    if(!res.forms || res.forms.length === 0) {
+        grid.innerHTML = `
+            <div class="glass-card" style="grid-column: 1 / -1; text-align:center; padding:40px;">
+                <div style="font-size:40px; margin-bottom:10px;">☕</div>
+                <div style="font-weight:600;">All caught up!</div>
+                <div style="opacity:0.6; font-size:14px;">No forms are currently assigned to you.</div>
+            </div>`;
+        return;
+    }
+
+    // 4. Render Cards
+    res.forms.forEach(form => {
+        const isCompleted = (form.status === 'Completed');
+        const card = document.createElement('div');
+        card.className = "glass-card";
+        card.style.cursor = "pointer";
+        card.style.transition = "transform 0.2s";
+        card.onmouseover = () => card.style.transform = "translateY(-5px)";
+        card.onmouseout = () => card.style.transform = "translateY(0)";
+        
+        // Click to Open Flagship
+        card.onclick = () => openFlagshipForm(form.formName, form.status);
+
+        card.innerHTML = `
+            <div class="glass-header" style="border:none; padding-bottom:0;">
+                <div style="font-size:12px; font-weight:700; color:var(--accent); text-transform:uppercase;">${form.status}</div>
+                ${isCompleted ? '✅' : '📝'}
+            </div>
+            <div class="glass-content" style="padding-top:10px;">
+                <div style="font-size:18px; font-weight:700; margin-bottom:5px;">${form.formName}</div>
+                <div style="font-size:12px; opacity:0.6;">Assigned: ${new Date(form.date).toLocaleDateString()}</div>
+            </div>
+            <div class="glass-footer" style="background:transparent; border:none; padding-top:0;">
+                <span style="font-size:12px; font-weight:600; color:var(--text-main); opacity:0.8;">
+                    ${isCompleted ? 'View Submission' : 'Start Now &rarr;'}
+                </span>
+            </div>
+        `;
+        grid.appendChild(card);
+    });
+}
+
+/* --- FLAGSHIP FORM RENDERER --- */
+let CURRENT_FLAGSHIP_SCHEMA = [];
+let CURRENT_FLAGSHIP_NAME = "";
+
+async function openFlagshipForm(formName, status) {
+    const view = document.getElementById('view-flagship-form');
+    const canvas = document.getElementById('flagship-canvas');
+    const title = document.getElementById('flagship-form-title');
+    const descArea = document.getElementById('flagship-description');
+    
+    // UI Reset
+    view.classList.remove('hidden');
+    document.getElementById('view-client-dashboard').classList.add('hidden');
+    window.scrollTo(0,0);
+    
+    title.innerText = formName;
+    canvas.innerHTML = "<div style='text-align:center; padding:50px;'>Loading Form...</div>";
+    CURRENT_FLAGSHIP_NAME = formName;
+
+    // Fetch Schema
+    const res = await apiCall('getSchema', { formName });
+    if(res.success) {
+        CURRENT_FLAGSHIP_SCHEMA = res.schema;
+        renderFlagshipCanvas(canvas, descArea, status);
+    } else {
+        canvas.innerHTML = "<div style='color:red; text-align:center;'>Error loading form.</div>";
+    }
+}
+
+function renderFlagshipCanvas(canvas, descArea, status) {
+    canvas.innerHTML = "";
+    descArea.innerHTML = "";
+    descArea.style.display = "none";
+
+    CURRENT_FLAGSHIP_SCHEMA.forEach(field => {
+        // Handle Meta Description
+        if(field.key === 'meta_description') {
+            descArea.innerText = field.label; // Remember the label cheat
+            descArea.style.display = "block";
+            return;
+        }
+        if(field.type === 'hidden' || field.key === 'init_marker') return;
+
+        const group = document.createElement('div');
+        group.className = "flagship-field-group";
+
+        const label = document.createElement('label');
+        label.className = "flagship-label";
+        label.innerText = field.label;
+        group.appendChild(label);
+
+        let input;
+
+        if (field.type === 'textarea') {
+            input = document.createElement('textarea');
+            input.className = "flagship-input";
+            input.rows = 4;
+        } else if (field.type === 'select') {
+            input = document.createElement('div');
+            // Custom Radio-Style Select for better UX
+            if(field.options) {
+                field.options.forEach(opt => {
+                    const labelRow = document.createElement('label');
+                    labelRow.style.display = "block";
+                    labelRow.style.padding = "10px";
+                    labelRow.style.cursor = "pointer";
+                    
+                    const radio = document.createElement('input');
+                    radio.type = "radio";
+                    radio.name = field.key;
+                    radio.value = opt.trim();
+                    radio.className = "flagship-input"; // Reuse style
+                    
+                    labelRow.appendChild(radio);
+                    labelRow.appendChild(document.createTextNode(opt.trim()));
+                    input.appendChild(labelRow);
+                });
+            }
+        } else {
+            input = document.createElement('input');
+            input.type = "text";
+            input.className = "flagship-input";
+        }
+
+        // Identify input for saving
+        if(field.type !== 'select') {
+            input.setAttribute('data-key', field.key);
+        } else {
+            // For radio groups, we handle data extraction differently
+            input.setAttribute('data-group-key', field.key);
+        }
+
+        group.appendChild(input);
+        canvas.appendChild(group);
+    });
+}
+
+async function saveFlagshipData(isDraft) {
+    const payload = {};
+    
+    // 1. Text/Textarea inputs
+    document.querySelectorAll('#flagship-canvas [data-key]').forEach(input => {
+        payload[input.getAttribute('data-key')] = input.value;
+    });
+
+    // 2. Radio/Select inputs
+    document.querySelectorAll('#flagship-canvas [data-group-key]').forEach(group => {
+        const key = group.getAttribute('data-group-key');
+        const checked = group.querySelector(`input[name="${key}"]:checked`);
+        if(checked) payload[key] = checked.value;
+    });
+
+    const btn = event.target;
+    const originalText = btn.innerText;
+    btn.innerText = "Saving...";
+
+    const res = await apiCall('saveData', { 
+        u: USER_DATA.id, 
+        data: payload 
+    });
+
+    if(res.success) {
+        if(isDraft) {
+            btn.innerText = "Draft Saved";
+            setTimeout(() => btn.innerText = originalText, 1500);
+        } else {
+            await rwAlert("Thank you! Your form has been submitted.");
+            closeFlagshipForm();
+        }
+    } else {
+        rwAlert("Error saving: " + res.message);
+        btn.innerText = originalText;
+    }
+}
+
+function closeFlagshipForm() {
+    document.getElementById('view-flagship-form').classList.add('hidden');
+    document.getElementById('view-client-dashboard').classList.remove('hidden');
+    document.body.scrollTop = 0; // Safari
+    document.documentElement.scrollTop = 0; // Chrome/Firefox
+}
 /* --- ADMIN DASHBOARD --- */
 async function initAdmin() {
     document.getElementById('view-admin').classList.remove('hidden');
