@@ -326,12 +326,14 @@ tr:hover td { background: rgba(255,255,255,0.4); }
 }
 
 .studio-banner-content {
-    /* MATCH THE PAPER WIDTH EXACTLY */
-    width: 850px; 
+    /* MATCH THE PAPER WIDTH EXACTLY (850 width + 200 padding = 1050) */
+    width: 1050px; 
     max-width: 90vw;
-    display: flex; justify-content: space-between; align-items: center;
-    /* Remove padding that might push things out */
-    padding: 0; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    padding: 0;
+    margin: 0 auto; /* Ensures it centers within the parent flex container */
 }
 
 /* Ensure the paper matches this width */
