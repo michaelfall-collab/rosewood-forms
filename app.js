@@ -7,6 +7,9 @@ let ALL_FORMS = [];
 let STUDIO_SCHEMA = [];
 let CURRENT_STUDIO_FORM = null;
 let CURRENT_ADMIN_CLIENT = null;
+let CURRENT_FLAGSHIP_SCHEMA = [];
+let CURRENT_FLAGSHIP_NAME = "";
+let CURRENT_REQUEST_ID = null;
 
 // --- ROSEWOOD UI SYSTEM ---
 const RosewoodUI = {
@@ -37,7 +40,6 @@ const RosewoodUI = {
 async function rwAlert(text, title="System Notice") {
     await RosewoodUI.show(title, text, [{ text: "Okay", value: true, class: "btn-main" }]);
 }
-
 async function rwConfirm(text, title="Confirmation Required") {
     return await RosewoodUI.show(title, text, [
         { text: "Cancel", value: false, class: "btn-soft" },
@@ -76,12 +78,9 @@ async function handleLogin() {
     if(res.success) {
         USER_DATA = res.user;
         
-        // Hide Login
         document.getElementById('view-login').style.opacity = '0';
         setTimeout(() => {
             document.getElementById('view-login').classList.add('hidden');
-            
-            // ROUTING LOGIC
             if(USER_DATA.role === 'admin') {
                 initAdmin();
             } else {
@@ -94,6 +93,7 @@ async function handleLogin() {
         rwAlert("Incorrect credentials. Please try again.");
     }
 }
+
 function logout() {
     location.reload();
 }
@@ -104,18 +104,10 @@ function shakeLogin() {
     setTimeout(() => card.style.animation = "", 300);
 }
 
-function toggleLoginPass() {
-    const input = document.getElementById('login-pass');
-    if (input.type === "password") input.type = "text";
-    else input.type = "password";
-}
 /* --- CLIENT PORTAL LOGIC --- */
 
 async function initClientDashboard() {
-    // 1. Set Theming
     document.body.className = `tier-${USER_DATA.tier.toLowerCase()}`;
-    
-    // 2. Setup UI
     document.getElementById('view-client-dashboard').classList.remove('hidden');
     document.getElementById('client-dash-name').innerText = USER_DATA.name;
     document.getElementById('client-tier-badge').innerText = USER_DATA.tier + " Member";
@@ -123,10 +115,8 @@ async function initClientDashboard() {
     const grid = document.getElementById('client-forms-grid');
     grid.innerHTML = "<div style='opacity:0.5;'>Loading your forms...</div>";
     
-    // 3. Fetch Data
     const res = await apiCall('clientData', { id: USER_DATA.id });
-    
-    grid.innerHTML = ""; // Clear loader
+    grid.innerHTML = ""; 
     
     if(!res.forms || res.forms.length === 0) {
         grid.innerHTML = `
@@ -138,7 +128,6 @@ async function initClientDashboard() {
         return;
     }
 
-    // 4. Render Cards
     res.forms.forEach(form => {
         const isCompleted = (form.status === 'Completed');
         const card = document.createElement('div');
@@ -148,9 +137,8 @@ async function initClientDashboard() {
         card.onmouseover = () => card.style.transform = "translateY(-5px)";
         card.onmouseout = () => card.style.transform = "translateY(0)";
         
-        // Click to Open Flagship
         card.onclick = () => openFlagshipForm(form.formName, form.status, form.reqId);
-        
+
         card.innerHTML = `
             <div class="glass-header" style="border:none; padding-bottom:0;">
                 <div style="font-size:12px; font-weight:700; color:var(--accent); text-transform:uppercase;">${form.status}</div>
@@ -170,12 +158,8 @@ async function initClientDashboard() {
     });
 }
 
-/* --- FLAGSHIP FORM RENDERER --- */
-let CURRENT_FLAGSHIP_SCHEMA = [];
-let CURRENT_FLAGSHIP_NAME = "";
-let CURRENT_REQUEST_ID = null; // To track the specific request being completed
+/* --- FLAGSHIP FORM RENDERER (Unified) --- */
 
-/* --- UPDATED FLAGSHIP OPENER (Fixes Data Loss) --- */
 async function openFlagshipForm(formName, status, reqId = null) {
     const view = document.getElementById('view-flagship-form');
     const canvas = document.getElementById('flagship-canvas');
@@ -183,98 +167,87 @@ async function openFlagshipForm(formName, status, reqId = null) {
     const descEl = document.getElementById('flagship-form-desc');
     const printTitle = document.getElementById('print-title');
     
-    // Store Request ID
     CURRENT_REQUEST_ID = reqId;
 
-    // View Switching
     view.classList.remove('hidden');
     document.getElementById('view-client-dashboard').classList.add('hidden');
     document.getElementById('view-admin').classList.add('hidden');
+    
     window.scrollTo(0,0);
     
-    // Smart Title
     const cleanName = formName.trim();
     const displayName = cleanName.match(/form$/i) ? cleanName : cleanName + " Form";
-    title.innerText = displayName;
-    printTitle.innerText = displayName;
+    
+    title.innerText = displayName; 
+    printTitle.innerText = displayName; 
     
     descEl.style.display = 'none'; 
     canvas.innerHTML = "<div style='text-align:center; padding:50px; opacity:0.5;'>Loading Form...</div>";
     
     CURRENT_FLAGSHIP_NAME = formName;
 
-    // 1. Fetch Schema
-    const schemaRes = await apiCall('getSchema', { formName });
-    
-    if(!schemaRes.success) {
-        canvas.innerHTML = "<div style='color:red; text-align:center;'>Error loading form.</div>";
-        return;
-    }
-    
-    CURRENT_FLAGSHIP_SCHEMA = schemaRes.schema;
-
-    // 2. FETCH FRESH ANSWERS (Crucial Fix)
-    // Determine whose answers we need
-    let targetId = null;
-    if (USER_DATA.role === 'admin' && CURRENT_ADMIN_CLIENT) {
-        targetId = CURRENT_ADMIN_CLIENT.id;
-    } else {
-        targetId = USER_DATA.id;
-    }
-
-    // Call the new backend function
-    const answerRes = await apiCall('getAnswers', { id: targetId });
-    const freshAnswers = answerRes.success ? answerRes.answers : {};
-
-    // 3. Determine Lock State
-    const isLocked = (USER_DATA.role !== 'admin' && status === 'Completed');
-    
-    // Toggle Buttons based on Lock
-    const saveBtn = document.getElementById('btn-save-draft');
-    const submitBtn = document.querySelector('#view-flagship-form .btn-main'); 
-    
-    if(isLocked) {
-        if(saveBtn) saveBtn.style.display = 'none';
-        if(submitBtn) submitBtn.style.display = 'none';
-        title.innerHTML += ` <span style="font-size:12px; color:green; border:1px solid green; padding:2px 6px; border-radius:4px; vertical-align:middle;">LOCKED</span>`;
-    } else {
-        if(saveBtn) saveBtn.style.display = 'inline-block';
-        if(submitBtn) submitBtn.style.display = 'inline-block';
-    }
-
-    // 4. Render
-    renderFlagshipCanvas(canvas, descEl, freshAnswers, isLocked);
-
-    // Handle Descriptions
-    const meta = CURRENT_FLAGSHIP_SCHEMA.find(f => f.key === 'meta_description');
-    if(meta && meta.label) {
-        if (USER_DATA.role === 'admin') {
-            descEl.innerHTML = `${meta.label} <br><span style="color:var(--accent); font-weight:600; font-size:11px; text-transform:uppercase;">Editing: ${CURRENT_ADMIN_CLIENT.name}</span>`;
+    const res = await apiCall('getSchema', { formName });
+    if(res.success) {
+        CURRENT_FLAGSHIP_SCHEMA = res.schema;
+        
+        // 1. DATA SYNC FIX: Determine Target ID and fetch FRESH answers
+        let targetId = null;
+        if (USER_DATA.role === 'admin' && CURRENT_ADMIN_CLIENT) {
+            targetId = CURRENT_ADMIN_CLIENT.id;
         } else {
-            descEl.innerText = meta.label;
+            targetId = USER_DATA.id;
         }
-        descEl.style.display = "block";
-        document.getElementById('print-desc').innerText = meta.label;
-    }
 
-    updateProgress();
+        // 2. Fetch Fresh Data (This fixes the data loss bug)
+        const answerRes = await apiCall('getAnswers', { id: targetId });
+        const freshAnswers = answerRes.success ? answerRes.answers : {};
+
+        // 3. Update Admin context if applicable
+        if (USER_DATA.role === 'admin' && CURRENT_ADMIN_CLIENT) {
+            CURRENT_ADMIN_CLIENT.answers = freshAnswers;
+            descEl.innerText = `Viewing Data for: ${CURRENT_ADMIN_CLIENT.name}`;
+            descEl.style.display = 'block';
+            descEl.style.color = 'var(--accent)';
+            descEl.style.fontWeight = 'bold';
+        }
+
+        // 4. Lock Logic
+        const isLocked = (USER_DATA.role !== 'admin' && status === 'Completed');
+        const saveBtn = document.getElementById('btn-save-draft');
+        const submitBtn = document.querySelector('#view-flagship-form .btn-main'); 
+        
+        if(isLocked) {
+            if(saveBtn) saveBtn.style.display = 'none';
+            if(submitBtn) submitBtn.style.display = 'none';
+            title.innerHTML += ` <span style="font-size:12px; color:green; border:1px solid green; padding:2px 6px; border-radius:4px; vertical-align:middle;">LOCKED</span>`;
+        } else {
+            if(saveBtn) saveBtn.style.display = 'inline-block';
+            if(submitBtn) submitBtn.style.display = 'inline-block';
+        }
+        
+        // 5. Render
+        renderFlagshipCanvas(canvas, descEl, freshAnswers, isLocked);
+        
+        const meta = CURRENT_FLAGSHIP_SCHEMA.find(f => f.key === 'meta_description');
+        if(meta && meta.label) {
+            if (USER_DATA.role === 'admin') {
+                descEl.innerHTML = `${meta.label} <br><span style="color:var(--accent); font-weight:600; font-size:11px; text-transform:uppercase;">Editing: ${CURRENT_ADMIN_CLIENT.name}</span>`;
+            } else {
+                descEl.innerText = meta.label;
+            }
+            descEl.style.display = "block";
+            document.getElementById('print-desc').innerText = meta.label;
+        }
+
+        updateProgress(); 
+    } else {
+        canvas.innerHTML = "<div style='color:red; text-align:center;'>Error loading form.</div>";
+    }
 }
-function renderFlagshipCanvas(canvas, descEl, preloadedAnswers = {}) {
+
+function renderFlagshipCanvas(canvas, descEl, preloadedAnswers = {}, isLocked = false) {
     canvas.innerHTML = "";
     
-    // Logic to get answers depends on context
-    let answers = preloadedAnswers;
-    if (USER_DATA.role !== 'admin') {
-         // If client, we might need to grab answers from USER_DATA if not passed
-         // But for simplicity, we will let the 'value' logic below handle it if passed empty
-         // Actually, let's look at initClientDashboard -> it didn't pass answers.
-         // We should fix that or fetch them.
-         // Simplest fix: Just use the apiCall('clientData') which returned forms. 
-         // Wait, clientData returns *requests*, not the big JSON answers.
-         // We need to ensure the client has their answers loaded. 
-         // Let's fetch them freshly in openFlagshipForm for Clients.
-    }
-
     CURRENT_FLAGSHIP_SCHEMA.forEach(field => {
         if(field.key === 'meta_description' || field.type === 'hidden' || field.key === 'init_marker') return;
 
@@ -287,37 +260,24 @@ function renderFlagshipCanvas(canvas, descEl, preloadedAnswers = {}) {
         group.appendChild(label);
 
         let input;
-        
-        // Determine Value
-        // Note: For Admin, we passed answers. For Client, we need to grab them.
-        // Let's assume for this step we are using the global CURRENT_ADMIN_CLIENT answers 
-        // OR we need to fetch for the client. 
-        // *Self-Correction*: Accessing USER_DATA.answers isn't reliable if not updated.
-        // We will do a quick fetch in openFlagshipForm if needed, but for now let's read from the passed object.
-        
-        // Getting the value safely
-        let val = "";
-        if (USER_DATA.role === 'admin' && CURRENT_ADMIN_CLIENT.answers) {
-            val = CURRENT_ADMIN_CLIENT.answers[field.key] || "";
-        } else if (USER_DATA.role === 'client' && USER_DATA.answers) { // We need to ensure USER_DATA has answers
-            val = USER_DATA.answers[field.key] || "";
-        }
+        let val = preloadedAnswers[field.key] || "";
+
         const disabledAttr = isLocked ? 'disabled' : '';
         const lockedStyle = isLocked ? 'cursor: not-allowed; opacity: 0.7; background: #f5f5f5;' : '';
-       
+
         if (field.type === 'textarea') {
             input = document.createElement('textarea');
             input.className = "flagship-input";
             input.rows = 4;
             input.value = val;
-            input.oninput = function() {
-                this.style.height = "auto";
-                this.style.height = (this.scrollHeight) + "px";
-                updateProgress();
-            if(isLocked) {
-                input.disabled = true;
-                input.style.cssText += lockedStyle;    
-            };
+            if(isLocked) { input.disabled = true; input.style.cssText += lockedStyle; }
+            else {
+                input.oninput = function() {
+                    this.style.height = "auto";
+                    this.style.height = (this.scrollHeight) + "px";
+                    updateProgress();
+                };
+            }
             setTimeout(() => input.dispatchEvent(new Event('input')), 100); 
         } else if (field.type === 'select') {
             input = document.createElement('div');
@@ -330,10 +290,10 @@ function renderFlagshipCanvas(canvas, descEl, preloadedAnswers = {}) {
                     radio.type = "radio";
                     radio.name = field.key;
                     radio.value = opt.trim();
-                    if(val === opt.trim()) radio.checked = true; // Pre-fill
-                    if(isLocked) {
-                        radio.disabled = true;
-                    radio.onchange = updateProgress;
+                    if(val === opt.trim()) radio.checked = true;
+                    
+                    if(isLocked) radio.disabled = true;
+                    else radio.onchange = updateProgress;
                     
                     row.appendChild(radio);
                     row.appendChild(document.createTextNode(opt.trim()));
@@ -345,10 +305,8 @@ function renderFlagshipCanvas(canvas, descEl, preloadedAnswers = {}) {
             input.type = "text";
             input.className = "flagship-input";
             input.value = val;
-            if(isLocked) {
-                input.disabled = true;
-                input.style.cssText += lockedStyle;
-            input.oninput = updateProgress;
+            if(isLocked) { input.disabled = true; input.style.cssText += lockedStyle; }
+            else input.oninput = updateProgress;
         }
 
         if(field.type !== 'select') input.setAttribute('data-key', field.key);
@@ -372,14 +330,11 @@ async function saveFlagshipData(isDraft) {
     const originalText = btn.innerText;
     btn.innerText = "Saving...";
 
-    // Determine ID to save to
     const targetId = (USER_DATA.role === 'admin') ? CURRENT_ADMIN_CLIENT.id : USER_DATA.id;
 
-    // 1. Save Data (JSON)
     const res = await apiCall('saveData', { u: targetId, data: payload });
 
     if(res.success) {
-        // Update local state so we don't need to refresh
         if (USER_DATA.role === 'admin') {
             if(!CURRENT_ADMIN_CLIENT.answers) CURRENT_ADMIN_CLIENT.answers = {};
             Object.assign(CURRENT_ADMIN_CLIENT.answers, payload);
@@ -388,7 +343,6 @@ async function saveFlagshipData(isDraft) {
             Object.assign(USER_DATA.answers, payload);
         }
 
-        // 2. Trigger Completion (If submitting and we have a Request ID)
         if (!isDraft && CURRENT_REQUEST_ID) {
             await apiCall('completeRequest', { reqId: CURRENT_REQUEST_ID });
         }
@@ -405,33 +359,29 @@ async function saveFlagshipData(isDraft) {
         btn.innerText = originalText;
     }
 }
+
 function updateProgress() {
-    // 1. Count Total Fields
     const textInputs = document.querySelectorAll('#flagship-canvas [data-key]');
     const radioGroups = document.querySelectorAll('#flagship-canvas [data-group-key]');
     const total = textInputs.length + radioGroups.length;
     
     if(total === 0) return;
 
-    // 2. Count Filled Fields
     let filled = 0;
-    
-    textInputs.forEach(input => {
-        if(input.value.trim() !== "") filled++;
-    });
-    
+    textInputs.forEach(input => { if(input.value.trim() !== "") filled++; });
     radioGroups.forEach(group => {
         const key = group.getAttribute('data-group-key');
         if(document.querySelector(`input[name="${key}"]:checked`)) filled++;
     });
 
-    // 3. Update UI
     const pct = Math.round((filled / total) * 100);
     const badge = document.getElementById('flagship-form-progress');
-    badge.innerText = `${pct}% Completed`;
-    
-    if(pct === 100) badge.innerText = "🎉 100% Ready";
+    if(badge) {
+        badge.innerText = `${pct}% Completed`;
+        if(pct === 100) badge.innerText = "🎉 100% Ready";
+    }
 }
+
 function closeFlagshipForm() {
     document.getElementById('view-flagship-form').classList.add('hidden');
     document.body.scrollTop = 0; 
@@ -439,13 +389,15 @@ function closeFlagshipForm() {
 
     if (USER_DATA.role === 'admin') {
         document.getElementById('view-admin').classList.remove('hidden');
-        initAdmin(); // Refresh data to show updates
+        initAdmin(); 
     } else {
         document.getElementById('view-client-dashboard').classList.remove('hidden');
-        initClientDashboard(); // Refresh to show "Completed" status
+        initClientDashboard(); 
     }
 }
-/* --- ADMIN DASHBOARD --- */
+
+/* --- ADMIN DASHBOARD & STUDIO --- */
+
 async function initAdmin() {
     document.getElementById('view-admin').classList.remove('hidden');
     const tbody = document.getElementById('client-table-body');
@@ -456,27 +408,8 @@ async function initAdmin() {
         if(tbody) tbody.innerHTML = "<tr><td colspan='5' style='text-align:center; color:red;'>Error loading data.</td></tr>";
         return;
     }
-    
     ALL_FORMS = data.forms || [];
     renderAdminDashboard(data.clients);
-}
-
-function getStatusStyle(status) {
-    status = (status || 'Active').trim();
-    if(status === 'Active') return `background:#E8F5E9; color:#2E7D32;`;
-    if(status === 'Graduated') return `background:#FFF8E1; color:#F57F17;`;
-    return `background:#f5f5f5; color:#666;`; 
-}
-
-function getTierStyle(tier) {
-    tier = (tier || 'Bronze').trim();
-    let border = "#eee";
-    let color = "#666";
-    if(tier === 'Gold') { border = "#FFD700"; color = "#B8860B"; }
-    if(tier === 'Silver') { border = "#C0C0C0"; color = "#757575"; }
-    if(tier === 'Bronze') { border = "#CD7F32"; color = "#8D6E63"; }
-    
-    return `border:1px solid ${border}; color:${color}; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:700; text-transform:uppercase;`;
 }
 
 function renderAdminDashboard(clients) {
@@ -497,24 +430,20 @@ function renderAdminDashboard(clients) {
         tdAction.style.display = "flex";
         tdAction.style.gap = "8px"; 
         
-        // 1. Profile Button
         const btnProfile = document.createElement('button');
         btnProfile.className = "btn-soft";
         btnProfile.innerHTML = "Profile";
         btnProfile.onclick = () => openClientEditor(client);
         
-        // 2. Forms (Viewer) Button
         const btnForms = document.createElement('button');
         btnForms.className = "btn-soft";
         btnForms.innerHTML = "View Data";
         btnForms.onclick = () => openFormPicker(client); 
 
-        // 3. PUSH BUTTON (New!)
         const btnPush = document.createElement('button');
-        btnPush.className = "btn-main small"; // Using 'small' variant if you have it, or just btn-main
+        btnPush.className = "btn-main small"; 
         btnPush.style.padding = "6px 12px";
         btnPush.innerHTML = "+ Assign";
-        btnPush.title = "Push new form to client";
         btnPush.onclick = () => openPushModal(client);
         
         tdAction.appendChild(btnPush);
@@ -526,7 +455,22 @@ function renderAdminDashboard(clients) {
     });
 }
 
-/* --- EDITORS & MODALS --- */
+function getStatusStyle(status) {
+    status = (status || 'Active').trim();
+    if(status === 'Active') return `background:#E8F5E9; color:#2E7D32;`;
+    if(status === 'Graduated') return `background:#FFF8E1; color:#F57F17;`;
+    return `background:#f5f5f5; color:#666;`; 
+}
+
+function getTierStyle(tier) {
+    tier = (tier || 'Bronze').trim();
+    let border = "#eee";
+    let color = "#666";
+    if(tier === 'Gold') { border = "#FFD700"; color = "#B8860B"; }
+    if(tier === 'Silver') { border = "#C0C0C0"; color = "#757575"; }
+    if(tier === 'Bronze') { border = "#CD7F32"; color = "#8D6E63"; }
+    return `border:1px solid ${border}; color:${color}; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:700; text-transform:uppercase;`;
+}
 
 function openClientEditor(client) {
     if(!client) {
@@ -535,7 +479,6 @@ function openClientEditor(client) {
     } else {
         document.getElementById('ce-title').innerText = "Edit Client";
     }
-    
     CURRENT_ADMIN_CLIENT = client;
     const modal = document.getElementById('admin-modal');
     document.getElementById('ce-id').value = client.id;
@@ -543,7 +486,6 @@ function openClientEditor(client) {
     document.getElementById('ce-code').value = client.code;
     document.getElementById('ce-tier').value = client.tier;
     document.getElementById('ce-status').value = client.status || "Active";
-    
     modal.classList.add('active');
 }
 
@@ -559,7 +501,6 @@ async function saveClientChanges() {
     const status = document.getElementById('ce-status').value;
 
     const res = await apiCall('saveClient', { id, name, code, tier, status });
-    
     if(res.success) {
         closeClientEditor();
         initAdmin(); 
@@ -568,13 +509,10 @@ async function saveClientChanges() {
     }
 }
 
-/* --- FORM PICKER & ZEN VIEWER --- */
-
 function openFormPicker(client) {
     CURRENT_ADMIN_CLIENT = client;
     const modal = document.getElementById('form-picker-modal');
     const container = document.getElementById('form-list-container');
-    
     container.innerHTML = ""; 
     
     if(ALL_FORMS.length === 0) {
@@ -588,117 +526,13 @@ function openFormPicker(client) {
         btn.style.marginBottom = "10px";
         btn.style.justifyContent = "space-between";
         btn.innerHTML = `<span>${form}</span> <span style="opacity:0.3;">→</span>`;
-        
         btn.onclick = () => {
             modal.classList.remove('active');
-            // Call Flagship instead of loadClientFormView
             openFlagshipForm(form); 
         };
         container.appendChild(btn);
     });
-    
     modal.classList.add('active');
-}
-
-async function loadClientFormView(formName) {
-    const viewer = document.getElementById('zen-viewer');
-    const body = document.getElementById('zen-body');
-    
-    viewer.classList.add('active'); 
-    document.getElementById('zen-title').innerText = formName;
-    document.getElementById('zen-subtitle').innerText = "EDITING: " + CURRENT_ADMIN_CLIENT.name;
-    body.innerHTML = "<div style='text-align:center; padding-top:50px; opacity:0.5;'>Fetching data...</div>";
-    
-    const schemaRes = await apiCall('getSchema', { formName });
-    const schema = schemaRes.schema || [];
-    const answers = CURRENT_ADMIN_CLIENT.answers || {};
-    
-    body.innerHTML = ""; 
-    
-    if(schema.length === 0) {
-        body.innerHTML = "<p style='text-align:center; margin-top:50px;'>This form is empty.</p>";
-        return;
-    }
-
-    schema.forEach(field => {
-        if(field.type === 'hidden' || field.key === 'meta_description') return;
-
-        const group = document.createElement('div');
-        group.className = "notion-group"; 
-        
-        const label = document.createElement('label');
-        label.className = "notion-label";
-        label.innerText = field.label; 
-        group.appendChild(label);
-        
-        let input;
-        
-        if (field.type === 'textarea') {
-            input = document.createElement('textarea');
-            input.rows = 4;
-            input.className = "notion-input zen-field"; 
-            input.style.border = "1px solid #eee";
-            input.style.borderRadius = "8px";
-            input.style.padding = "10px";
-        } else if (field.type === 'select') {
-            input = document.createElement('select');
-            input.className = "notion-select zen-field";
-            if(field.options) {
-                field.options.forEach(opt => {
-                    const o = document.createElement('option');
-                    o.value = opt.trim();
-                    o.innerText = opt.trim();
-                    input.appendChild(o);
-                });
-            }
-        } else {
-            input = document.createElement('input');
-            input.type = "text";
-            input.className = "notion-input zen-field";
-        }
-
-        input.value = answers[field.key] || "";
-        input.setAttribute('data-key', field.key); 
-        
-        group.appendChild(input);
-        body.appendChild(group);
-    });
-}
-
-function closeZenViewer() {
-    document.getElementById('zen-viewer').classList.remove('active');
-}
-
-async function saveZenForm() {
-    const inputs = document.querySelectorAll('.zen-field');
-    const payload = {};
-    
-    inputs.forEach(input => {
-        const key = input.getAttribute('data-key');
-        if(key) payload[key] = input.value;
-    });
-    
-    const btn = document.querySelector('#zen-viewer .btn-main');
-    const originalText = btn.innerText;
-    btn.innerText = "Saving...";
-
-    const res = await apiCall('saveData', { 
-        u: CURRENT_ADMIN_CLIENT.id, 
-        data: payload 
-    });
-
-    if(res.success) {
-        if(!CURRENT_ADMIN_CLIENT.answers) CURRENT_ADMIN_CLIENT.answers = {};
-        Object.assign(CURRENT_ADMIN_CLIENT.answers, payload);
-        btn.innerText = "Saved";
-        setTimeout(() => { 
-            btn.innerText = originalText;
-            closeZenViewer(); 
-        }, 1000);
-    } else {
-        rwAlert("Error: " + res.message);
-        btn.innerText = originalText;
-    }
 }
 
 /* --- STUDIO & TEMPLATES --- */
@@ -727,22 +561,17 @@ function switchAdminTab(tab) {
 
 function renderFormTemplatesGrid() {
     const container = document.querySelector('.glass-table-container');
-    
     let html = `<div class="template-grid">`;
-    
     html += `
         <div class="template-card new-form" onclick="openStudio('New Form')" 
              style="display:flex; flex-direction:column; justify-content:center; align-items:center;">
             <div class="plus-icon" style="font-size:32px; color:var(--accent); margin-bottom:10px;">+</div>
             <div class="card-label">Create New Form</div>
         </div>`;
-    
     ALL_FORMS.forEach(form => {
         const safeName = form.replace(/'/g, "\\'");
-        
         html += `
         <div class="template-card" onclick="openStudio('${safeName}')" style="display:flex; flex-direction:column; justify-content:space-between;">
-            
             <div style="display:flex; justify-content:flex-end; width:100%; margin-bottom:10px;">
                 <div title="Delete Form" 
                      onclick="event.stopPropagation(); deleteForm('${safeName}')"
@@ -750,18 +579,15 @@ function renderFormTemplatesGrid() {
                      &times;
                 </div>
             </div>
-
             <div style="text-align:center;">
                 <div class="form-icon" style="font-size:32px; margin-bottom:10px; opacity:0.8;">📄</div>
                 <div class="card-label" style="font-weight:600; font-size:14px;">${form}</div>
             </div>
-            
             <div style="text-align:center; font-size:10px; color:#999; margin-top:15px; border-top:1px solid rgba(0,0,0,0.05); padding-top:8px;">
                 Click to Edit
             </div>
         </div>`;
     });
-    
     html += `</div>`;
     container.innerHTML = html;
 }
@@ -769,18 +595,13 @@ function renderFormTemplatesGrid() {
 async function openStudio(formName) {
     document.getElementById('view-admin').classList.add('hidden');
     document.getElementById('view-studio').classList.remove('hidden');
-    
     CURRENT_STUDIO_FORM = (formName === 'New Form') ? null : formName;
-    
     const titleInput = document.getElementById('studio-form-title-display');
     const descInput = document.getElementById('studio-form-description-display');
-    
     titleInput.value = (formName === 'New Form') ? "" : formName;
     if(descInput) descInput.value = ""; 
-    
     titleInput.oninput = () => markUnsaved();
     if(descInput) descInput.oninput = () => markUnsaved();
-
     STUDIO_SCHEMA = [];
 
     if(formName !== 'New Form') {
@@ -788,16 +609,13 @@ async function openStudio(formName) {
         if(res.success && res.schema) {
             STUDIO_SCHEMA = res.schema;
             const meta = STUDIO_SCHEMA.find(f => f.key === 'meta_description');
-            if(meta && descInput) {
-                descInput.value = meta.label; 
-            }
+            if(meta && descInput) { descInput.value = meta.label; }
         }
     }
     renderStudioCanvas();
 }
 
 async function closeStudio() {
-    // REPLACED NATIVE CONFIRM WITH ROSEWOOD UI
     if(await rwConfirm("Exit Studio? Any unsaved changes will be lost.")) {
         document.getElementById('view-studio').classList.add('hidden');
         document.getElementById('view-admin').classList.remove('hidden');
@@ -809,15 +627,11 @@ function renderStudioCanvas() {
     const list = document.getElementById('studio-questions-list');
     if(!list) return;
     list.innerHTML = "";
-    
     STUDIO_SCHEMA.forEach((field, index) => {
         if (field.key === 'init_marker' || field.key === 'meta_description') return;
-
         const block = document.createElement('div');
         block.className = "studio-question-block";
-        
         let inputHtml = "";
-
         if (field.type === 'select') {
             const options = field.options || [];
             inputHtml = `
@@ -835,13 +649,11 @@ function renderStudioCanvas() {
         } else {
             inputHtml = `<div style="height:30px; border-bottom:1px dashed #eee; width:60%; opacity:0.3; margin-top:10px;"></div>`;
         }
-
         block.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                 <input class="studio-pdf-label" value="${field.label}" 
                     onchange="updateStudioField(${index}, 'label', this.value)" 
                     placeholder="Enter your question here...">
-                
                 <div style="display:flex; align-items:center; gap: 10px;">
                     <select class="studio-type-selector" onchange="updateStudioField(${index}, 'type', this.value)">
                         <option value="text" ${field.type==='text'?'selected':''}>Short Answer</option>
@@ -873,7 +685,6 @@ function addStudioQuestion() {
 
 async function deleteStudioField(index) {
     markUnsaved();
-    // REPLACED NATIVE CONFIRM WITH ROSEWOOD UI
     if(await rwConfirm("Delete this question?")) {
         STUDIO_SCHEMA.splice(index, 1);
         renderStudioCanvas();
@@ -913,12 +724,9 @@ function markUnsaved() {
 }
 
 async function deleteForm(formName) {
-    // REPLACED NATIVE CONFIRM WITH ROSEWOOD UI
     if(!await rwConfirm(`Are you sure you want to PERMANENTLY delete "${formName}"?`, "Critical Action")) return;
-    
     ALL_FORMS = ALL_FORMS.filter(f => f !== formName);
     renderFormTemplatesGrid();
-    
     const res = await apiCall('deleteForm', { formName });
     if(!res.success) {
         rwAlert("Server Error: " + res.message);
@@ -928,7 +736,6 @@ async function deleteForm(formName) {
 
 async function saveStudioChanges() {
     if (document.activeElement) { document.activeElement.blur(); }
-
     const titleEl = document.getElementById('studio-form-title-display');
     const descEl = document.getElementById('studio-form-description-display');
     const newName = titleEl ? titleEl.value.trim() : "";
@@ -945,7 +752,6 @@ async function saveStudioChanges() {
     btn.innerText = "Syncing...";
     
     STUDIO_SCHEMA = STUDIO_SCHEMA.filter(f => f.key !== 'meta_description');
-    
     if(description) {
         STUDIO_SCHEMA.unshift({
             key: 'meta_description',
@@ -955,25 +761,20 @@ async function saveStudioChanges() {
     }
     
     const isRenaming = (CURRENT_STUDIO_FORM && CURRENT_STUDIO_FORM !== newName);
-
     try {
         const res = await apiCall('saveFormSchema', { 
             formName: newName, 
             schema: STUDIO_SCHEMA 
         });
-
         if(res.success) {
             if(isRenaming) {
                 await apiCall('deleteForm', { formName: CURRENT_STUDIO_FORM });
                 ALL_FORMS = ALL_FORMS.filter(f => f !== CURRENT_STUDIO_FORM);
             }
-            
             CURRENT_STUDIO_FORM = newName;
             if(!ALL_FORMS.includes(newName)) ALL_FORMS.push(newName);
-            
             btn.innerText = "Saved!";
             btn.style.background = "#2E7D32"; 
-            
             setTimeout(() => {
                 btn.innerText = "Save Cloud Template";
                 btn.style.background = "var(--rw-red)";
@@ -988,43 +789,11 @@ async function saveStudioChanges() {
     }
 }
 
-// LISTENERS
-window.addEventListener('DOMContentLoaded', () => {
-    const passInput = document.getElementById('login-pass');
-    if(passInput) {
-        passInput.addEventListener("keypress", (e) => {
-            if (e.key === "Enter") { e.preventDefault(); handleLogin(); }
-        });
-    }
-});
-
-function openSignUpModal() {
-    rwAlert("Rosewood Forms is currently Invite Only.<br><br>Please contact your administrator to receive your access code.", "Private Access");
-}
-/* --- SETTINGS & THEME --- */
-function changeTheme(themeName) {
-    const root = document.documentElement;
-    
-    if (themeName === 'Obsidian') {
-        // Switch to Mono/Black theme
-        root.style.setProperty('--accent', '#1d1d1f'); // Black accent
-        // Optional: You can darken other parts here if you want a true Dark Mode later
-    } else {
-        // Default Rosewood Red
-        root.style.setProperty('--accent', '#A92F3D');
-    }
-    
-    // Save preference (optional, resets on reload currently)
-    console.log("Theme switched to:", themeName);
-}
-/* --- PUSH SYSTEM (Assigning Forms) --- */
-
 function openPushModal(client) {
     CURRENT_ADMIN_CLIENT = client;
     const modal = document.getElementById('push-modal');
     const container = document.getElementById('push-list-container');
     const title = document.getElementById('push-client-name');
-    
     title.innerText = client.name;
     container.innerHTML = ""; 
 
@@ -1045,33 +814,26 @@ function openPushModal(client) {
             </div>
             <span style="font-size:11px; background:var(--accent); color:#fff; padding:2px 6px; border-radius:4px;">PUSH</span>
         `;
-        
         btn.onclick = () => pushFormToClient(form);
         container.appendChild(btn);
     });
-    
     modal.classList.add('active');
 }
 
 async function pushFormToClient(formName) {
-    // Rosewood UI Confirmation
     if(!await rwConfirm(`Assign "<strong>${formName}</strong>" to ${CURRENT_ADMIN_CLIENT.name}?`)) return;
-
-    const btn = event.currentTarget; // The button that was clicked
+    const btn = event.currentTarget;
     const originalContent = btn.innerHTML;
     btn.innerHTML = "Sending...";
     btn.style.opacity = "0.7";
-
     const res = await apiCall('assignForm', { 
         id: CURRENT_ADMIN_CLIENT.id, 
         formName: formName 
     });
-
     if(res.success) {
         btn.innerHTML = "✅ Sent!";
         btn.style.background = "#E8F5E9";
         btn.style.color = "#2E7D32";
-        
         setTimeout(() => {
             document.getElementById('push-modal').classList.remove('active');
             rwAlert(`Form sent to ${CURRENT_ADMIN_CLIENT.name}. They can now see it on their dashboard.`);
@@ -1080,5 +842,26 @@ async function pushFormToClient(formName) {
         rwAlert("Error: " + res.message);
         btn.innerHTML = originalContent;
         btn.style.opacity = "1";
+    }
+}
+
+// LISTENERS
+window.addEventListener('DOMContentLoaded', () => {
+    const passInput = document.getElementById('login-pass');
+    if(passInput) {
+        passInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") { e.preventDefault(); handleLogin(); }
+        });
+    }
+});
+function openSignUpModal() {
+    rwAlert("Rosewood Forms is currently Invite Only.<br><br>Please contact your administrator to receive your access code.", "Private Access");
+}
+function changeTheme(themeName) {
+    const root = document.documentElement;
+    if (themeName === 'Obsidian') {
+        root.style.setProperty('--accent', '#1d1d1f'); 
+    } else {
+        root.style.setProperty('--accent', '#A92F3D');
     }
 }
