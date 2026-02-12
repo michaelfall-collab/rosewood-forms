@@ -609,3 +609,72 @@ tr:hover td { background: rgba(255,255,255,0.4); }
     background-position: right 12px top 50%;
     background-size: 10px auto;
 }
+/* --- CLIENT TIERS --- */
+/* These classes are applied to the BODY tag by JS */
+
+/* Gold Tier (Luxurious) */
+body.tier-gold {
+    --accent: #B8860B; /* Dark Gold */
+    --bg-gradient: radial-gradient(circle at 50% 0%, #FFF8E1 0%, #FFFFFF 100%);
+}
+body.tier-gold #client-tier-badge {
+    background: linear-gradient(45deg, #FFD700, #FDB931);
+    color: #5c4002;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+}
+
+/* Silver Tier (Professional) */
+body.tier-silver {
+    --accent: #546E7A; /* Blue Grey */
+    --bg-gradient: radial-gradient(circle at 50% 0%, #ECEFF1 0%, #FFFFFF 100%);
+}
+body.tier-silver #client-tier-badge {
+    background: linear-gradient(45deg, #E0E0E0, #BDBDBD);
+    color: #424242;
+}
+
+/* Bronze Tier (Standard) */
+body.tier-bronze {
+    --accent: #8D6E63; /* Brown */
+}
+body.tier-bronze #client-tier-badge {
+    background: #EFEBE9;
+    color: #5D4037;
+    border: 1px solid #D7CCC8;
+}
+
+/* --- FLAGSHIP FORM STYLES --- */
+.flagship-field-group {
+    margin-bottom: 50px;
+    animation: fadeIn 0.5s ease-up;
+}
+
+.flagship-label {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    display: block;
+    color: var(--obsidian);
+}
+
+.flagship-input {
+    width: 100%;
+    padding: 18px;
+    font-size: 16px;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 12px;
+    background: #f9f9f9;
+    transition: all 0.3s ease;
+}
+.flagship-input:focus {
+    background: #fff;
+    border-color: var(--accent);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    outline: none;
+}
+.flagship-input[type="radio"] { width: auto; margin-right: 10px; }
+
+/* Subtlety for the description text */
+.field-helper {
+    font-size: 13px; color: #888; margin-top: 8px;
+}
