@@ -3,10 +3,11 @@
 
 :root {
     /* Brand & Glass Palette */
-    --glass-surface: rgba(255, 255, 255, 0.65); /* Translucent white */
+    --glass-surface: rgba(255, 255, 255, 0.65);
     --glass-border: rgba(255, 255, 255, 0.4);
     --glass-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     --text-main: #1d1d1f; /* Apple "Almost Black" */
+    --obsidian: #1d1d1f;  /* <--- ADDED THIS DEFINITION */
     --text-muted: #86868b;
     --accent: #A92F3D; /* Rosewood Red */
     --bg-gradient: radial-gradient(circle at 50% 0%, #f5f5f7 0%, #e8e8ed 100%);
@@ -111,6 +112,7 @@ body {
 .notion-input, .notion-select {
     width: 100%;
     padding: 12px 14px;
+    box-sizing: border-box; /* <--- THIS FIXES THE HORIZONTAL SCROLL */
     border-radius: 12px;
     border: 1px solid rgba(0, 0, 0, 0.08);
     background: rgba(255, 255, 255, 0.6);
