@@ -639,7 +639,6 @@ async function saveStudioChanges() {
     if (document.activeElement) { document.activeElement.blur(); }
 
     const titleEl = document.getElementById('studio-form-title-display');
-    const titleEl = document.getElementById('studio-form-title-display');
     const name = titleEl ? titleEl.value.trim() : "";
     const btn = document.getElementById('btn-save-studio');
 
