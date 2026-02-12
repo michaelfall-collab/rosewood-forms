@@ -178,7 +178,7 @@ async function openFlagshipForm(formName, status) {
     const view = document.getElementById('view-flagship-form');
     const canvas = document.getElementById('flagship-canvas');
     const title = document.getElementById('flagship-form-title');
-    const descArea = document.getElementById('flagship-description');
+    const descEl = document.getElementById('flagship-form-desc'); // New Banner location
     
     // UI Reset
     view.classList.remove('hidden');
@@ -186,32 +186,33 @@ async function openFlagshipForm(formName, status) {
     window.scrollTo(0,0);
     
     title.innerText = formName;
-    canvas.innerHTML = "<div style='text-align:center; padding:50px;'>Loading Form...</div>";
+    descEl.style.display = 'none'; // Hide by default
+    canvas.innerHTML = "<div style='text-align:center; padding:50px; opacity:0.5;'>Loading Form...</div>";
+    
     CURRENT_FLAGSHIP_NAME = formName;
 
-    // Fetch Schema
     const res = await apiCall('getSchema', { formName });
     if(res.success) {
         CURRENT_FLAGSHIP_SCHEMA = res.schema;
-        renderFlagshipCanvas(canvas, descArea, status);
+        renderFlagshipCanvas(canvas, descEl, status);
+        updateProgress(); // Initial check
     } else {
         canvas.innerHTML = "<div style='color:red; text-align:center;'>Error loading form.</div>";
     }
 }
 
-function renderFlagshipCanvas(canvas, descArea, status) {
+function renderFlagshipCanvas(canvas, descEl, status) {
     canvas.innerHTML = "";
-    descArea.innerHTML = "";
-    descArea.style.display = "none";
+    
+    // Extract description from schema (Label Cheat)
+    const meta = CURRENT_FLAGSHIP_SCHEMA.find(f => f.key === 'meta_description');
+    if(meta && meta.label) {
+        descEl.innerText = meta.label;
+        descEl.style.display = "block";
+    }
 
     CURRENT_FLAGSHIP_SCHEMA.forEach(field => {
-        // Handle Meta Description
-        if(field.key === 'meta_description') {
-            descArea.innerText = field.label; // Remember the label cheat
-            descArea.style.display = "block";
-            return;
-        }
-        if(field.type === 'hidden' || field.key === 'init_marker') return;
+        if(field.key === 'meta_description' || field.type === 'hidden' || field.key === 'init_marker') return;
 
         const group = document.createElement('div');
         group.className = "flagship-field-group";
@@ -227,38 +228,35 @@ function renderFlagshipCanvas(canvas, descArea, status) {
             input = document.createElement('textarea');
             input.className = "flagship-input";
             input.rows = 4;
+            input.oninput = updateProgress; // Listen for typing
         } else if (field.type === 'select') {
             input = document.createElement('div');
-            // Custom Radio-Style Select for better UX
             if(field.options) {
                 field.options.forEach(opt => {
-                    const labelRow = document.createElement('label');
-                    labelRow.style.display = "block";
-                    labelRow.style.padding = "10px";
-                    labelRow.style.cursor = "pointer";
+                    const row = document.createElement('label');
+                    row.className = "flagship-radio-row";
                     
                     const radio = document.createElement('input');
                     radio.type = "radio";
                     radio.name = field.key;
                     radio.value = opt.trim();
-                    radio.className = "flagship-input"; // Reuse style
+                    radio.onchange = updateProgress; // Listen for clicks
                     
-                    labelRow.appendChild(radio);
-                    labelRow.appendChild(document.createTextNode(opt.trim()));
-                    input.appendChild(labelRow);
+                    row.appendChild(radio);
+                    row.appendChild(document.createTextNode(opt.trim()));
+                    input.appendChild(row);
                 });
             }
         } else {
             input = document.createElement('input');
             input.type = "text";
             input.className = "flagship-input";
+            input.oninput = updateProgress; // Listen for typing
         }
 
-        // Identify input for saving
         if(field.type !== 'select') {
             input.setAttribute('data-key', field.key);
         } else {
-            // For radio groups, we handle data extraction differently
             input.setAttribute('data-group-key', field.key);
         }
 
@@ -304,7 +302,33 @@ async function saveFlagshipData(isDraft) {
         btn.innerText = originalText;
     }
 }
+function updateProgress() {
+    // 1. Count Total Fields
+    const textInputs = document.querySelectorAll('#flagship-canvas [data-key]');
+    const radioGroups = document.querySelectorAll('#flagship-canvas [data-group-key]');
+    const total = textInputs.length + radioGroups.length;
+    
+    if(total === 0) return;
 
+    // 2. Count Filled Fields
+    let filled = 0;
+    
+    textInputs.forEach(input => {
+        if(input.value.trim() !== "") filled++;
+    });
+    
+    radioGroups.forEach(group => {
+        const key = group.getAttribute('data-group-key');
+        if(document.querySelector(`input[name="${key}"]:checked`)) filled++;
+    });
+
+    // 3. Update UI
+    const pct = Math.round((filled / total) * 100);
+    const badge = document.getElementById('flagship-form-progress');
+    badge.innerText = `${pct}% Completed`;
+    
+    if(pct === 100) badge.innerText = "🎉 100% Ready";
+}
 function closeFlagshipForm() {
     document.getElementById('view-flagship-form').classList.add('hidden');
     document.getElementById('view-client-dashboard').classList.remove('hidden');
