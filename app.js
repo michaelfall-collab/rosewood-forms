@@ -182,7 +182,20 @@ async function openFlagshipForm(formName, status, reqId = null) {
     const descEl = document.getElementById('flagship-form-desc');
     const printTitle = document.getElementById('print-title');
     const printDesc = document.getElementById('print-desc');
-    
+    const isLocked = (USER_DATA.role !== 'admin' && status === 'Completed');
+    const saveBtn = document.getElementById('btn-save-draft');
+    const submitBtn = document.querySelector('#view-flagship-form .btn-main'); // The big submit button
+
+    if(isLocked) {
+        if(saveBtn) saveBtn.style.display = 'none';
+        if(submitBtn) submitBtn.style.display = 'none';
+        
+        // Add a visual indicator
+        title.innerHTML += ` <span style="font-size:12px; color:green; border:1px solid green; padding:2px 6px; border-radius:4px; vertical-align:middle;">LOCKED</span>`;
+    } else {
+        if(saveBtn) saveBtn.style.display = 'inline-block';
+        if(submitBtn) submitBtn.style.display = 'inline-block';
+    }
     // Store Request ID for completion logic
     CURRENT_REQUEST_ID = reqId;
 
