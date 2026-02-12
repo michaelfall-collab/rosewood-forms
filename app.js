@@ -479,52 +479,61 @@ function closeStudio() {
     }
 }
 
+// Ensure this is at the TOP of your file
+var STUDIO_SCHEMA = STUDIO_SCHEMA || []; 
+
 async function saveStudioChanges() {
-    // 1. Grab Data
+    // ALERT 1: Prove function started
+    // alert("Save Function Started"); 
+
     const titleEl = document.getElementById('studio-form-title-display');
     const name = titleEl ? titleEl.value.trim() : "";
-    
-    // 2. Validate
-    if(!name) {
-        alert("STOP: Please enter a Template Name.");
-        return;
-    }
-    
-    if(!STUDIO_SCHEMA) {
-        alert("CRITICAL ERROR: STUDIO_SCHEMA is undefined.");
-        return;
-    }
-
-    // 3. User Feedback
     const btn = document.getElementById('btn-save-studio');
+
+    if(!name) {
+        alert("Please enter a Template Name.");
+        return;
+    }
+
+    // Safety check for schema
+    if (!STUDIO_SCHEMA) {
+        alert("Error: STUDIO_SCHEMA is missing. Resetting.");
+        STUDIO_SCHEMA = [];
+    }
+
     const originalText = btn.innerText;
-    btn.innerText = "Sending Data...";
-
-    // 4. Force Log to Alert (Temporary Debug)
-    // alert("Saving: " + name + " with " + STUDIO_SCHEMA.length + " questions.");
-
+    btn.innerText = "Syncing...";
+    
     try {
+        // ALERT 2: About to send
+        // alert("Sending to Cloud: " + name);
+
         const res = await apiCall('saveFormSchema', { 
             formName: name, 
             schema: STUDIO_SCHEMA 
         });
 
+        // ALERT 3: Response received
+        // alert("Response: " + JSON.stringify(res));
+
         if(res.success) {
-            btn.innerText = "Success!";
-            btn.style.background = "green";
+            btn.innerText = "Saved!";
+            btn.style.background = "#2E7D32"; 
+            
+            if(typeof ALL_FORMS !== 'undefined' && !ALL_FORMS.includes(name)) {
+                ALL_FORMS.push(name);
+            }
+
             setTimeout(() => {
                 btn.innerText = originalText;
                 btn.style.background = "var(--rw-red)";
             }, 2000);
-            
-            // Update local list
-            if(!ALL_FORMS.includes(name)) ALL_FORMS.push(name);
         } else {
-            alert("SERVER ERROR: " + res.message);
-            btn.innerText = "Failed";
+            alert("Server Error: " + res.message);
+            btn.innerText = "Retry";
         }
     } catch(e) {
-        alert("NETWORK ERROR: " + e.message);
+        alert("Network Crash: " + e.message);
         btn.innerText = "Error";
     }
 }
