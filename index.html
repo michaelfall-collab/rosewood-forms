@@ -130,79 +130,83 @@
 </div>
     
     <div id="form-picker-modal" class="glass-backdrop">
-        <div class="glass-card" style="width: 400px; height: auto;">
+        <div class="glass-card" style="width: 400px;">
             <div class="glass-header">
                 <div class="glass-title">Select Form</div>
                 <button onclick="document.getElementById('form-picker-modal').classList.remove('active')" class="btn-text">&times;</button>
             </div>
-            <div id="form-list-container" class="glass-content" style="padding-top:10px;">
-                </div>
+            <div class="glass-content">
+                <p style="font-size: 13px; color:#666; margin-bottom: 15px;">
+                    Choose a template to view or edit for this client.
+                </p>
+                <div id="form-list-container" style="display: flex; flex-direction: column; gap: 8px;"></div>
+            </div>
         </div>
     </div>
     
     <div id="admin-modal" class="glass-backdrop">
-        <div class="glass-card" style="height: auto; max-width: 600px;">
+        <div class="glass-card">
             <div class="glass-header">
-                <div>
-                    <div class="glass-subtitle">CLIENT DETAILS</div>
-                    <div id="ce-title" class="glass-title">Edit Client</div>
-                </div>
-                <button onclick="closeClientEditor()" class="btn-text" style="font-size:24px; opacity:0.5;">&times;</button>
+                <div id="ce-title" class="glass-title">Edit Client</div>
+                <button onclick="closeClientEditor()" class="btn-text">&times;</button>
             </div>
             
             <div class="glass-content">
                 <input type="hidden" id="ce-id">
                 
-                <div class="notion-group">
-                    <label class="notion-label">Company Name</label>
-                    <input type="text" id="ce-name" class="notion-input" placeholder="e.g. Acme Corp">
-                </div>
-                
-                <div class="notion-group">
-                    <label class="notion-label">Access Code (Password)</label>
-                    <input type="text" id="ce-code" class="notion-input" placeholder="e.g. acme2024">
-                </div>
-                
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="notion-group" style="grid-column: span 2;">
+                        <label class="notion-label">Client Name</label>
+                        <input type="text" id="ce-name" class="notion-input" placeholder="e.g. Acme Corp">
+                    </div>
+    
+                    <div class="notion-group">
+                        <label class="notion-label">Access Code</label>
+                        <input type="text" id="ce-code" class="notion-input" style="font-family: monospace; letter-spacing: 1px;">
+                    </div>
+    
                     <div class="notion-group">
                         <label class="notion-label">Tier</label>
-                        <select id="ce-tier" class="notion-select">
-                            <option value="Bronze">Bronze</option>
-                            <option value="Silver">Silver</option>
-                            <option value="Gold">Gold</option>
+                        <select id="ce-tier" class="notion-select badge-select">
+                            <option value="Bronze">Bronze (Standard)</option>
+                            <option value="Silver">Silver (Pro)</option>
+                            <option value="Gold">Gold (VIP)</option>
                         </select>
                     </div>
-                    <div class="notion-group">
-                         <label class="notion-label">Status</label>
-                         <select id="ce-status" class="notion-select">
-                            <option value="Active">Active</option>
-                            <option value="Graduated">Graduated</option> 
-                         </select>
+    
+                    <div class="notion-group" style="grid-column: span 2;">
+                        <label class="notion-label">Project Status</label>
+                        <select id="ce-status" class="notion-select badge-select">
+                            <option value="Active">🟢 Active</option>
+                            <option value="Graduated">🎓 Graduated</option>
+                            <option value="Pending">⚪ Pending</option>
+                            <option value="Hold">🔴 On Hold</option>
+                        </select>
                     </div>
                 </div>
             </div>
     
             <div class="glass-footer">
-                <button onclick="deleteClient()" id="btn-delete-client" class="btn-text" style="color:#d32f2f; font-size:12px; margin-right:auto;">Delete</button>
-                <button onclick="saveClientChanges()" class="btn-main">Save Changes</button>
+                <button class="btn-soft" onclick="closeClientEditor()">Cancel</button>
+                <button class="btn-main" onclick="saveClientChanges()">Save Changes</button>
             </div>
         </div>
     </div>
     
-    <div id="zen-viewer" class="glass-backdrop">
-        <div class="glass-card">
+    <div id="zen-viewer" class="glass-backdrop" style="background: rgba(255,255,255,0.9); z-index: 10000;">
+        <div class="glass-card" style="width: 700px; height: 90vh; max-height: 90vh;">
             <div class="glass-header">
                 <div>
-                    <div id="zen-subtitle" class="glass-subtitle">EDITING DATA</div>
-                    <div id="zen-title" class="glass-title">Form Name</div>
+                    <div id="zen-title" class="glass-title" style="font-size: 22px;">Form Name</div>
+                    <div id="zen-subtitle" style="font-size: 12px; color: var(--accent); font-weight: 600; text-transform: uppercase;">Editing Client</div>
                 </div>
-                <button onclick="closeZenViewer()" class="btn-text" style="font-size:24px; opacity:0.5;">&times;</button>
+                <button onclick="closeZenViewer()" class="btn-text">&times;</button>
             </div>
-            <div id="zen-body" class="glass-content">
+            <div id="zen-body" class="glass-content" style="background: #fafafa;">
                 </div>
             <div class="glass-footer">
-                 <button onclick="closeZenViewer()" class="btn-text">Cancel</button>
-                <button onclick="saveZenForm()" class="btn-main">Save Changes</button>
+                <button class="btn-soft" onclick="closeZenViewer()">Close</button>
+                <button class="btn-main" onclick="saveZenForm()">Save Data</button>
             </div>
         </div>
     </div>
