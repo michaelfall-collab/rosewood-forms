@@ -441,13 +441,20 @@ async function openStudio(formName) {
     document.getElementById('view-admin').classList.add('hidden');
     document.getElementById('view-studio').classList.remove('hidden');
     
-    // 2. Track Original Name (For Overwriting)
+    // 2. Track Original Name
     CURRENT_STUDIO_FORM = (formName === 'New Form') ? null : formName;
     
-    // 3. Setup Title
+    // 3. Setup Title & Description
     const titleInput = document.getElementById('studio-form-title-display');
-    titleInput.value = (formName === 'New Form') ? "" : formName;
+    const descInput = document.getElementById('studio-form-description-display');
     
+    titleInput.value = (formName === 'New Form') ? "" : formName;
+    if(descInput) descInput.value = ""; // Reset description
+    
+    // Add "Dirty State" listeners
+    titleInput.oninput = () => markUnsaved();
+    if(descInput) descInput.oninput = () => markUnsaved();
+
     // 4. Reset & Load
     STUDIO_SCHEMA = [];
     const list = document.getElementById('studio-questions-list');
@@ -457,6 +464,8 @@ async function openStudio(formName) {
         const res = await apiCall('getSchema', { formName });
         if(res.success && res.schema) {
             STUDIO_SCHEMA = res.schema;
+            // Load description if the server sends it back
+            if(res.description && descInput) descInput.value = res.description;
         }
     }
     
@@ -475,9 +484,8 @@ function renderStudioCanvas() {
     if(!list) return;
     list.innerHTML = "";
     
-    // FIX: Loop through the REAL STUDIO_SCHEMA so indices (0, 1, 2...) match perfectly
+    // FIX: Loop through REAL SCHEMA (skipping marker)
     STUDIO_SCHEMA.forEach((field, index) => {
-        // Skip the technical marker, but DO NOT disrupt the index count
         if (field.key === 'init_marker') return;
 
         const block = document.createElement('div');
@@ -506,17 +514,21 @@ function renderStudioCanvas() {
             inputHtml = `<div style="height: 30px; border-bottom: 1px dashed #eee; width: 60%; opacity: 0.3; margin-top:10px;"></div>`;
         }
 
+        // ADDED: Delete Button (&times;) next to the dropdown
         block.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                 <input class="studio-pdf-label" value="${field.label}" 
                     onchange="updateStudioField(${index}, 'label', this.value)" 
                     placeholder="Enter your question here...">
                 
-                <select class="studio-type-selector" onchange="updateStudioField(${index}, 'type', this.value)">
-                    <option value="text" ${field.type==='text'?'selected':''}>Short Answer</option>
-                    <option value="textarea" ${field.type==='textarea'?'selected':''}>Long Answer</option>
-                    <option value="select" ${field.type==='select'?'selected':''}>Multiple Choice</option>
-                </select>
+                <div style="display:flex; align-items:center; gap: 10px;">
+                    <select class="studio-type-selector" onchange="updateStudioField(${index}, 'type', this.value)">
+                        <option value="text" ${field.type==='text'?'selected':''}>Short Answer</option>
+                        <option value="textarea" ${field.type==='textarea'?'selected':''}>Long Answer</option>
+                        <option value="select" ${field.type==='select'?'selected':''}>Multiple Choice</option>
+                    </select>
+                    <button class="btn-delete-q" onclick="deleteStudioField(${index})" title="Delete Question">&times;</button>
+                </div>
             </div>
             ${inputHtml}
         `;
@@ -636,13 +648,17 @@ function markUnsaved() {
     }
 }
 async function saveStudioChanges() {
+    // 1. Force blur to capture last keystroke
     if (document.activeElement) { document.activeElement.blur(); }
 
     const titleEl = document.getElementById('studio-form-title-display');
-    const name = titleEl ? titleEl.value.trim() : "";
+    const descEl = document.getElementById('studio-form-description-display');
+    
+    const newName = titleEl ? titleEl.value.trim() : "";
+    const description = descEl ? descEl.value.trim() : ""; // Capture description
     const btn = document.getElementById('btn-save-studio');
 
-    if(!name) {
+    if(!newName) {
         alert("Please enter a Template Name.");
         if(titleEl) titleEl.focus();
         return;
@@ -651,22 +667,32 @@ async function saveStudioChanges() {
     const originalText = btn.innerText;
     btn.innerText = "Syncing...";
     
+    // 2. CHECK FOR RENAME
+    const isRenaming = (CURRENT_STUDIO_FORM && CURRENT_STUDIO_FORM !== newName);
+
     try {
+        // Save NEW file (Send description in payload)
         const res = await apiCall('saveFormSchema', { 
-            formName: name, 
+            formName: newName, 
+            description: description, 
             schema: STUDIO_SCHEMA 
         });
 
         if(res.success) {
+            // Rename Logic
+            if(isRenaming) {
+                await apiCall('deleteForm', { formName: CURRENT_STUDIO_FORM });
+                ALL_FORMS = ALL_FORMS.filter(f => f !== CURRENT_STUDIO_FORM);
+            }
+            
+            CURRENT_STUDIO_FORM = newName;
+            if(!ALL_FORMS.includes(newName)) ALL_FORMS.push(newName);
+            
             btn.innerText = "Saved!";
             btn.style.background = "#2E7D32"; 
             
-            if(typeof ALL_FORMS !== 'undefined' && !ALL_FORMS.includes(name)) {
-                ALL_FORMS.push(name);
-            }
-            
             setTimeout(() => {
-                btn.innerText = originalText;
+                btn.innerText = "Save Cloud Template";
                 btn.style.background = "var(--rw-red)";
             }, 2000);
         } else {
@@ -678,6 +704,7 @@ async function saveStudioChanges() {
         btn.innerText = originalText;
     }
 }
+
 async function deleteForm(formName, event) {
     if(event) event.stopPropagation(); // Stop the card from opening
     
@@ -753,4 +780,8 @@ async function saveStudioChanges() {
         alert("Error: " + e.message);
         btn.innerText = originalText;
     }
+}
+
+function openSignUpModal() {
+    alert("Rosewood Forms is currently Invite Only.\n\nPlease contact your administrator to receive your access code.");
 }
