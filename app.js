@@ -149,8 +149,8 @@ async function initClientDashboard() {
         card.onmouseout = () => card.style.transform = "translateY(0)";
         
         // Click to Open Flagship
-        card.onclick = () => openFlagshipForm(form.formName, form.status);
-
+        card.onclick = () => openFlagshipForm(form.formName, form.status, form.reqId);
+        
         card.innerHTML = `
             <div class="glass-header" style="border:none; padding-bottom:0;">
                 <div style="font-size:12px; font-weight:700; color:var(--accent); text-transform:uppercase;">${form.status}</div>
@@ -173,63 +173,96 @@ async function initClientDashboard() {
 /* --- FLAGSHIP FORM RENDERER --- */
 let CURRENT_FLAGSHIP_SCHEMA = [];
 let CURRENT_FLAGSHIP_NAME = "";
+let CURRENT_REQUEST_ID = null; // To track the specific request being completed
 
-async function openFlagshipForm(formName, status) {
+async function openFlagshipForm(formName, status, reqId = null) {
     const view = document.getElementById('view-flagship-form');
     const canvas = document.getElementById('flagship-canvas');
     const title = document.getElementById('flagship-form-title');
     const descEl = document.getElementById('flagship-form-desc');
-    
-    // --- PRINT ENGINE UPDATES ---
     const printTitle = document.getElementById('print-title');
     const printDesc = document.getElementById('print-desc');
     
-    // Logic: Append "Form" if not present
+    // Store Request ID for completion logic
+    CURRENT_REQUEST_ID = reqId;
+
+    // View Switching Logic
+    view.classList.remove('hidden');
+    document.getElementById('view-client-dashboard').classList.add('hidden'); // Hide Client Dash
+    document.getElementById('view-admin').classList.add('hidden'); // Hide Admin Dash
+    
+    window.scrollTo(0,0);
+    
+    // Smart Title Logic (Show on Screen AND Print)
     const cleanName = formName.trim();
     const displayName = cleanName.match(/form$/i) ? cleanName : cleanName + " Form";
     
-    printTitle.innerText = displayName;
-    printDesc.innerText = ""; // Clear previous
-    // ----------------------------
-
-    view.classList.remove('hidden');
-    document.getElementById('view-client-dashboard').classList.add('hidden');
-    window.scrollTo(0,0);
+    title.innerText = displayName; // Screen
+    printTitle.innerText = displayName; // Print
     
-    title.innerText = formName;
     descEl.style.display = 'none'; 
     canvas.innerHTML = "<div style='text-align:center; padding:50px; opacity:0.5;'>Loading Form...</div>";
     
     CURRENT_FLAGSHIP_NAME = formName;
 
+    // Fetch Schema
     const res = await apiCall('getSchema', { formName });
     if(res.success) {
         CURRENT_FLAGSHIP_SCHEMA = res.schema;
-        renderFlagshipCanvas(canvas, descEl, status);
         
-        // Populate Print Description if available
-        if(descEl.innerText) {
-            printDesc.innerText = descEl.innerText;
+        // Determine whose answers to load
+        let answers = {};
+        if (USER_DATA.role === 'admin' && CURRENT_ADMIN_CLIENT) {
+            // Admin is viewing a client
+            answers = CURRENT_ADMIN_CLIENT.answers || {};
+            // Update subtitle for Admin
+            descEl.innerText = `Viewing Data for: ${CURRENT_ADMIN_CLIENT.name}`;
+            descEl.style.display = 'block';
+            descEl.style.color = 'var(--accent)';
+            descEl.style.fontWeight = 'bold';
+        } else {
+
         }
         
-        updateProgress();
+        // Render
+        renderFlagshipCanvas(canvas, descEl, answers);
+        
+        // If meta description exists, overwrite the Admin subtitle or show it for client
+        const meta = CURRENT_FLAGSHIP_SCHEMA.find(f => f.key === 'meta_description');
+        if(meta && meta.label) {
+            if (USER_DATA.role === 'admin') {
+                // Combine them for admin: "Description • Viewing Client: Name"
+                descEl.innerHTML = `${meta.label} <br><span style="color:var(--accent); font-weight:600; font-size:11px; text-transform:uppercase;">Editing: ${CURRENT_ADMIN_CLIENT.name}</span>`;
+            } else {
+                descEl.innerText = meta.label;
+            }
+            descEl.style.display = "block";
+            printDesc.innerText = meta.label;
+        }
+
+        updateProgress(); 
     } else {
         canvas.innerHTML = "<div style='color:red; text-align:center;'>Error loading form.</div>";
     }
 }
 
-function renderFlagshipCanvas(canvas, descEl, status) {
-    // ... (Keep existing code at the top) ...
+function renderFlagshipCanvas(canvas, descEl, preloadedAnswers = {}) {
     canvas.innerHTML = "";
-    const meta = CURRENT_FLAGSHIP_SCHEMA.find(f => f.key === 'meta_description');
-    if(meta && meta.label) {
-        descEl.innerText = meta.label;
-        descEl.style.display = "block";
+    
+    // Logic to get answers depends on context
+    let answers = preloadedAnswers;
+    if (USER_DATA.role !== 'admin') {
+         // If client, we might need to grab answers from USER_DATA if not passed
+         // But for simplicity, we will let the 'value' logic below handle it if passed empty
+         // Actually, let's look at initClientDashboard -> it didn't pass answers.
+         // We should fix that or fetch them.
+         // Simplest fix: Just use the apiCall('clientData') which returned forms. 
+         // Wait, clientData returns *requests*, not the big JSON answers.
+         // We need to ensure the client has their answers loaded. 
+         // Let's fetch them freshly in openFlagshipForm for Clients.
     }
-    // ...
 
     CURRENT_FLAGSHIP_SCHEMA.forEach(field => {
-        // ... (Keep existing checks) ...
         if(field.key === 'meta_description' || field.type === 'hidden' || field.key === 'init_marker') return;
 
         const group = document.createElement('div');
@@ -241,33 +274,47 @@ function renderFlagshipCanvas(canvas, descEl, status) {
         group.appendChild(label);
 
         let input;
+        
+        // Determine Value
+        // Note: For Admin, we passed answers. For Client, we need to grab them.
+        // Let's assume for this step we are using the global CURRENT_ADMIN_CLIENT answers 
+        // OR we need to fetch for the client. 
+        // *Self-Correction*: Accessing USER_DATA.answers isn't reliable if not updated.
+        // We will do a quick fetch in openFlagshipForm if needed, but for now let's read from the passed object.
+        
+        // Getting the value safely
+        let val = "";
+        if (USER_DATA.role === 'admin' && CURRENT_ADMIN_CLIENT.answers) {
+            val = CURRENT_ADMIN_CLIENT.answers[field.key] || "";
+        } else if (USER_DATA.role === 'client' && USER_DATA.answers) { // We need to ensure USER_DATA has answers
+            val = USER_DATA.answers[field.key] || "";
+        }
 
         if (field.type === 'textarea') {
             input = document.createElement('textarea');
             input.className = "flagship-input";
             input.rows = 4;
-            // AUTO RESIZE LOGIC
+            input.value = val;
             input.oninput = function() {
                 this.style.height = "auto";
                 this.style.height = (this.scrollHeight) + "px";
                 updateProgress();
             };
-            // Trigger immediately to fit content if loading saved data
             setTimeout(() => input.dispatchEvent(new Event('input')), 100); 
-        } 
-        // ... (Keep the rest of your select/input logic exactly the same) ...
-        else if (field.type === 'select') {
-             // ... existing radio logic ...
-             input = document.createElement('div');
-             if(field.options) {
+        } else if (field.type === 'select') {
+            input = document.createElement('div');
+            if(field.options) {
                 field.options.forEach(opt => {
                     const row = document.createElement('label');
                     row.className = "flagship-radio-row";
+                    
                     const radio = document.createElement('input');
                     radio.type = "radio";
                     radio.name = field.key;
                     radio.value = opt.trim();
+                    if(val === opt.trim()) radio.checked = true; // Pre-fill
                     radio.onchange = updateProgress;
+                    
                     row.appendChild(radio);
                     row.appendChild(document.createTextNode(opt.trim()));
                     input.appendChild(row);
@@ -277,10 +324,10 @@ function renderFlagshipCanvas(canvas, descEl, status) {
             input = document.createElement('input');
             input.type = "text";
             input.className = "flagship-input";
+            input.value = val;
             input.oninput = updateProgress;
         }
-        
-        // ... (Keep attribution logic) ...
+
         if(field.type !== 'select') input.setAttribute('data-key', field.key);
         else input.setAttribute('data-group-key', field.key);
 
@@ -291,13 +338,7 @@ function renderFlagshipCanvas(canvas, descEl, status) {
 
 async function saveFlagshipData(isDraft) {
     const payload = {};
-    
-    // 1. Text/Textarea inputs
-    document.querySelectorAll('#flagship-canvas [data-key]').forEach(input => {
-        payload[input.getAttribute('data-key')] = input.value;
-    });
-
-    // 2. Radio/Select inputs
+    document.querySelectorAll('#flagship-canvas [data-key]').forEach(input => payload[input.getAttribute('data-key')] = input.value);
     document.querySelectorAll('#flagship-canvas [data-group-key]').forEach(group => {
         const key = group.getAttribute('data-group-key');
         const checked = group.querySelector(`input[name="${key}"]:checked`);
@@ -308,12 +349,27 @@ async function saveFlagshipData(isDraft) {
     const originalText = btn.innerText;
     btn.innerText = "Saving...";
 
-    const res = await apiCall('saveData', { 
-        u: USER_DATA.id, 
-        data: payload 
-    });
+    // Determine ID to save to
+    const targetId = (USER_DATA.role === 'admin') ? CURRENT_ADMIN_CLIENT.id : USER_DATA.id;
+
+    // 1. Save Data (JSON)
+    const res = await apiCall('saveData', { u: targetId, data: payload });
 
     if(res.success) {
+        // Update local state so we don't need to refresh
+        if (USER_DATA.role === 'admin') {
+            if(!CURRENT_ADMIN_CLIENT.answers) CURRENT_ADMIN_CLIENT.answers = {};
+            Object.assign(CURRENT_ADMIN_CLIENT.answers, payload);
+        } else {
+            if(!USER_DATA.answers) USER_DATA.answers = {};
+            Object.assign(USER_DATA.answers, payload);
+        }
+
+        // 2. Trigger Completion (If submitting and we have a Request ID)
+        if (!isDraft && CURRENT_REQUEST_ID) {
+            await apiCall('completeRequest', { reqId: CURRENT_REQUEST_ID });
+        }
+
         if(isDraft) {
             btn.innerText = "Draft Saved";
             setTimeout(() => btn.innerText = originalText, 1500);
@@ -355,9 +411,16 @@ function updateProgress() {
 }
 function closeFlagshipForm() {
     document.getElementById('view-flagship-form').classList.add('hidden');
-    document.getElementById('view-client-dashboard').classList.remove('hidden');
-    document.body.scrollTop = 0; // Safari
-    document.documentElement.scrollTop = 0; // Chrome/Firefox
+    document.body.scrollTop = 0; 
+    document.documentElement.scrollTop = 0;
+
+    if (USER_DATA.role === 'admin') {
+        document.getElementById('view-admin').classList.remove('hidden');
+        initAdmin(); // Refresh data to show updates
+    } else {
+        document.getElementById('view-client-dashboard').classList.remove('hidden');
+        initClientDashboard(); // Refresh to show "Completed" status
+    }
 }
 /* --- ADMIN DASHBOARD --- */
 async function initAdmin() {
@@ -505,7 +568,8 @@ function openFormPicker(client) {
         
         btn.onclick = () => {
             modal.classList.remove('active');
-            loadClientFormView(form); 
+            // Call Flagship instead of loadClientFormView
+            openFlagshipForm(form); 
         };
         container.appendChild(btn);
     });
