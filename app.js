@@ -387,16 +387,27 @@ function renderAdminDashboard(clients) {
         tdAction.style.display = "flex";
         tdAction.style.gap = "8px"; 
         
+        // 1. Profile Button
         const btnProfile = document.createElement('button');
         btnProfile.className = "btn-soft";
         btnProfile.innerHTML = "Profile";
         btnProfile.onclick = () => openClientEditor(client);
         
+        // 2. Forms (Viewer) Button
         const btnForms = document.createElement('button');
         btnForms.className = "btn-soft";
-        btnForms.innerHTML = "Forms";
+        btnForms.innerHTML = "View Data";
         btnForms.onclick = () => openFormPicker(client); 
+
+        // 3. PUSH BUTTON (New!)
+        const btnPush = document.createElement('button');
+        btnPush.className = "btn-main small"; // Using 'small' variant if you have it, or just btn-main
+        btnPush.style.padding = "6px 12px";
+        btnPush.innerHTML = "+ Assign";
+        btnPush.title = "Push new form to client";
+        btnPush.onclick = () => openPushModal(client);
         
+        tdAction.appendChild(btnPush);
         tdAction.appendChild(btnProfile);
         tdAction.appendChild(btnForms);
         tr.appendChild(tdAction);
@@ -894,4 +905,69 @@ function changeTheme(themeName) {
     
     // Save preference (optional, resets on reload currently)
     console.log("Theme switched to:", themeName);
+}
+/* --- PUSH SYSTEM (Assigning Forms) --- */
+
+function openPushModal(client) {
+    CURRENT_ADMIN_CLIENT = client;
+    const modal = document.getElementById('push-modal');
+    const container = document.getElementById('push-list-container');
+    const title = document.getElementById('push-client-name');
+    
+    title.innerText = client.name;
+    container.innerHTML = ""; 
+
+    if(ALL_FORMS.length === 0) {
+        container.innerHTML = "<p style='opacity:0.5;'>No templates available.</p>";
+    }
+
+    ALL_FORMS.forEach(form => {
+        const btn = document.createElement('button');
+        btn.className = "btn-soft"; 
+        btn.style.width = "100%";
+        btn.style.marginBottom = "8px";
+        btn.style.justifyContent = "space-between";
+        btn.innerHTML = `
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-size:16px;">📄</span>
+                <span style="font-weight:600;">${form}</span>
+            </div>
+            <span style="font-size:11px; background:var(--accent); color:#fff; padding:2px 6px; border-radius:4px;">PUSH</span>
+        `;
+        
+        btn.onclick = () => pushFormToClient(form);
+        container.appendChild(btn);
+    });
+    
+    modal.classList.add('active');
+}
+
+async function pushFormToClient(formName) {
+    // Rosewood UI Confirmation
+    if(!await rwConfirm(`Assign "<strong>${formName}</strong>" to ${CURRENT_ADMIN_CLIENT.name}?`)) return;
+
+    const btn = event.currentTarget; // The button that was clicked
+    const originalContent = btn.innerHTML;
+    btn.innerHTML = "Sending...";
+    btn.style.opacity = "0.7";
+
+    const res = await apiCall('assignForm', { 
+        id: CURRENT_ADMIN_CLIENT.id, 
+        formName: formName 
+    });
+
+    if(res.success) {
+        btn.innerHTML = "✅ Sent!";
+        btn.style.background = "#E8F5E9";
+        btn.style.color = "#2E7D32";
+        
+        setTimeout(() => {
+            document.getElementById('push-modal').classList.remove('active');
+            rwAlert(`Form sent to ${CURRENT_ADMIN_CLIENT.name}. They can now see it on their dashboard.`);
+        }, 1000);
+    } else {
+        rwAlert("Error: " + res.message);
+        btn.innerHTML = originalContent;
+        btn.style.opacity = "1";
+    }
 }
