@@ -485,3 +485,14 @@ tr:hover td { background: rgba(255,255,255,0.4); }
     color: #ffffff;
     box-shadow: 0 4px 10px rgba(211, 47, 47, 0.3);
 }
+
+@keyframes floatUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Ensure modal text is readable on glass */
+#rw-modal-msg {
+    color: var(--obsidian);
+    font-weight: 500;
+}
