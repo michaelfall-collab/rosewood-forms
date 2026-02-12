@@ -90,6 +90,12 @@
 
     <div id="view-studio" class="hidden">
         <div class="studio-top-banner">
+            <button id="btn-save-studio" 
+                onclick="console.log('CLICKED!'); saveStudioChanges()" 
+                class="btn-main" 
+                style="background:var(--rw-red); cursor:pointer; pointer-events:all;">
+                Save Cloud Template
+            </button>
             <button onclick="closeStudio()" class="btn-soft">Exit Studio</button>
             <div style="font-family:'Libre Baskerville'; color:#fff; letter-spacing:1px; font-size:18px;">Rosewood Studio</div>
             <button id="btn-save-studio" onclick="saveStudioChanges()" class="btn-main" style="background:var(--rw-red);">Save Cloud Template</button>
