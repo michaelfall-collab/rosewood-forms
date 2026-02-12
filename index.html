@@ -150,26 +150,39 @@
     </div>
 
     <div id="view-flagship-form" class="view hidden" style="background: #fff;">
-        <div style="position: sticky; top: 0; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05); z-index: 100;">
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <button onclick="closeFlagshipForm()" class="btn-text" style="font-size: 24px;">&larr;</button>
-                <div>
-                    <div id="flagship-form-title" style="font-size: 18px; font-weight: 700;">Form Title</div>
-                    <div id="flagship-form-progress" style="font-size: 11px; opacity: 0.5;">0% Completed</div>
+        
+        <div style="position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid #dadce0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.03);">
+            <div style="max-width: 900px; margin: 0 auto; padding: 15px 30px; display: flex; justify-content: space-between; align-items: flex-start;">
+                
+                <div style="display: flex; gap: 20px; align-items: flex-start;">
+                    <button onclick="closeFlagshipForm()" class="btn-text" style="font-size: 24px; margin-top: -2px; color:#5f6368;">&larr;</button>
+                    
+                    <div>
+                        <div id="flagship-form-title" style="font-size: 20px; font-weight: 500; color: #202124; letter-spacing: -0.5px;">
+                            Form Title
+                        </div>
+                        <div id="flagship-form-desc" style="font-size: 13px; color: #5f6368; margin-top: 4px; max-width: 500px; line-height: 1.4; display:none;">
+                            Form description goes here.
+                        </div>
+                    </div>
                 </div>
+
+                <div style="text-align: right;">
+                    <button id="btn-save-draft" class="btn-soft" onclick="saveFlagshipData(true)" style="margin-bottom: 5px;">Save Draft</button>
+                    <div id="flagship-form-progress" style="font-size: 12px; font-weight: 700; color: #137333; letter-spacing: 0.5px;">
+                        0% Completed
+                    </div>
+                </div>
+
             </div>
-            <button id="btn-save-draft" class="btn-soft" onclick="saveFlagshipData(true)">Save Draft</button>
         </div>
 
-        <div style="max-width: 680px; margin: 0 auto; padding: 60px 20px 100px 20px;">
-            <div id="flagship-description" style="margin-bottom: 40px; font-size: 16px; line-height: 1.6; opacity: 0.7; border-left: 3px solid var(--accent); padding-left: 20px;">
-                </div>
-            
+        <div class="flagship-canvas-container">
             <div id="flagship-canvas">
                 </div>
 
-            <div style="margin-top: 60px; padding-top: 20px; border-top: 1px solid #eee; text-align: right;">
-                <button class="btn-main" style="padding: 15px 40px; font-size: 16px;" onclick="saveFlagshipData(false)">Submit Form</button>
+            <div style="margin-top: 60px; padding-top: 20px; border-top: 2px solid #f1f3f4; text-align: right;">
+                <button class="btn-main" style="padding: 15px 40px; font-size: 16px; background: #1a73e8;" onclick="saveFlagshipData(false)">Submit Form</button>
             </div>
         </div>
     </div>
