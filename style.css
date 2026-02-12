@@ -319,33 +319,30 @@ tr:hover td { background: rgba(255,255,255,0.4); }
 
 /* Update these two classes */
 
+/* --- ROSEWOOD STUDIO: FIXED BANNER --- */
 .studio-top-banner {
-    position: fixed; top: 0; left: 0; right: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0; /* Snaps to the scrollbar edge, preventing overflow */
     height: 90px;
     background: #1A1716;
-    display: flex; 
-    justify-content: center; /* Centers the content block */
+    display: flex;
+    justify-content: center;
     align-items: center;
-    padding: 0; /* REMOVED padding here so we can control exact width in the child */
-    z-index: 1000;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    z-index: 6000;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    /* Safety padding ensures content never touches the very edge */
+    padding: 0 20px; 
 }
 
 .studio-banner-content {
-    /* CALCULATION EXPLAINED:
-       The paper below is 850px (content) + 200px (padding) = 1050px TOTAL.
-       The paper behaves as width: 100% inside a container with 20px padding (40px total).
-       So, the banner must be:
-       1. Max-width: 1050px (to match the paper's max size)
-       2. Width: calc(100% - 40px) (to match the paper's 20px side margins on small screens)
-    */
-    width: calc(100% - 40px);
+    /* Matches your paper width (850px content + 200px padding = 1050px) */
+    width: 100%;
     max-width: 1050px;
-    
-    display: flex; 
-    justify-content: space-between; 
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    margin: 0 auto;
 }
 /* Ensure the paper matches this width */
 .studio-paper {
