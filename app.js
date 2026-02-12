@@ -479,65 +479,6 @@ function closeStudio() {
     }
 }
 
-// Ensure this is at the TOP of your file
-var STUDIO_SCHEMA = STUDIO_SCHEMA || []; 
-
-async function saveStudioChanges() {
-    // ALERT 1: Prove function started
-    // alert("Save Function Started"); 
-
-    const titleEl = document.getElementById('studio-form-title-display');
-    const name = titleEl ? titleEl.value.trim() : "";
-    const btn = document.getElementById('btn-save-studio');
-
-    if(!name) {
-        alert("Please enter a Template Name.");
-        return;
-    }
-
-    // Safety check for schema
-    if (!STUDIO_SCHEMA) {
-        alert("Error: STUDIO_SCHEMA is missing. Resetting.");
-        STUDIO_SCHEMA = [];
-    }
-
-    const originalText = btn.innerText;
-    btn.innerText = "Syncing...";
-    
-    try {
-        // ALERT 2: About to send
-        // alert("Sending to Cloud: " + name);
-
-        const res = await apiCall('saveFormSchema', { 
-            formName: name, 
-            schema: STUDIO_SCHEMA 
-        });
-
-        // ALERT 3: Response received
-        // alert("Response: " + JSON.stringify(res));
-
-        if(res.success) {
-            btn.innerText = "Saved!";
-            btn.style.background = "#2E7D32"; 
-            
-            if(typeof ALL_FORMS !== 'undefined' && !ALL_FORMS.includes(name)) {
-                ALL_FORMS.push(name);
-            }
-
-            setTimeout(() => {
-                btn.innerText = originalText;
-                btn.style.background = "var(--rw-red)";
-            }, 2000);
-        } else {
-            alert("Server Error: " + res.message);
-            btn.innerText = "Retry";
-        }
-    } catch(e) {
-        alert("Network Crash: " + e.message);
-        btn.innerText = "Error";
-    }
-}
-
 function renderStudioCanvas() {
     const list = document.getElementById('studio-questions-list');
     if(!list) return;
@@ -678,4 +619,54 @@ function renderFormTemplatesGrid() {
         </div>
     `;
 }
+async function saveStudioChanges() {
+    // 1. Get the Correct Element ID
+    const titleEl = document.getElementById('studio-form-title-display');
+    const name = titleEl ? titleEl.value.trim() : "";
+    const btn = document.getElementById('btn-save-studio');
 
+    // 2. Validation
+    if(!name) {
+        alert("Please enter a Template Name.");
+        if(titleEl) titleEl.focus();
+        return;
+    }
+
+    // 3. UI Feedback
+    const originalText = btn.innerText;
+    btn.innerText = "Syncing...";
+    btn.style.opacity = "0.7";
+
+    try {
+        // 4. API Call
+        const res = await apiCall('saveFormSchema', { 
+            formName: name, 
+            schema: STUDIO_SCHEMA 
+        });
+
+        // 5. Success Handler
+        if(res.success) {
+            btn.innerText = "Saved!";
+            btn.style.background = "#2E7D32"; // Green success color
+            
+            // Update local list if new
+            if(typeof ALL_FORMS !== 'undefined' && !ALL_FORMS.includes(name)) {
+                ALL_FORMS.push(name);
+            }
+            
+            // Reset button after 2 seconds
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style.background = "var(--rw-red)";
+                btn.style.opacity = "1";
+            }, 2000);
+        } else {
+            alert("Server Error: " + res.message);
+            btn.innerText = "Retry";
+        }
+    } catch(e) {
+        console.error(e);
+        alert("Network Error: " + e.message);
+        btn.innerText = originalText;
+    }
+}
