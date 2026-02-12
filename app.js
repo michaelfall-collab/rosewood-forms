@@ -456,15 +456,15 @@ async function openStudio(formName) {
     if(descInput) descInput.oninput = () => markUnsaved();
 
     // 4. Reset & Load
-if(formName !== 'New Form') {
+    if(formName !== 'New Form') {
         const res = await apiCall('getSchema', { formName });
         if(res.success && res.schema) {
             STUDIO_SCHEMA = res.schema;
             
-            // FIX: Find the hidden description in the schema
+            // FIX 1: Read description from the 'label' field, not 'content'
             const meta = STUDIO_SCHEMA.find(f => f.key === 'meta_description');
             if(meta && descInput) {
-                descInput.value = meta.content;
+                descInput.value = meta.label; // <--- CHANGED THIS
             } else if(descInput) {
                 descInput.value = "";
             }
@@ -620,24 +620,32 @@ function cycleType(index) {
 function renderFormTemplatesGrid() {
     const container = document.querySelector('.glass-table-container');
     container.innerHTML = `
-        <div style="padding: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;">
-            <div class="template-card new-form" onclick="openStudio('New Form')">
+        <div style="padding: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px;">
+            <div class="template-card new-form" onclick="openStudio('New Form')" style="display:flex; flex-direction:column; justify-content:center; align-items:center; min-height:160px;">
                 <div class="plus-icon" style="font-size:32px; color:var(--accent); margin-bottom:10px;">+</div>
                 <div class="card-label">Create New Form</div>
             </div>
+
             ${ALL_FORMS.map(form => `
-                <div class="template-card" onclick="openStudio('${form.replace(/'/g, "\\'")}')">
-                    <div class="btn-delete-card" 
-                         title="Delete Form"
-                         data-name="${form.replace(/"/g, '&quot;')}" 
-                         onclick="deleteForm(this.getAttribute('data-name'), event)"
-                         style="position: absolute !important; top: 10px !important; right: 10px !important; width: 30px !important; height: 30px !important; background: #d32f2f !important; color: white !important; z-index: 100 !important; opacity: 1 !important; display: flex !important; align-items: center; justify-content: center; border-radius: 50%; cursor: pointer;">
-                         &times;
+                <div class="template-card" onclick="openStudio('${form.replace(/'/g, "\\'")}')" style="display:flex; flex-direction:column; min-height:160px; justify-content:space-between;">
+                    
+                    <div style="width:100%; display:flex; justify-content:flex-end; margin-bottom:10px;">
+                        <div title="Delete Form" 
+                             data-name="${form.replace(/"/g, '&quot;')}" 
+                             onclick="deleteForm(this.getAttribute('data-name'), event)"
+                             style="background:#fee2e2; color:#b91c1c; width:24px; height:24px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:14px; cursor:pointer; border:1px solid #f87171;">
+                             &times;
+                        </div>
+                    </div>
+
+                    <div style="text-align:center;">
+                        <div class="form-icon" style="font-size:32px; margin-bottom:10px; opacity:0.8;">📄</div>
+                        <div class="card-label" style="font-weight:600; font-size:14px; word-break:break-word;">${form}</div>
                     </div>
                     
-                    <div class="form-icon" style="font-size:32px; margin-bottom:15px; opacity:0.8;">📄</div>
-                    <div class="card-label" style="font-weight:600; font-size:14px;">${form}</div>
-                    <div style="font-size:10px; color:#999; margin-top:5px;">Click to Edit</div>
+                    <div style="text-align:center; font-size:10px; color:#999; margin-top:15px; border-top:1px solid rgba(0,0,0,0.05); padding-top:8px;">
+                        Click to Edit
+                    </div>
                 </div>
             `).join('')}
         </div>
@@ -671,10 +679,20 @@ async function saveStudioChanges() {
 
     const originalText = btn.innerText;
     btn.innerText = "Syncing...";
+
+    STUDIO_SCHEMA = STUDIO_SCHEMA.filter(f => f.key !== 'meta_description');
     
     // 2. CHECK FOR RENAME
     const isRenaming = (CURRENT_STUDIO_FORM && CURRENT_STUDIO_FORM !== newName);
 
+    if(description) {
+        STUDIO_SCHEMA.unshift({
+            key: 'meta_description',
+            type: 'hidden',
+            label: description // <--- CHANGED FROM content TO label
+        });
+    }
+    
     try {
         // Save NEW file (Send description in payload)
         const res = await apiCall('saveFormSchema', { 
