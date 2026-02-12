@@ -7,6 +7,7 @@ let USER_DATA = null;
 let CURRENT_ADMIN_CLIENT = null;
 let ALL_FORMS = [];
 let STUDIO_SCHEMA = [];
+let CURRENT_STUDIO_FORM = null;
 
 // --- CORE API FUNCTION ---
 async function apiCall(action, payload = {}) {
@@ -440,6 +441,9 @@ async function openStudio(formName) {
     document.getElementById('view-admin').classList.add('hidden');
     document.getElementById('view-studio').classList.remove('hidden');
     
+    // 2. Track Original Name (For Overwriting)
+    CURRENT_STUDIO_FORM = (formName === 'New Form') ? null : formName;
+    
     // 3. Setup Title
     const titleInput = document.getElementById('studio-form-title-display');
     titleInput.value = (formName === 'New Form') ? "" : formName;
@@ -463,7 +467,7 @@ function closeStudio() {
     if(confirm("Exit Studio? Any unsaved changes will be lost.")) {
         document.getElementById('view-studio').classList.add('hidden');
         document.getElementById('view-admin').classList.remove('hidden');
-        initAdmin(); // Refresh the dashboard
+        initAdmin(); 
     }
 }
 function renderStudioCanvas() {
@@ -604,13 +608,19 @@ function renderFormTemplatesGrid() {
     container.innerHTML = `
         <div style="padding: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;">
             <div class="template-card new-form" onclick="openStudio('New Form')">
-                <div class="plus-icon">+</div>
-                <div class="card-label">Create New Template</div>
+                <div class="plus-icon" style="font-size:32px; color:var(--accent); margin-bottom:10px;">+</div>
+                <div class="card-label">Create New Form</div>
             </div>
             ${ALL_FORMS.map(form => `
                 <div class="template-card" onclick="openStudio('${form}')">
-                    <div class="form-icon">📄</div>
-                    <div class="card-label">${form}</div>
+                    <div title="Delete Form" 
+                         onclick="deleteForm('${form}', event)"
+                         style="position:absolute; top:5px; right:8px; color:#d32f2f; font-weight:bold; opacity:0.6; padding:5px; font-size:16px; z-index:10;">
+                         &times;
+                    </div>
+                    <div class="form-icon" style="font-size:32px; margin-bottom:15px; opacity:0.8;">📄</div>
+                    <div class="card-label" style="font-weight:600; font-size:14px;">${form}</div>
+                    <div style="font-size:10px; color:#999; margin-top:5px;">Click to Edit</div>
                 </div>
             `).join('')}
         </div>
@@ -658,6 +668,82 @@ async function saveStudioChanges() {
             
             setTimeout(() => {
                 btn.innerText = originalText;
+                btn.style.background = "var(--rw-red)";
+            }, 2000);
+        } else {
+            alert("Server Error: " + res.message);
+            btn.innerText = "Retry";
+        }
+    } catch(e) {
+        alert("Error: " + e.message);
+        btn.innerText = originalText;
+    }
+}
+async function deleteForm(formName, event) {
+    if(event) event.stopPropagation(); // Stop the card from opening
+    
+    if(!confirm(`Are you sure you want to PERMANENTLY delete "${formName}"?`)) return;
+    
+    // Optimistic UI Update (Remove immediately)
+    ALL_FORMS = ALL_FORMS.filter(f => f !== formName);
+    renderFormTemplatesGrid();
+    
+    const res = await apiCall('deleteForm', { formName });
+    
+    if(!res.success) {
+        alert("Could not delete from server: " + res.message);
+        initAdmin(); // Re-fetch truth
+    }
+}
+
+async function saveStudioChanges() {
+    // 1. Force blur to capture last keystroke
+    if (document.activeElement) { document.activeElement.blur(); }
+
+    const titleEl = document.getElementById('studio-form-title-display');
+    const newName = titleEl ? titleEl.value.trim() : "";
+    const btn = document.getElementById('btn-save-studio');
+
+    if(!newName) {
+        alert("Please enter a Template Name.");
+        if(titleEl) titleEl.focus();
+        return;
+    }
+
+    const originalText = btn.innerText;
+    btn.innerText = "Syncing...";
+    
+    // 2. CHECK FOR RENAME (The Overwrite Logic)
+    // If we have an original name, and it's different from the new name, we must delete the old one.
+    const isRenaming = (CURRENT_STUDIO_FORM && CURRENT_STUDIO_FORM !== newName);
+
+    try {
+        // Save the NEW file first
+        const res = await apiCall('saveFormSchema', { 
+            formName: newName, 
+            schema: STUDIO_SCHEMA 
+        });
+
+        if(res.success) {
+            // If renaming, delete the old file
+            if(isRenaming) {
+                console.log(`Renaming: Deleting old form "${CURRENT_STUDIO_FORM}"`);
+                await apiCall('deleteForm', { formName: CURRENT_STUDIO_FORM });
+                
+                // Update local list: Remove old, add new
+                ALL_FORMS = ALL_FORMS.filter(f => f !== CURRENT_STUDIO_FORM);
+            }
+            
+            // Update Current Tracking
+            CURRENT_STUDIO_FORM = newName;
+
+            if(!ALL_FORMS.includes(newName)) ALL_FORMS.push(newName);
+            
+            btn.innerText = "Saved!";
+            btn.style.background = "#2E7D32"; 
+            
+            setTimeout(() => {
+                btn.innerText = "Save Cloud Template";
                 btn.style.background = "var(--rw-red)";
             }, 2000);
         } else {
