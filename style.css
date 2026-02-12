@@ -714,10 +714,24 @@ body.tier-bronze #client-tier-badge {
     width: 18px; 
     height: 18px;
 }
-/* --- PRINT ENGINE (Rosewood Reports) --- */
-@media print {
-    /* ... (Keep your previous hides: glass-header, etc.) ... */
 
+/* Hide Print Header on Screen */
+#print-header { display: none; }
+
+#view-client-dashboard {
+    max-width: 1200px; /* Limits width on big screens */
+    margin: 0 auto;    /* Centers the container */
+    padding: 40px;     /* Adds breathing room */
+}
+/* --- CLIENT DASHBOARD FIX (Centering) --- */
+#view-client-dashboard {
+    max-width: 1200px; /* Limits width on big screens */
+    margin: 0 auto;    /* Centers the container */
+    padding: 40px;     /* Adds breathing room */
+}
+
+/* --- PRINT ENGINE REPAIR --- */
+@media print {
     /* RESET LAYOUT */
     body, #view-flagship-form {
         background: #fff !important;
@@ -750,13 +764,4 @@ body.tier-bronze #client-tier-badge {
         white-space: pre-wrap; /* Preserves newlines but wraps text */
         overflow: hidden; /* Hides scrollbars */
     }
-}
-
-/* Hide Print Header on Screen */
-#print-header { display: none; }
-
-#view-client-dashboard {
-    max-width: 1200px; /* Limits width on big screens */
-    margin: 0 auto;    /* Centers the container */
-    padding: 40px;     /* Adds breathing room */
 }
