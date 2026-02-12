@@ -488,7 +488,7 @@ function renderStudioCanvas() {
     
     // FIX: Loop through REAL SCHEMA (skipping marker)
     STUDIO_SCHEMA.forEach((field, index) => {
-        if (field.key === 'init_marker') || field.key === 'meta_description') return;
+        if (field.key === 'init_marker' || field.key === 'meta_description') return;
 
         const block = document.createElement('div');
         block.className = "studio-question-block";
@@ -633,7 +633,7 @@ function renderFormTemplatesGrid() {
                         <div title="Delete Form" 
                              data-name="${form.replace(/"/g, '&quot;')}" 
                              onclick="deleteForm(this.getAttribute('data-name'), event)"
-                             style="background:#fee2e2; color:#b91c1c; width:24px; height:24px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:14px; cursor:pointer; border:1px solid #f87171;">
+                             style="background:#fee2e2; color:#b91c1c; width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:16px; cursor:pointer; border:1px solid #f87171;">
                              &times;
                         </div>
                     </div>
