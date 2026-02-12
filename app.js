@@ -627,8 +627,9 @@ function renderFormTemplatesGrid() {
                 <div class="template-card" onclick="openStudio('${form.replace(/'/g, "\\'")}')">
                     <div class="btn-delete-card" 
                          title="Delete Form"
-                         data-name="${form}" 
-                         onclick="deleteForm(this.getAttribute('data-name'), event)">
+                         data-name="${form.replace(/"/g, '&quot;')}" 
+                         onclick="deleteForm(this.getAttribute('data-name'), event)"
+                         style="position: absolute !important; top: 10px !important; right: 10px !important; width: 30px !important; height: 30px !important; background: #d32f2f !important; color: white !important; z-index: 100 !important; opacity: 1 !important; display: flex !important; align-items: center; justify-content: center; border-radius: 50%; cursor: pointer;">
                          &times;
                     </div>
                     
