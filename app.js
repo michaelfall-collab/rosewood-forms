@@ -440,11 +440,6 @@ async function openStudio(formName) {
     document.getElementById('view-admin').classList.add('hidden');
     document.getElementById('view-studio').classList.remove('hidden');
     
-    // 2. HARD-WIRE THE SAVE BUTTON (The Fix)
-    const saveBtn = document.getElementById('btn-save-studio');
-    // Remove old listeners by cloning (simple trick) or just overwriting onclick
-    saveBtn.onclick = function() { saveStudioChanges(); };
-    
     // 3. Setup Title
     const titleInput = document.getElementById('studio-form-title-display');
     titleInput.value = (formName === 'New Form') ? "" : formName;
@@ -638,23 +633,19 @@ async function saveStudioChanges() {
     btn.style.opacity = "0.7";
 
     try {
-        // 4. API Call
         const res = await apiCall('saveFormSchema', { 
             formName: name, 
             schema: STUDIO_SCHEMA 
         });
 
-        // 5. Success Handler
         if(res.success) {
             btn.innerText = "Saved!";
-            btn.style.background = "#2E7D32"; // Green success color
+            btn.style.background = "#2E7D32"; 
             
-            // Update local list if new
             if(typeof ALL_FORMS !== 'undefined' && !ALL_FORMS.includes(name)) {
                 ALL_FORMS.push(name);
             }
             
-            // Reset button after 2 seconds
             setTimeout(() => {
                 btn.innerText = originalText;
                 btn.style.background = "var(--rw-red)";
@@ -665,8 +656,7 @@ async function saveStudioChanges() {
             btn.innerText = "Retry";
         }
     } catch(e) {
-        console.error(e);
-        alert("Network Error: " + e.message);
+        alert("Network/JS Error: " + e.message);
         btn.innerText = originalText;
     }
 }
