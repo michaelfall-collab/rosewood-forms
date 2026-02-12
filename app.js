@@ -178,15 +178,26 @@ async function openFlagshipForm(formName, status) {
     const view = document.getElementById('view-flagship-form');
     const canvas = document.getElementById('flagship-canvas');
     const title = document.getElementById('flagship-form-title');
-    const descEl = document.getElementById('flagship-form-desc'); // New Banner location
+    const descEl = document.getElementById('flagship-form-desc');
     
-    // UI Reset
+    // --- PRINT ENGINE UPDATES ---
+    const printTitle = document.getElementById('print-title');
+    const printDesc = document.getElementById('print-desc');
+    
+    // Logic: Append "Form" if not present
+    const cleanName = formName.trim();
+    const displayName = cleanName.match(/form$/i) ? cleanName : cleanName + " Form";
+    
+    printTitle.innerText = displayName;
+    printDesc.innerText = ""; // Clear previous
+    // ----------------------------
+
     view.classList.remove('hidden');
     document.getElementById('view-client-dashboard').classList.add('hidden');
     window.scrollTo(0,0);
     
     title.innerText = formName;
-    descEl.style.display = 'none'; // Hide by default
+    descEl.style.display = 'none'; 
     canvas.innerHTML = "<div style='text-align:center; padding:50px; opacity:0.5;'>Loading Form...</div>";
     
     CURRENT_FLAGSHIP_NAME = formName;
@@ -195,23 +206,30 @@ async function openFlagshipForm(formName, status) {
     if(res.success) {
         CURRENT_FLAGSHIP_SCHEMA = res.schema;
         renderFlagshipCanvas(canvas, descEl, status);
-        updateProgress(); // Initial check
+        
+        // Populate Print Description if available
+        if(descEl.innerText) {
+            printDesc.innerText = descEl.innerText;
+        }
+        
+        updateProgress();
     } else {
         canvas.innerHTML = "<div style='color:red; text-align:center;'>Error loading form.</div>";
     }
 }
 
 function renderFlagshipCanvas(canvas, descEl, status) {
+    // ... (Keep existing code at the top) ...
     canvas.innerHTML = "";
-    
-    // Extract description from schema (Label Cheat)
     const meta = CURRENT_FLAGSHIP_SCHEMA.find(f => f.key === 'meta_description');
     if(meta && meta.label) {
         descEl.innerText = meta.label;
         descEl.style.display = "block";
     }
+    // ...
 
     CURRENT_FLAGSHIP_SCHEMA.forEach(field => {
+        // ... (Keep existing checks) ...
         if(field.key === 'meta_description' || field.type === 'hidden' || field.key === 'init_marker') return;
 
         const group = document.createElement('div');
@@ -228,20 +246,28 @@ function renderFlagshipCanvas(canvas, descEl, status) {
             input = document.createElement('textarea');
             input.className = "flagship-input";
             input.rows = 4;
-            input.oninput = updateProgress; // Listen for typing
-        } else if (field.type === 'select') {
-            input = document.createElement('div');
-            if(field.options) {
+            // AUTO RESIZE LOGIC
+            input.oninput = function() {
+                this.style.height = "auto";
+                this.style.height = (this.scrollHeight) + "px";
+                updateProgress();
+            };
+            // Trigger immediately to fit content if loading saved data
+            setTimeout(() => input.dispatchEvent(new Event('input')), 100); 
+        } 
+        // ... (Keep the rest of your select/input logic exactly the same) ...
+        else if (field.type === 'select') {
+             // ... existing radio logic ...
+             input = document.createElement('div');
+             if(field.options) {
                 field.options.forEach(opt => {
                     const row = document.createElement('label');
                     row.className = "flagship-radio-row";
-                    
                     const radio = document.createElement('input');
                     radio.type = "radio";
                     radio.name = field.key;
                     radio.value = opt.trim();
-                    radio.onchange = updateProgress; // Listen for clicks
-                    
+                    radio.onchange = updateProgress;
                     row.appendChild(radio);
                     row.appendChild(document.createTextNode(opt.trim()));
                     input.appendChild(row);
@@ -251,14 +277,12 @@ function renderFlagshipCanvas(canvas, descEl, status) {
             input = document.createElement('input');
             input.type = "text";
             input.className = "flagship-input";
-            input.oninput = updateProgress; // Listen for typing
+            input.oninput = updateProgress;
         }
-
-        if(field.type !== 'select') {
-            input.setAttribute('data-key', field.key);
-        } else {
-            input.setAttribute('data-group-key', field.key);
-        }
+        
+        // ... (Keep attribution logic) ...
+        if(field.type !== 'select') input.setAttribute('data-key', field.key);
+        else input.setAttribute('data-group-key', field.key);
 
         group.appendChild(input);
         canvas.appendChild(group);
