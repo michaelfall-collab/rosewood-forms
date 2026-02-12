@@ -91,10 +91,26 @@ tr:hover td { background: rgba(255,255,255,0.4); }
 }
 .glass-backdrop.active { opacity: 1; pointer-events: all; }
 
-/* --- ROSEWOOD STUDIO: DIGITAL PAPER --- */
+/* --- ROSEWOOD STUDIO: CLEAN LAYOUT --- */
 #view-studio {
-    background: #F0F0F2; /* Slightly darker desk background */
-    min-height: 100vh; padding: 60px 20px;
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; /* CHANGED from 100vw to 100% to respect scrollbars */
+    height: 100vh;
+    background: #F0F0F2; 
+    z-index: 5000;
+    display: flex; 
+    flex-direction: column;
+    overflow: hidden; /* Prevents body scroll, relies on .studio-scroll-area */
+}
+
+/* ADD THIS CLASS (It was missing, causing layout issues) */
+.studio-scroll-area {
+    flex: 1; /* Fills remaining space below banner */
+    overflow-y: auto; /* Allows scrolling ONLY the form, not the banner */
+    padding-bottom: 50px;
+    width: 100%;
 }
 
 .studio-paper {
@@ -272,13 +288,18 @@ tr:hover td { background: rgba(255,255,255,0.4); }
 
 /* --- ROSEWOOD STUDIO: OBSIDIAN BANNER --- */
 .studio-top-banner {
-    position: fixed; top: 0; left: 0; right: 0;
-    height: 90px; /* Thicker, premium height */
-    background: #1A1716; /* Deep Obsidian Bark */
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 60px;
-    z-index: 1000;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    /* position: fixed is NOT needed here if using flex column in parent, 
+       but we keep it to be safe, just ensure width is 100% */
+    position: relative; /* Change to relative so it sits naturally in the flex column */
+    height: 90px;
+    background: #1A1716;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 6000;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    padding: 0 20px; 
+    flex-shrink: 0; /* Prevents banner from squishing */
 }
 
 .studio-top-banner .btn-soft {
