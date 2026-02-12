@@ -614,51 +614,6 @@ function addOptionManual(index) {
     }
 }
 
-// THE SAVE FIX
-async function saveStudioChanges() {
-    console.log("Save Clicked!"); // Debug log
-    
-    const titleEl = document.getElementById('studio-form-title-display');
-    const name = titleEl ? titleEl.value.trim() : "";
-    const btn = document.getElementById('btn-save-studio');
-
-    if(!name) {
-        alert("Please enter a Template Name.");
-        if(titleEl) titleEl.focus();
-        return;
-    }
-    
-    // UI Feedback
-    const originalText = btn.innerText;
-    btn.innerText = "Syncing...";
-    btn.style.opacity = "0.7";
-
-    try {
-        const res = await apiCall('saveFormSchema', { 
-            formName: name, 
-            schema: STUDIO_SCHEMA 
-        });
-
-        if(res.success) {
-            btn.innerText = "Saved!";
-            btn.style.background = "#2E7D32"; // Green
-            
-            if(!ALL_FORMS.includes(name)) ALL_FORMS.push(name);
-            
-            setTimeout(() => {
-                btn.innerText = originalText;
-                btn.style.background = "var(--rw-red)";
-                btn.style.opacity = "1";
-            }, 2000);
-        } else {
-            alert("Error: " + res.message);
-            btn.innerText = "Retry";
-        }
-    } catch(e) {
-        alert("Network Error: " + e.message);
-        btn.innerText = originalText;
-    }
-}
 function removeOption(fieldIndex, optIndex) {
     STUDIO_SCHEMA[fieldIndex].options.splice(optIndex, 1);
     renderStudioCanvas();
@@ -706,31 +661,6 @@ function cycleType(index) {
     renderStudioCanvas();
 }
 
-async function saveStudioChanges() {
-    const name = document.getElementById('studio-form-name').value;
-    const btn = document.querySelector('#view-studio .btn-main');
-    
-    if(!name) return alert("Please name your form.");
-    
-    const originalText = btn.innerText;
-    btn.innerText = "Saving...";
-    
-    const res = await apiCall('saveFormSchema', { 
-        formName: name, 
-        schema: STUDIO_SCHEMA 
-    });
-    
-    if(res.success) {
-        alert("Form Saved Successfully!");
-        // Update local list
-        if(!ALL_FORMS.includes(name)) ALL_FORMS.push(name);
-        btn.innerText = "Saved";
-        setTimeout(() => btn.innerText = originalText, 2000);
-    } else {
-        alert("Error: " + res.message);
-        btn.innerText = originalText;
-    }
-}
 function renderFormTemplatesGrid() {
     const container = document.querySelector('.glass-table-container');
     container.innerHTML = `
