@@ -456,16 +456,18 @@ async function openStudio(formName) {
     if(descInput) descInput.oninput = () => markUnsaved();
 
     // 4. Reset & Load
-    STUDIO_SCHEMA = [];
-    const list = document.getElementById('studio-questions-list');
-    list.innerHTML = "<div style='text-align:center; padding:50px; opacity:0.3;'>Accessing Rosewood Cloud...</div>";
-    
-    if(formName !== 'New Form') {
+if(formName !== 'New Form') {
         const res = await apiCall('getSchema', { formName });
         if(res.success && res.schema) {
             STUDIO_SCHEMA = res.schema;
-            // Load description if the server sends it back
-            if(res.description && descInput) descInput.value = res.description;
+            
+            // FIX: Find the hidden description in the schema
+            const meta = STUDIO_SCHEMA.find(f => f.key === 'meta_description');
+            if(meta && descInput) {
+                descInput.value = meta.content;
+            } else if(descInput) {
+                descInput.value = "";
+            }
         }
     }
     
@@ -486,7 +488,7 @@ function renderStudioCanvas() {
     
     // FIX: Loop through REAL SCHEMA (skipping marker)
     STUDIO_SCHEMA.forEach((field, index) => {
-        if (field.key === 'init_marker') return;
+        if (field.key === 'init_marker') || field.key === 'meta_description') return;
 
         const block = document.createElement('div');
         block.className = "studio-question-block";
@@ -730,7 +732,10 @@ async function saveStudioChanges() {
     if (document.activeElement) { document.activeElement.blur(); }
 
     const titleEl = document.getElementById('studio-form-title-display');
+    const descEl = document.getElementById('studio-form-description-display');
+    
     const newName = titleEl ? titleEl.value.trim() : "";
+    const description = descEl ? descEl.value.trim() : "";
     const btn = document.getElementById('btn-save-studio');
 
     if(!newName) {
@@ -742,8 +747,17 @@ async function saveStudioChanges() {
     const originalText = btn.innerText;
     btn.innerText = "Syncing...";
     
-    // 2. CHECK FOR RENAME (The Overwrite Logic)
-    // If we have an original name, and it's different from the new name, we must delete the old one.
+    STUDIO_SCHEMA = STUDIO_SCHEMA.filter(f => f.key !== 'meta_description');
+    
+    // 2. Add new description as a hidden field
+    if(description) {
+        STUDIO_SCHEMA.unshift({
+            key: 'meta_description',
+            type: 'hidden',
+            content: description
+        });
+    }
+    
     const isRenaming = (CURRENT_STUDIO_FORM && CURRENT_STUDIO_FORM !== newName);
 
     try {
