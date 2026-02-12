@@ -93,7 +93,11 @@
             <div class="studio-banner-content">
                 <button onclick="closeStudio()" class="btn-soft">Exit Studio</button>
                 <div style="color:#fff; font-family:'Libre Baskerville'; font-size:18px;">Rosewood Studio</div>
-                <button id="btn-save-studio" type="button" class="btn-main" style="background:var(--rw-red);">
+                
+                <button id="btn-save-studio" 
+                        onclick="try { saveStudioChanges(); } catch(e) { alert('JS ERROR: ' + e.message); }" 
+                        class="btn-main" 
+                        style="background:var(--rw-red);">
                     Save Cloud Template
                 </button>
             </div>
