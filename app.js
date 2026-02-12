@@ -160,6 +160,7 @@ async function initClientDashboard() {
 
 /* --- FLAGSHIP FORM RENDERER (Unified) --- */
 
+/* --- UPDATED VIEWER (Debug + Data Loss Fix) --- */
 async function openFlagshipForm(formName, status, reqId = null) {
     const view = document.getElementById('view-flagship-form');
     const canvas = document.getElementById('flagship-canvas');
@@ -167,82 +168,93 @@ async function openFlagshipForm(formName, status, reqId = null) {
     const descEl = document.getElementById('flagship-form-desc');
     const printTitle = document.getElementById('print-title');
     
+    // Store Request ID
     CURRENT_REQUEST_ID = reqId;
 
+    // View Switching
     view.classList.remove('hidden');
     document.getElementById('view-client-dashboard').classList.add('hidden');
     document.getElementById('view-admin').classList.add('hidden');
-    
     window.scrollTo(0,0);
     
+    // Smart Title (Adds "Form" if missing)
     const cleanName = formName.trim();
     const displayName = cleanName.match(/form$/i) ? cleanName : cleanName + " Form";
-    
-    title.innerText = displayName; 
-    printTitle.innerText = displayName; 
+    title.innerText = displayName;
+    printTitle.innerText = displayName;
     
     descEl.style.display = 'none'; 
     canvas.innerHTML = "<div style='text-align:center; padding:50px; opacity:0.5;'>Loading Form...</div>";
     
     CURRENT_FLAGSHIP_NAME = formName;
 
-    const res = await apiCall('getSchema', { formName });
-    if(res.success) {
-        CURRENT_FLAGSHIP_SCHEMA = res.schema;
-        
-        // 1. DATA SYNC FIX: Determine Target ID and fetch FRESH answers
-        let targetId = null;
-        if (USER_DATA.role === 'admin' && CURRENT_ADMIN_CLIENT) {
-            targetId = CURRENT_ADMIN_CLIENT.id;
-        } else {
-            targetId = USER_DATA.id;
-        }
-
-        // 2. Fetch Fresh Data (This fixes the data loss bug)
-        const answerRes = await apiCall('getAnswers', { id: targetId });
-        const freshAnswers = answerRes.success ? answerRes.answers : {};
-
-        // 3. Update Admin context if applicable
-        if (USER_DATA.role === 'admin' && CURRENT_ADMIN_CLIENT) {
-            CURRENT_ADMIN_CLIENT.answers = freshAnswers;
-            descEl.innerText = `Viewing Data for: ${CURRENT_ADMIN_CLIENT.name}`;
-            descEl.style.display = 'block';
-            descEl.style.color = 'var(--accent)';
-            descEl.style.fontWeight = 'bold';
-        }
-
-        // 4. Lock Logic
-        const isLocked = (USER_DATA.role !== 'admin' && status === 'Completed');
-        const saveBtn = document.getElementById('btn-save-draft');
-        const submitBtn = document.querySelector('#view-flagship-form .btn-main'); 
-        
-        if(isLocked) {
-            if(saveBtn) saveBtn.style.display = 'none';
-            if(submitBtn) submitBtn.style.display = 'none';
-            title.innerHTML += ` <span style="font-size:12px; color:green; border:1px solid green; padding:2px 6px; border-radius:4px; vertical-align:middle;">LOCKED</span>`;
-        } else {
-            if(saveBtn) saveBtn.style.display = 'inline-block';
-            if(submitBtn) submitBtn.style.display = 'inline-block';
-        }
-        
-        // 5. Render
-        renderFlagshipCanvas(canvas, descEl, freshAnswers, isLocked);
-        
-        const meta = CURRENT_FLAGSHIP_SCHEMA.find(f => f.key === 'meta_description');
-        if(meta && meta.label) {
-            if (USER_DATA.role === 'admin') {
-                descEl.innerHTML = `${meta.label} <br><span style="color:var(--accent); font-weight:600; font-size:11px; text-transform:uppercase;">Editing: ${CURRENT_ADMIN_CLIENT.name}</span>`;
-            } else {
-                descEl.innerText = meta.label;
-            }
-            descEl.style.display = "block";
-            document.getElementById('print-desc').innerText = meta.label;
-        }
-
-        updateProgress(); 
-    } else {
-        canvas.innerHTML = "<div style='color:red; text-align:center;'>Error loading form.</div>";
+    // 1. Fetch Schema
+    const schemaRes = await apiCall('getSchema', { formName });
+    
+    // DEBUG: SHOW ACTUAL ERROR ON SCREEN
+    if(!schemaRes.success) {
+        canvas.innerHTML = `
+            <div style='color:#b91c1c; text-align:center; padding: 20px;'>
+                <h3 style="margin-bottom:10px;">Error Loading Form</h3>
+                <p>The server reported:</p>
+                <div style="font-family:monospace; background:#fee2e2; padding:15px; border-radius:8px; display:inline-block; text-align:left;">
+                    ${schemaRes.message || "Unknown System Error"}
+                </div>
+                <p style="margin-top:15px; font-size:12px; color:#666;">
+                    Check your Google Sheet. Does the tab <strong>"Form_Builder"</strong> exist?
+                </p>
+            </div>`;
+        return;
     }
+    
+    CURRENT_FLAGSHIP_SCHEMA = schemaRes.schema;
+
+    // 2. FETCH FRESH ANSWERS (Fixes the Data Loss Bug)
+    let targetId = null;
+    if (USER_DATA.role === 'admin' && CURRENT_ADMIN_CLIENT) {
+        targetId = CURRENT_ADMIN_CLIENT.id;
+    } else {
+        targetId = USER_DATA.id;
+    }
+
+    const answerRes = await apiCall('getAnswers', { id: targetId });
+    const freshAnswers = answerRes.success ? answerRes.answers : {};
+
+    // 3. Update Admin context if applicable
+    if (USER_DATA.role === 'admin' && CURRENT_ADMIN_CLIENT) {
+        CURRENT_ADMIN_CLIENT.answers = freshAnswers; // Sync local state
+    }
+
+    // 4. Lock Logic
+    const isLocked = (USER_DATA.role !== 'admin' && status === 'Completed');
+    const saveBtn = document.getElementById('btn-save-draft');
+    const submitBtn = document.querySelector('#view-flagship-form .btn-main'); 
+    
+    if(isLocked) {
+        if(saveBtn) saveBtn.style.display = 'none';
+        if(submitBtn) submitBtn.style.display = 'none';
+        title.innerHTML = `${displayName} <span style="font-size:12px; color:green; border:1px solid green; padding:2px 6px; border-radius:4px; vertical-align:middle; margin-left:10px;">LOCKED</span>`;
+    } else {
+        if(saveBtn) saveBtn.style.display = 'inline-block';
+        if(submitBtn) submitBtn.style.display = 'inline-block';
+    }
+    
+    // 5. Render
+    renderFlagshipCanvas(canvas, descEl, freshAnswers, isLocked);
+    
+    // 6. Handle Description (Screen & Print)
+    const meta = CURRENT_FLAGSHIP_SCHEMA.find(f => f.key === 'meta_description');
+    if(meta && meta.label) {
+        if (USER_DATA.role === 'admin') {
+            descEl.innerHTML = `${meta.label} <br><span style="color:var(--accent); font-weight:600; font-size:11px; text-transform:uppercase;">Editing: ${CURRENT_ADMIN_CLIENT.name}</span>`;
+        } else {
+            descEl.innerText = meta.label;
+        }
+        descEl.style.display = "block";
+        document.getElementById('print-desc').innerText = meta.label; // Update Print Header
+    }
+
+    updateProgress(); 
 }
 
 function renderFlagshipCanvas(canvas, descEl, preloadedAnswers = {}, isLocked = false) {
