@@ -465,14 +465,6 @@ function closeStudio() {
         document.getElementById('view-admin').classList.remove('hidden');
         initAdmin(); // Refresh the dashboard
     }
-}
-function closeStudio() {
-    if(confirm("Exit Studio? Any unsaved changes will be lost.")) {
-        document.getElementById('view-studio').classList.add('hidden');
-        document.getElementById('view-admin').classList.remove('hidden');
-        initAdmin(); // Refresh the dashboard
-    }
-}
 
 function renderStudioCanvas() {
     const list = document.getElementById('studio-questions-list');
@@ -615,54 +607,45 @@ function renderFormTemplatesGrid() {
     `;
 }
 
-// ADD THIS TO THE VERY BOTTOM OF app.js
+// PASTE AT THE VERY BOTTOM OF app.js
 async function saveStudioChanges() {
-    // 1. Get the Correct Element ID
     const titleEl = document.getElementById('studio-form-title-display');
     const name = titleEl ? titleEl.value.trim() : "";
     const btn = document.getElementById('btn-save-studio');
 
-    // 2. Validation
     if(!name) {
         alert("Please enter a Template Name.");
         if(titleEl) titleEl.focus();
         return;
     }
 
-    // 3. UI Feedback
     const originalText = btn.innerText;
     btn.innerText = "Syncing...";
-    btn.style.opacity = "0.7";
-
+    
     try {
-        // 4. API Call
         const res = await apiCall('saveFormSchema', { 
             formName: name, 
             schema: STUDIO_SCHEMA 
         });
 
-        // 5. Success Handler
         if(res.success) {
             btn.innerText = "Saved!";
-            btn.style.background = "#2E7D32"; // Green success color
+            btn.style.background = "#2E7D32"; 
             
-            // Update local list if new
             if(typeof ALL_FORMS !== 'undefined' && !ALL_FORMS.includes(name)) {
                 ALL_FORMS.push(name);
             }
             
-            // Reset button after 2 seconds
             setTimeout(() => {
                 btn.innerText = originalText;
                 btn.style.background = "var(--rw-red)";
-                btn.style.opacity = "1";
             }, 2000);
         } else {
             alert("Server Error: " + res.message);
             btn.innerText = "Retry";
         }
     } catch(e) {
-        alert("Network/JS Error: " + e.message);
+        alert("Error: " + e.message);
         btn.innerText = originalText;
     }
 }
