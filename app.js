@@ -8,6 +8,51 @@ let ALL_FORMS = [];
 let STUDIO_SCHEMA = [];
 let CURRENT_STUDIO_FORM = null;
 
+// --- ROSEWOOD UI SYSTEM (Custom Alerts) ---
+const RosewoodUI = {
+    modal: () => document.getElementById('rw-modal'),
+    title: () => document.getElementById('rw-modal-title'),
+    msg: () => document.getElementById('rw-modal-msg'),
+    actions: () => document.getElementById('rw-modal-actions'),
+    
+    close: function() {
+        this.modal().classList.remove('active');
+    },
+    
+    show: function(title, text, buttons) {
+        return new Promise((resolve) => {
+            this.title().innerText = title;
+            this.msg().innerHTML = text; // allow bolding
+            this.actions().innerHTML = "";
+            
+            buttons.forEach(btn => {
+                const b = document.createElement('button');
+                b.className = btn.class || "btn-soft";
+                b.innerText = btn.text;
+                b.onclick = () => {
+                    this.close();
+                    resolve(btn.value);
+                };
+                this.actions().appendChild(b);
+            });
+            
+            this.modal().classList.add('active');
+        });
+    }
+};
+
+// Global Helpers to replace native calls
+async function rwAlert(text, title="System Notice") {
+    await RosewoodUI.show(title, text, [{ text: "Okay", value: true, class: "btn-main" }]);
+}
+
+async function rwConfirm(text, title="Confirmation Required") {
+    return await RosewoodUI.show(title, text, [
+        { text: "Cancel", value: false, class: "btn-soft" },
+        { text: "Confirm", value: true, class: "btn-main" } // Rosewood Red
+    ]);
+}
+
 // --- CORE API FUNCTION ---
 async function apiCall(action, payload = {}) {
     payload.action = action;
@@ -18,7 +63,7 @@ async function apiCall(action, payload = {}) {
         });
         return await response.json();
     } catch (e) {
-        alert("Connection Error: " + e.message);
+        rwAlert("Connection Error: " + e.message);
         return { success: false, message: e.message };
     }
 }
@@ -96,7 +141,7 @@ function getStatusStyle(status) {
     status = (status || 'Active').trim();
     if(status === 'Active') return `background:#E8F5E9; color:#2E7D32;`;
     if(status === 'Graduated') return `background:#FFF8E1; color:#F57F17;`;
-    return `background:#f5f5f5; color:#666;`; // Default/Pending
+    return `background:#f5f5f5; color:#666;`; 
 }
 
 function getTierStyle(tier) {
@@ -119,20 +164,11 @@ function renderAdminDashboard(clients) {
         if(client.id === "ID") return; 
         
         const tr = document.createElement('tr');
-        
-        // 1. Name
         tr.innerHTML += `<td style="font-weight:600;">${client.name}</td>`;
-        
-        // 2. Code
         tr.innerHTML += `<td><span style="font-family:monospace; background:rgba(0,0,0,0.05); padding:4px 8px; border-radius:6px; font-size:12px;">${client.code}</span></td>`;
-        
-        // 3. Tier (Styled)
         tr.innerHTML += `<td><span style="${getTierStyle(client.tier)}">${client.tier}</span></td>`;
-        
-        // 4. Status (Styled)
         tr.innerHTML += `<td><span style="${getStatusStyle(client.status)} padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;">${client.status || 'Active'}</span></td>`;
         
-        // 5. Actions
         const tdAction = document.createElement('td');
         tdAction.style.display = "flex";
         tdAction.style.gap = "8px"; 
@@ -159,7 +195,6 @@ function renderAdminDashboard(clients) {
 
 function openClientEditor(client) {
     if(!client) {
-        // New Client Mode
         client = { id: "", name: "", code: "", tier: "Bronze", status: "Active" };
         document.getElementById('ce-title').innerText = "New Client";
     } else {
@@ -194,7 +229,7 @@ async function saveClientChanges() {
         closeClientEditor();
         initAdmin(); 
     } else {
-        alert("Error: " + res.message);
+        rwAlert("Error: " + res.message);
     }
 }
 
@@ -311,7 +346,6 @@ async function saveZenForm() {
     const originalText = btn.innerText;
     btn.innerText = "Saving...";
 
-    // CRITICAL FIX: Send ID (u) instead of Name
     const res = await apiCall('saveData', { 
         u: CURRENT_ADMIN_CLIENT.id, 
         data: payload 
@@ -326,7 +360,7 @@ async function saveZenForm() {
             closeZenViewer(); 
         }, 1000);
     } else {
-        alert("Error: " + res.message);
+        rwAlert("Error: " + res.message);
         btn.innerText = originalText;
     }
 }
@@ -360,7 +394,6 @@ function renderFormTemplatesGrid() {
     
     let html = `<div class="template-grid">`;
     
-    // 1. New Form Card
     html += `
         <div class="template-card new-form" onclick="openStudio('New Form')" 
              style="display:flex; flex-direction:column; justify-content:center; align-items:center;">
@@ -368,9 +401,7 @@ function renderFormTemplatesGrid() {
             <div class="card-label">Create New Form</div>
         </div>`;
     
-    // 2. Existing Forms
     ALL_FORMS.forEach(form => {
-        // Escaping for the onclick handler
         const safeName = form.replace(/'/g, "\\'");
         
         html += `
@@ -414,14 +445,12 @@ async function openStudio(formName) {
     titleInput.oninput = () => markUnsaved();
     if(descInput) descInput.oninput = () => markUnsaved();
 
-    STUDIO_SCHEMA = []; // Clear old
+    STUDIO_SCHEMA = [];
 
     if(formName !== 'New Form') {
         const res = await apiCall('getSchema', { formName });
         if(res.success && res.schema) {
             STUDIO_SCHEMA = res.schema;
-            
-            // THE LABEL CHEAT READ: Read description from 'label', not 'content'
             const meta = STUDIO_SCHEMA.find(f => f.key === 'meta_description');
             if(meta && descInput) {
                 descInput.value = meta.label; 
@@ -431,8 +460,9 @@ async function openStudio(formName) {
     renderStudioCanvas();
 }
 
-function closeStudio() {
-    if(confirm("Exit Studio? Any unsaved changes will be lost.")) {
+async function closeStudio() {
+    // REPLACED NATIVE CONFIRM WITH ROSEWOOD UI
+    if(await rwConfirm("Exit Studio? Any unsaved changes will be lost.")) {
         document.getElementById('view-studio').classList.add('hidden');
         document.getElementById('view-admin').classList.remove('hidden');
         initAdmin(); 
@@ -505,9 +535,10 @@ function addStudioQuestion() {
     window.scrollTo(0, document.body.scrollHeight);
 }
 
-function deleteStudioField(index) {
+async function deleteStudioField(index) {
     markUnsaved();
-    if(confirm("Delete this question?")) {
+    // REPLACED NATIVE CONFIRM WITH ROSEWOOD UI
+    if(await rwConfirm("Delete this question?")) {
         STUDIO_SCHEMA.splice(index, 1);
         renderStudioCanvas();
     }
@@ -546,21 +577,20 @@ function markUnsaved() {
 }
 
 async function deleteForm(formName) {
-    if(!confirm(`Are you sure you want to PERMANENTLY delete "${formName}"?`)) return;
+    // REPLACED NATIVE CONFIRM WITH ROSEWOOD UI
+    if(!await rwConfirm(`Are you sure you want to PERMANENTLY delete "${formName}"?`, "Critical Action")) return;
     
-    // Optimistic UI Update
     ALL_FORMS = ALL_FORMS.filter(f => f !== formName);
     renderFormTemplatesGrid();
     
     const res = await apiCall('deleteForm', { formName });
     if(!res.success) {
-        alert("Server Error: " + res.message);
-        initAdmin(); // Re-sync if failed
+        rwAlert("Server Error: " + res.message);
+        initAdmin(); 
     }
 }
 
 async function saveStudioChanges() {
-    // 1. Force blur to capture last keystroke
     if (document.activeElement) { document.activeElement.blur(); }
 
     const titleEl = document.getElementById('studio-form-title-display');
@@ -570,7 +600,7 @@ async function saveStudioChanges() {
     const btn = document.getElementById('btn-save-studio');
 
     if(!newName) {
-        alert("Please enter a Template Name.");
+        rwAlert("Please enter a Template Name.");
         if(titleEl) titleEl.focus();
         return;
     }
@@ -578,10 +608,8 @@ async function saveStudioChanges() {
     const originalText = btn.innerText;
     btn.innerText = "Syncing...";
     
-    // Filter out old meta description to prevent duplicates
     STUDIO_SCHEMA = STUDIO_SCHEMA.filter(f => f.key !== 'meta_description');
     
-    // THE LABEL CHEAT WRITE: Save description in 'label'
     if(description) {
         STUDIO_SCHEMA.unshift({
             key: 'meta_description',
@@ -615,11 +643,11 @@ async function saveStudioChanges() {
                 btn.style.background = "var(--rw-red)";
             }, 2000);
         } else {
-            alert("Server Error: " + res.message);
+            rwAlert("Server Error: " + res.message);
             btn.innerText = "Retry";
         }
     } catch(e) {
-        alert("Error: " + e.message);
+        rwAlert("Error: " + e.message);
         btn.innerText = originalText;
     }
 }
@@ -635,5 +663,5 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function openSignUpModal() {
-    alert("Rosewood Forms is currently Invite Only.\n\nPlease contact your administrator to receive your access code.");
+    rwAlert("Rosewood Forms is currently Invite Only.<br><br>Please contact your administrator to receive your access code.", "Private Access");
 }
