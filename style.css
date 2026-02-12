@@ -304,32 +304,41 @@ tr:hover td { background: rgba(255,255,255,0.4); }
 
 /* --- Z-INDEX FIXES --- */
 
-/* 1. Force Studio Layer to Top */
+/* --- ROSEWOOD STUDIO: CLEAN LAYOUT --- */
+
 #view-studio {
-    z-index: 9000 !important; /* Above everything */
-    position: fixed !important;
-    top: 0; left: 0; width: 100vw; height: 100vh;
-    overflow-y: auto; /* Allow scrolling */
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: #F0F0F2; 
+    z-index: 5000; /* High enough to cover admin, but standard positioning */
+    display: flex; flex-direction: column;
+    overflow: hidden; /* Prevent body scroll, we scroll the paper area instead */
 }
 
-/* 2. Force Banner even higher */
 .studio-top-banner {
-    z-index: 9001 !important; /* Above the paper */
-    position: fixed; top: 0; left: 0; width: 100%;
-    cursor: default; /* Ensure mouse sees it */
+    flex: 0 0 80px; /* Fixed height header */
+    background: #1A1716; 
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 40px; /* Comfortable padding */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    z-index: 10;
 }
 
-/* 3. Make sure the button is clickable */
-#btn-save-studio {
-    position: relative;
-    z-index: 9002 !important;
-    cursor: pointer !important;
-    pointer-events: auto !important; /* Force click capture */
+/* Scrollable Paper Container */
+.studio-scroll-area {
+    flex: 1; overflow-y: auto; 
+    padding: 40px 20px 100px 20px; /* Bottom padding for scroll space */
+    display: flex; justify-content: center;
 }
 
-/* 4. Ensure Paper is pushed down */
 .studio-paper {
-    margin-top: 140px !important; /* Clear the banner */
-    position: relative;
-    z-index: 9000;
+    background: white;
+    width: 100%; max-width: 850px; 
+    min-height: 1000px; /* Letter size feel */
+    padding: 80px 100px;
+    box-shadow: 0 0 1px rgba(0,0,0,0.1), 0 20px 40px rgba(0,0,0,0.05);
+    border-radius: 2px;
+}
+
+.studio-top-banner .btn-soft {
+    background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2);
 }
