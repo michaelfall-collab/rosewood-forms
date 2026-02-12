@@ -302,8 +302,6 @@ tr:hover td { background: rgba(255,255,255,0.4); }
 }
 .studio-type-selector:hover { background: rgba(0,0,0,0.05); color: var(--rw-red); }
 
-/* --- Z-INDEX FIXES --- */
-
 /* --- ROSEWOOD STUDIO: CLEAN LAYOUT --- */
 
 #view-studio {
