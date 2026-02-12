@@ -1,5 +1,4 @@
 // --- CONFIGURATION ---
-// UPDATED URL (The one you confirmed works)
 const API_URL = "https://script.google.com/macros/s/AKfycbx551oCMIdzsB1CcmDSCwrSxQ0kgavsOQFJcnkm3LF7Sq3mqaOunwDEPhg7xPC_LKZuig/exec"; 
 
 // --- STATE ---
@@ -11,41 +10,33 @@ let CURRENT_STUDIO_FORM = null;
 
 // --- CORE API FUNCTION ---
 async function apiCall(action, payload = {}) {
-    const loader = document.getElementById('loader'); // Ensure you have this div or remove this line
-    
     payload.action = action;
-    
     try {
         const response = await fetch(API_URL, {
             method: "POST",
             body: JSON.stringify(payload)
         });
-        const data = await response.json();
-        return data;
+        return await response.json();
     } catch (e) {
         alert("Connection Error: " + e.message);
         return { success: false, message: e.message };
     }
 }
 
+/* --- AUTH & INIT --- */
 async function handleLogin() {
     const u = document.getElementById('login-user').value;
     const p = document.getElementById('login-pass').value;
-    const msg = document.getElementById('login-msg'); // The new text area
+    const msg = document.getElementById('login-msg');
     const btn = document.querySelector('.login-card .btn-main');
     
-    // Clear previous errors
     msg.innerText = "";
-    
     if(!u || !p) {
         msg.innerText = "Please enter username and password.";
-        // Shake animation effect (optional but nice)
-        document.querySelector('.login-card').style.animation = "shake 0.3s";
-        setTimeout(() => document.querySelector('.login-card').style.animation = "", 300);
+        shakeLogin();
         return;
     }
 
-    // UI Feedback
     const originalText = btn.innerText;
     btn.innerText = "Verifying...";
     btn.style.opacity = "0.7";
@@ -54,12 +45,9 @@ async function handleLogin() {
     
     if(res.success) {
         USER_DATA = res.user;
-        
-        // Success! Fade out login, fade in admin
         document.getElementById('view-login').style.opacity = '0';
         setTimeout(() => {
             document.getElementById('view-login').classList.add('hidden');
-            
             if(USER_DATA.role === 'admin') {
                 initAdmin();
             } else {
@@ -68,40 +56,33 @@ async function handleLogin() {
                 document.getElementById('view-login').classList.remove('hidden');
             }
         }, 500);
-
     } else {
-        // Failure
         msg.innerText = "Incorrect username or password.";
         btn.innerText = originalText;
         btn.style.opacity = "1";
-        
-        // Shake animation
-        document.querySelector('.login-card').style.animation = "shake 0.3s";
-        setTimeout(() => document.querySelector('.login-card').style.animation = "", 300);
+        shakeLogin();
     }
 }
+
+function shakeLogin() {
+    const card = document.querySelector('.login-card');
+    card.style.animation = "shake 0.3s";
+    setTimeout(() => card.style.animation = "", 300);
+}
+
 function toggleLoginPass() {
     const input = document.getElementById('login-pass');
-    const icon = document.querySelector('#view-login svg'); // Selects the eye icon
-    
-    if (input.type === "password") {
-        input.type = "text";
-        icon.style.opacity = "1"; // Highlight eye when visible
-    } else {
-        input.type = "password";
-        icon.style.opacity = "0.4";
-    }
+    if (input.type === "password") input.type = "text";
+    else input.type = "password";
 }
 
 /* --- ADMIN DASHBOARD --- */
 async function initAdmin() {
     document.getElementById('view-admin').classList.remove('hidden');
     const tbody = document.getElementById('client-table-body');
-    
     if(tbody) tbody.innerHTML = "<tr><td colspan='5' style='text-align:center; opacity:0.5; padding:20px;'>Loading Rosewood Database...</td></tr>";
 
     const data = await apiCall('adminData');
-    
     if(!data || !data.clients) {
         if(tbody) tbody.innerHTML = "<tr><td colspan='5' style='text-align:center; color:red;'>Error loading data.</td></tr>";
         return;
@@ -111,63 +92,65 @@ async function initAdmin() {
     renderAdminDashboard(data.clients);
 }
 
+function getStatusStyle(status) {
+    status = (status || 'Active').trim();
+    if(status === 'Active') return `background:#E8F5E9; color:#2E7D32;`;
+    if(status === 'Graduated') return `background:#FFF8E1; color:#F57F17;`;
+    return `background:#f5f5f5; color:#666;`; // Default/Pending
+}
+
+function getTierStyle(tier) {
+    tier = (tier || 'Bronze').trim();
+    let border = "#eee";
+    let color = "#666";
+    if(tier === 'Gold') { border = "#FFD700"; color = "#B8860B"; }
+    if(tier === 'Silver') { border = "#C0C0C0"; color = "#757575"; }
+    if(tier === 'Bronze') { border = "#CD7F32"; color = "#8D6E63"; }
+    
+    return `border:1px solid ${border}; color:${color}; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:700; text-transform:uppercase;`;
+}
+
 function renderAdminDashboard(clients) {
     const tbody = document.getElementById('client-table-body');
     if(!tbody) return;
     tbody.innerHTML = ""; 
     
     clients.forEach(client => {
-        if(client.id === "ID") return; // Skip header
+        if(client.id === "ID") return; 
         
         const tr = document.createElement('tr');
         
         // 1. Name
-        const tdName = document.createElement('td');
-        tdName.style.fontWeight = "600";
-        tdName.innerText = client.name;
-        tr.appendChild(tdName);
+        tr.innerHTML += `<td style="font-weight:600;">${client.name}</td>`;
         
         // 2. Code
-        const tdCode = document.createElement('td');
-        tdCode.innerHTML = `<span style="font-family:monospace; background:rgba(0,0,0,0.05); padding:4px 8px; border-radius:6px; font-size:12px;">${client.code}</span>`;
-        tr.appendChild(tdCode);
+        tr.innerHTML += `<td><span style="font-family:monospace; background:rgba(0,0,0,0.05); padding:4px 8px; border-radius:6px; font-size:12px;">${client.code}</span></td>`;
         
-        // 3. Tier
-        const tdTier = document.createElement('td');
-        tdTier.innerText = client.tier;
-        tr.appendChild(tdTier);
+        // 3. Tier (Styled)
+        tr.innerHTML += `<td><span style="${getTierStyle(client.tier)}">${client.tier}</span></td>`;
         
-        // 4. Status
-        const tdStatus = document.createElement('td');
-        const isLive = (client.status === "Active");
-        tdStatus.innerHTML = `<span style="
-            background: ${isLive ? '#E8F5E9' : '#FFEBEE'}; 
-            color: ${isLive ? '#2E7D32' : '#C62828'};
-            padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;">
-            ${client.status || 'Active'}
-        </span>`;
-        tr.appendChild(tdStatus);
+        // 4. Status (Styled)
+        tr.innerHTML += `<td><span style="${getStatusStyle(client.status)} padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;">${client.status || 'Active'}</span></td>`;
         
         // 5. Actions
         const tdAction = document.createElement('td');
         tdAction.style.display = "flex";
         tdAction.style.gap = "8px"; 
         
-        // Profile Btn
         const btnProfile = document.createElement('button');
         btnProfile.className = "btn-soft";
         btnProfile.innerHTML = "Profile";
         btnProfile.onclick = () => openClientEditor(client);
-        tdAction.appendChild(btnProfile);
         
-        // Forms Btn
         const btnForms = document.createElement('button');
         btnForms.className = "btn-soft";
         btnForms.innerHTML = "Forms";
         btnForms.onclick = () => openFormPicker(client); 
+        
+        tdAction.appendChild(btnProfile);
         tdAction.appendChild(btnForms);
-
         tr.appendChild(tdAction);
+        
         tbody.appendChild(tr);
     });
 }
@@ -175,11 +158,16 @@ function renderAdminDashboard(clients) {
 /* --- EDITORS & MODALS --- */
 
 function openClientEditor(client) {
+    if(!client) {
+        // New Client Mode
+        client = { id: "", name: "", code: "", tier: "Bronze", status: "Active" };
+        document.getElementById('ce-title').innerText = "New Client";
+    } else {
+        document.getElementById('ce-title').innerText = "Edit Client";
+    }
+    
     CURRENT_ADMIN_CLIENT = client;
     const modal = document.getElementById('admin-modal');
-    
-    // Populate Fields
-    document.getElementById('ce-title').innerText = "Edit Client";
     document.getElementById('ce-id').value = client.id;
     document.getElementById('ce-name').value = client.name;
     document.getElementById('ce-code').value = client.code;
@@ -192,6 +180,25 @@ function openClientEditor(client) {
 function closeClientEditor() {
     document.getElementById('admin-modal').classList.remove('active');
 }
+
+async function saveClientChanges() {
+    const id = document.getElementById('ce-id').value;
+    const name = document.getElementById('ce-name').value;
+    const code = document.getElementById('ce-code').value;
+    const tier = document.getElementById('ce-tier').value;
+    const status = document.getElementById('ce-status').value;
+
+    const res = await apiCall('saveClient', { id, name, code, tier, status });
+    
+    if(res.success) {
+        closeClientEditor();
+        initAdmin(); 
+    } else {
+        alert("Error: " + res.message);
+    }
+}
+
+/* --- FORM PICKER & ZEN VIEWER --- */
 
 function openFormPicker(client) {
     CURRENT_ADMIN_CLIENT = client;
@@ -214,16 +221,7 @@ function openFormPicker(client) {
         
         btn.onclick = () => {
             modal.classList.remove('active');
-            
-            // Hack to store form name for the viewer
-            const fakeSelect = document.createElement('input');
-            fakeSelect.id = 'modal-form-select';
-            fakeSelect.value = form;
-            document.body.appendChild(fakeSelect);
-            
-            loadClientFormView(); 
-            
-            setTimeout(() => fakeSelect.remove(), 500);
+            loadClientFormView(form); 
         };
         container.appendChild(btn);
     });
@@ -231,37 +229,31 @@ function openFormPicker(client) {
     modal.classList.add('active');
 }
 
-async function loadClientFormView() {
-    const el = document.getElementById('modal-form-select');
-    if(!el) return;
-    const formName = el.value;
-
+async function loadClientFormView(formName) {
     const viewer = document.getElementById('zen-viewer');
     const body = document.getElementById('zen-body');
-    const title = document.getElementById('zen-title');
-    const subtitle = document.getElementById('zen-subtitle');
     
     viewer.classList.add('active'); 
-    
-    const displayName = formName.toLowerCase().includes('form') ? formName : formName + " Form";
-    
-    title.innerText = displayName;
-    subtitle.innerText = "EDITING: " + CURRENT_ADMIN_CLIENT.name;
+    document.getElementById('zen-title').innerText = formName;
+    document.getElementById('zen-subtitle').innerText = "EDITING: " + CURRENT_ADMIN_CLIENT.name;
     body.innerHTML = "<div style='text-align:center; padding-top:50px; opacity:0.5;'>Fetching data...</div>";
     
-    const schema = await apiCall('getSchema', { formName });
+    const schemaRes = await apiCall('getSchema', { formName });
+    const schema = schemaRes.schema || [];
     const answers = CURRENT_ADMIN_CLIENT.answers || {};
     
     body.innerHTML = ""; 
     
-    if(!schema || schema.length === 0) {
+    if(schema.length === 0) {
         body.innerHTML = "<p style='text-align:center; margin-top:50px;'>This form is empty.</p>";
         return;
     }
 
     schema.forEach(field => {
+        if(field.type === 'hidden' || field.key === 'meta_description') return;
+
         const group = document.createElement('div');
-        group.className = "notion-group"; // Use the Glass UI class
+        group.className = "notion-group"; 
         
         const label = document.createElement('label');
         label.className = "notion-label";
@@ -319,15 +311,15 @@ async function saveZenForm() {
     const originalText = btn.innerText;
     btn.innerText = "Saving...";
 
+    // CRITICAL FIX: Send ID (u) instead of Name
     const res = await apiCall('saveData', { 
-        u: CURRENT_ADMIN_CLIENT.name, 
+        u: CURRENT_ADMIN_CLIENT.id, 
         data: payload 
     });
 
     if(res.success) {
         if(!CURRENT_ADMIN_CLIENT.answers) CURRENT_ADMIN_CLIENT.answers = {};
         Object.assign(CURRENT_ADMIN_CLIENT.answers, payload);
-        
         btn.innerText = "Saved";
         setTimeout(() => { 
             btn.innerText = originalText;
@@ -339,141 +331,106 @@ async function saveZenForm() {
     }
 }
 
-async function saveClientChanges() {
-    const id = document.getElementById('ce-id').value;
-    const name = document.getElementById('ce-name').value;
-    const code = document.getElementById('ce-code').value;
-    const tier = document.getElementById('ce-tier').value;
-    const status = document.getElementById('ce-status').value;
-
-    const res = await apiCall('saveClient', { id, name, code, tier, status });
-    
-    if(res.success) {
-        alert("Saved!");
-        closeClientEditor();
-        initAdmin(); // Refresh table
-    } else {
-        alert("Error: " + res.message);
-    }
-}
-
-// --- GLOBAL LISTENERS (Run on Load) ---
-window.addEventListener('DOMContentLoaded', () => {
-    
-    // ENTER KEY FOR PASSWORD
-    const passInput = document.getElementById('login-pass');
-    if(passInput) {
-        passInput.addEventListener("keypress", function(event) {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                handleLogin();
-            }
-        });
-    }
-
-    // ENTER KEY FOR USERNAME (Optional but nice)
-    const userInput = document.getElementById('login-user');
-    if(userInput) {
-        userInput.addEventListener("keypress", function(event) {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                document.getElementById('login-pass').focus(); // Move to password
-            }
-        });
-    }
-});
-/* --- ADMIN NAVIGATION --- */
+/* --- STUDIO & TEMPLATES --- */
 
 function switchAdminTab(tab) {
     const btnClients = document.getElementById('nav-clients');
     const btnForms = document.getElementById('nav-forms');
-    // We reuse the 'glass-table-container' div but clear it for Grid Mode
     const container = document.querySelector('.glass-table-container');
     
     if (tab === 'clients') {
-        // ... (Styling logic remains the same) ...
         btnClients.style.background = "#fff"; btnClients.style.opacity = "1";
         btnForms.style.background = "transparent"; btnForms.style.opacity = "0.6";
-        
-        // Restore Table Layout
         container.style.background = "rgba(255,255,255,0.5)";
         container.innerHTML = `<table><thead><tr><th>Client Name</th><th>Access Code</th><th>Tier</th><th>Status</th><th>Actions</th></tr></thead><tbody id="client-table-body"></tbody></table>`;
         initAdmin(); 
     } 
     else if (tab === 'forms') {
-        // ... (Styling logic) ...
         btnForms.style.background = "#fff"; btnForms.style.opacity = "1";
         btnClients.style.background = "transparent"; btnClients.style.opacity = "0.6";
-        
-        // RENDER CARD GRID
-        container.style.background = "transparent"; // Remove glass bg for grid
+        container.style.background = "transparent"; 
         container.style.boxShadow = "none";
         container.style.border = "none";
-        
-        let html = `<div class="template-grid">`;
-        
-        // Add "New Form" Card
-        html += `
-            <div class="template-card" onclick="openStudio('New Form')">
-                <div class="template-icon" style="color:var(--accent);">+</div>
-                <div class="template-title">Create New Form</div>
-            </div>`;
-        
-        // Add Existing Forms
-        ALL_FORMS.forEach(f => {
-            html += `
-            <div class="template-card" onclick="openStudio('${f}')">
-                <div class="template-icon">📄</div>
-                <div class="template-title">${f}</div>
-                <div style="font-size:10px; color:#999; margin-top:5px;">Click to Edit</div>
-            </div>`;
-        });
-        
-        html += `</div>`;
-        container.innerHTML = html;
+        renderFormTemplatesGrid();
     }
 }
 
-/* --- ROSEWOOD STUDIO LOGIC --- */
+function renderFormTemplatesGrid() {
+    const container = document.querySelector('.glass-table-container');
+    
+    let html = `<div class="template-grid">`;
+    
+    // 1. New Form Card
+    html += `
+        <div class="template-card new-form" onclick="openStudio('New Form')" 
+             style="display:flex; flex-direction:column; justify-content:center; align-items:center;">
+            <div class="plus-icon" style="font-size:32px; color:var(--accent); margin-bottom:10px;">+</div>
+            <div class="card-label">Create New Form</div>
+        </div>`;
+    
+    // 2. Existing Forms
+    ALL_FORMS.forEach(form => {
+        // Escaping for the onclick handler
+        const safeName = form.replace(/'/g, "\\'");
+        
+        html += `
+        <div class="template-card" onclick="openStudio('${safeName}')" style="display:flex; flex-direction:column; justify-content:space-between;">
+            
+            <div style="display:flex; justify-content:flex-end; width:100%; margin-bottom:10px;">
+                <div title="Delete Form" 
+                     onclick="event.stopPropagation(); deleteForm('${safeName}')"
+                     style="color:#b91c1c; background:#fee2e2; width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-weight:bold;">
+                     &times;
+                </div>
+            </div>
+
+            <div style="text-align:center;">
+                <div class="form-icon" style="font-size:32px; margin-bottom:10px; opacity:0.8;">📄</div>
+                <div class="card-label" style="font-weight:600; font-size:14px;">${form}</div>
+            </div>
+            
+            <div style="text-align:center; font-size:10px; color:#999; margin-top:15px; border-top:1px solid rgba(0,0,0,0.05); padding-top:8px;">
+                Click to Edit
+            </div>
+        </div>`;
+    });
+    
+    html += `</div>`;
+    container.innerHTML = html;
+}
 
 async function openStudio(formName) {
-    // 1. Switch View
     document.getElementById('view-admin').classList.add('hidden');
     document.getElementById('view-studio').classList.remove('hidden');
     
-    // 2. Track Original Name
     CURRENT_STUDIO_FORM = (formName === 'New Form') ? null : formName;
     
-    // 3. Setup Title & Description
     const titleInput = document.getElementById('studio-form-title-display');
     const descInput = document.getElementById('studio-form-description-display');
     
     titleInput.value = (formName === 'New Form') ? "" : formName;
-    if(descInput) descInput.value = ""; // Reset description
+    if(descInput) descInput.value = ""; 
     
-    // Add "Dirty State" listeners
     titleInput.oninput = () => markUnsaved();
     if(descInput) descInput.oninput = () => markUnsaved();
 
-    // 4. Reset & Load
+    STUDIO_SCHEMA = []; // Clear old
+
     if(formName !== 'New Form') {
         const res = await apiCall('getSchema', { formName });
         if(res.success && res.schema) {
             STUDIO_SCHEMA = res.schema;
             
-            // FIX 1: Read description from the 'label' field, not 'content'
+            // THE LABEL CHEAT READ: Read description from 'label', not 'content'
             const meta = STUDIO_SCHEMA.find(f => f.key === 'meta_description');
             if(meta && descInput) {
-                descInput.value = meta.label; // <--- CHANGED THIS
-            } else if(descInput) {
-                descInput.value = "";
+                descInput.value = meta.label; 
             }
         }
     }
-    
     renderStudioCanvas();
 }
-    
+
 function closeStudio() {
     if(confirm("Exit Studio? Any unsaved changes will be lost.")) {
         document.getElementById('view-studio').classList.add('hidden');
@@ -481,12 +438,12 @@ function closeStudio() {
         initAdmin(); 
     }
 }
+
 function renderStudioCanvas() {
     const list = document.getElementById('studio-questions-list');
     if(!list) return;
     list.innerHTML = "";
     
-    // FIX: Loop through REAL SCHEMA (skipping marker)
     STUDIO_SCHEMA.forEach((field, index) => {
         if (field.key === 'init_marker' || field.key === 'meta_description') return;
 
@@ -501,22 +458,18 @@ function renderStudioCanvas() {
                 <div class="choice-pill-container">
                     ${options.map((opt, i) => `
                         <div class="choice-pill">
-                            ${opt}
-                            <button onclick="removeOption(${index}, ${i})">&times;</button>
+                            ${opt} <button onclick="removeOption(${index}, ${i})">&times;</button>
                         </div>
                     `).join('')}
                     <div style="display:flex; gap:10px; margin-top:10px;">
-                        <input type="text" id="opt-input-${index}" class="studio-option-input" 
-                            placeholder="+ New Option">
+                        <input type="text" id="opt-input-${index}" class="studio-option-input" placeholder="+ New Option">
                         <button class="btn-main small" onclick="addOptionManual(${index})">Add</button>
                     </div>
-                </div>
-            `;
+                </div>`;
         } else {
-            inputHtml = `<div style="height: 30px; border-bottom: 1px dashed #eee; width: 60%; opacity: 0.3; margin-top:10px;"></div>`;
+            inputHtml = `<div style="height:30px; border-bottom:1px dashed #eee; width:60%; opacity:0.3; margin-top:10px;"></div>`;
         }
 
-        // ADDED: Delete Button (&times;) next to the dropdown
         block.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                 <input class="studio-pdf-label" value="${field.label}" 
@@ -537,37 +490,8 @@ function renderStudioCanvas() {
         list.appendChild(block);
     });
 }
-// Logic to add options without needing "Enter"
-function addOptionManual(index) {
-    markUnsaved();
-    const input = document.getElementById(`opt-input-${index}`);
-    if(!input) return;
-    
-    const val = input.value.trim();
-    if(val) {
-        // Ensure the options array exists
-        if(!STUDIO_SCHEMA[index].options) STUDIO_SCHEMA[index].options = [];
-        
-        STUDIO_SCHEMA[index].options.push(val);
-        input.value = "";
-        
-        // RE-RENDER immediately so the new pill appears
-        renderStudioCanvas(); 
-        
-        // Refocus the input for rapid entry
-        const newInput = document.getElementById(`opt-input-${index}`);
-        if(newInput) newInput.focus();
-    }
-}
-
-function removeOption(fieldIndex, optIndex) {
-    markUnsaved();
-    STUDIO_SCHEMA[fieldIndex].options.splice(optIndex, 1);
-    renderStudioCanvas();
-}
 
 function addStudioQuestion() {
-    // Add default text field
     markUnsaved();
     STUDIO_SCHEMA.push({
         section: "General",
@@ -578,7 +502,6 @@ function addStudioQuestion() {
         visibility: "Public"
     });
     renderStudioCanvas();
-    // Scroll to bottom
     window.scrollTo(0, document.body.scrollHeight);
 }
 
@@ -592,156 +515,47 @@ function deleteStudioField(index) {
 
 function updateStudioField(index, prop, val) {
     STUDIO_SCHEMA[index][prop] = val;
-    markUnsaved(); // Reset "Saved" button
-    
-    // ONLY re-render if we changed the TYPE (to show/hide options)
-    // If we changed the label, do NOT re-render (or we lose focus/cursor position)
-    if(prop === 'type') {
-        renderStudioCanvas();
+    markUnsaved();
+    if(prop === 'type') renderStudioCanvas();
+}
+
+function addOptionManual(index) {
+    markUnsaved();
+    const input = document.getElementById(`opt-input-${index}`);
+    if(!input) return;
+    const val = input.value.trim();
+    if(val) {
+        if(!STUDIO_SCHEMA[index].options) STUDIO_SCHEMA[index].options = [];
+        STUDIO_SCHEMA[index].options.push(val);
+        renderStudioCanvas(); 
     }
 }
 
-function cycleType(index) {
-    const types = ['text', 'textarea', 'select', 'header'];
-    const current = STUDIO_SCHEMA[index].type;
-    let next = types[(types.indexOf(current) + 1) % types.length];
-    
-    STUDIO_SCHEMA[index].type = next;
-    
-    // If select, ask for options (Simple prompt for now)
-    if(next === 'select') {
-        const opts = prompt("Enter options separated by comma:", "Yes,No,Maybe");
-        if(opts) STUDIO_SCHEMA[index].options = opts.split(',');
-    }
-    
+function removeOption(fieldIndex, optIndex) {
+    markUnsaved();
+    STUDIO_SCHEMA[fieldIndex].options.splice(optIndex, 1);
     renderStudioCanvas();
 }
 
-function renderFormTemplatesGrid() {
-    const container = document.querySelector('.glass-table-container');
-    container.innerHTML = `
-        <div style="padding: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px;">
-            <div class="template-card new-form" onclick="openStudio('New Form')" style="display:flex; flex-direction:column; justify-content:center; align-items:center; min-height:160px;">
-                <div class="plus-icon" style="font-size:32px; color:var(--accent); margin-bottom:10px;">+</div>
-                <div class="card-label">Create New Form</div>
-            </div>
-
-            ${ALL_FORMS.map(form => `
-                <div class="template-card" onclick="openStudio('${form.replace(/'/g, "\\'")}')" style="display:flex; flex-direction:column; min-height:160px; justify-content:space-between;">
-                    
-                    <div style="width:100%; display:flex; justify-content:flex-end; margin-bottom:10px;">
-                        <div title="Delete Form" 
-                             data-name="${form.replace(/"/g, '&quot;')}" 
-                             onclick="deleteForm(this.getAttribute('data-name'), event)"
-                             style="background:#fee2e2; color:#b91c1c; width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:16px; cursor:pointer; border:1px solid #f87171;">
-                             &times;
-                        </div>
-                    </div>
-
-                    <div style="text-align:center;">
-                        <div class="form-icon" style="font-size:32px; margin-bottom:10px; opacity:0.8;">📄</div>
-                        <div class="card-label" style="font-weight:600; font-size:14px; word-break:break-word;">${form}</div>
-                    </div>
-                    
-                    <div style="text-align:center; font-size:10px; color:#999; margin-top:15px; border-top:1px solid rgba(0,0,0,0.05); padding-top:8px;">
-                        Click to Edit
-                    </div>
-                </div>
-            `).join('')}
-        </div>
-    `;
-}
 function markUnsaved() {
     const btn = document.getElementById('btn-save-studio');
-    // Only reset if it currently says "Saved!" or "Syncing..."
     if(btn && (btn.innerText === "Saved!" || btn.innerText === "Syncing...")) {
         btn.innerText = "Save Cloud Template";
         btn.style.background = "var(--rw-red)";
-        btn.style.opacity = "1";
-    }
-}
-async function saveStudioChanges() {
-    // 1. Force blur to capture last keystroke
-    if (document.activeElement) { document.activeElement.blur(); }
-
-    const titleEl = document.getElementById('studio-form-title-display');
-    const descEl = document.getElementById('studio-form-description-display');
-    
-    const newName = titleEl ? titleEl.value.trim() : "";
-    const description = descEl ? descEl.value.trim() : ""; // Capture description
-    const btn = document.getElementById('btn-save-studio');
-
-    if(!newName) {
-        alert("Please enter a Template Name.");
-        if(titleEl) titleEl.focus();
-        return;
-    }
-
-    const originalText = btn.innerText;
-    btn.innerText = "Syncing...";
-
-    STUDIO_SCHEMA = STUDIO_SCHEMA.filter(f => f.key !== 'meta_description');
-    
-    // 2. CHECK FOR RENAME
-    const isRenaming = (CURRENT_STUDIO_FORM && CURRENT_STUDIO_FORM !== newName);
-
-    if(description) {
-        STUDIO_SCHEMA.unshift({
-            key: 'meta_description',
-            type: 'hidden',
-            label: description // <--- CHANGED FROM content TO label
-        });
-    }
-    
-    try {
-        // Save NEW file (Send description in payload)
-        const res = await apiCall('saveFormSchema', { 
-            formName: newName, 
-            description: description, 
-            schema: STUDIO_SCHEMA 
-        });
-
-        if(res.success) {
-            // Rename Logic
-            if(isRenaming) {
-                await apiCall('deleteForm', { formName: CURRENT_STUDIO_FORM });
-                ALL_FORMS = ALL_FORMS.filter(f => f !== CURRENT_STUDIO_FORM);
-            }
-            
-            CURRENT_STUDIO_FORM = newName;
-            if(!ALL_FORMS.includes(newName)) ALL_FORMS.push(newName);
-            
-            btn.innerText = "Saved!";
-            btn.style.background = "#2E7D32"; 
-            
-            setTimeout(() => {
-                btn.innerText = "Save Cloud Template";
-                btn.style.background = "var(--rw-red)";
-            }, 2000);
-        } else {
-            alert("Server Error: " + res.message);
-            btn.innerText = "Retry";
-        }
-    } catch(e) {
-        alert("Error: " + e.message);
-        btn.innerText = originalText;
     }
 }
 
-async function deleteForm(formName, event) {
-    if(event) event.stopPropagation(); // Stop the card from opening
-    
+async function deleteForm(formName) {
     if(!confirm(`Are you sure you want to PERMANENTLY delete "${formName}"?`)) return;
     
-    // Optimistic UI Update (Remove immediately)
+    // Optimistic UI Update
     ALL_FORMS = ALL_FORMS.filter(f => f !== formName);
     renderFormTemplatesGrid();
     
     const res = await apiCall('deleteForm', { formName });
-    
     if(!res.success) {
-        alert("Could not delete from server: " + res.message);
-        initAdmin(); // Re-fetch truth
+        alert("Server Error: " + res.message);
+        initAdmin(); // Re-sync if failed
     }
 }
 
@@ -751,7 +565,6 @@ async function saveStudioChanges() {
 
     const titleEl = document.getElementById('studio-form-title-display');
     const descEl = document.getElementById('studio-form-description-display');
-    
     const newName = titleEl ? titleEl.value.trim() : "";
     const description = descEl ? descEl.value.trim() : "";
     const btn = document.getElementById('btn-save-studio');
@@ -765,39 +578,33 @@ async function saveStudioChanges() {
     const originalText = btn.innerText;
     btn.innerText = "Syncing...";
     
+    // Filter out old meta description to prevent duplicates
     STUDIO_SCHEMA = STUDIO_SCHEMA.filter(f => f.key !== 'meta_description');
     
-    // 2. Add new description as a hidden field
+    // THE LABEL CHEAT WRITE: Save description in 'label'
     if(description) {
         STUDIO_SCHEMA.unshift({
             key: 'meta_description',
             type: 'hidden',
-            content: description
+            label: description 
         });
     }
     
     const isRenaming = (CURRENT_STUDIO_FORM && CURRENT_STUDIO_FORM !== newName);
 
     try {
-        // Save the NEW file first
         const res = await apiCall('saveFormSchema', { 
             formName: newName, 
             schema: STUDIO_SCHEMA 
         });
 
         if(res.success) {
-            // If renaming, delete the old file
             if(isRenaming) {
-                console.log(`Renaming: Deleting old form "${CURRENT_STUDIO_FORM}"`);
                 await apiCall('deleteForm', { formName: CURRENT_STUDIO_FORM });
-                
-                // Update local list: Remove old, add new
                 ALL_FORMS = ALL_FORMS.filter(f => f !== CURRENT_STUDIO_FORM);
             }
             
-            // Update Current Tracking
             CURRENT_STUDIO_FORM = newName;
-
             if(!ALL_FORMS.includes(newName)) ALL_FORMS.push(newName);
             
             btn.innerText = "Saved!";
@@ -816,6 +623,16 @@ async function saveStudioChanges() {
         btn.innerText = originalText;
     }
 }
+
+// LISTENERS
+window.addEventListener('DOMContentLoaded', () => {
+    const passInput = document.getElementById('login-pass');
+    if(passInput) {
+        passInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") { e.preventDefault(); handleLogin(); }
+        });
+    }
+});
 
 function openSignUpModal() {
     alert("Rosewood Forms is currently Invite Only.\n\nPlease contact your administrator to receive your access code.");
