@@ -477,36 +477,52 @@ function closeStudio() {
 }
 
 async function saveStudioChanges() {
-    const name = document.getElementById('studio-form-title-display').value.trim();
-    const btn = document.getElementById('btn-save-studio');
+    // 1. Grab Data
+    const titleEl = document.getElementById('studio-form-title-display');
+    const name = titleEl ? titleEl.value.trim() : "";
     
+    // 2. Validate
     if(!name) {
-        alert("Please provide a Template Name before saving.");
+        alert("STOP: Please enter a Template Name.");
+        return;
+    }
+    
+    if(!STUDIO_SCHEMA) {
+        alert("CRITICAL ERROR: STUDIO_SCHEMA is undefined.");
         return;
     }
 
+    // 3. User Feedback
+    const btn = document.getElementById('btn-save-studio');
     const originalText = btn.innerText;
-    btn.innerText = "Syncing...";
-    btn.disabled = true;
+    btn.innerText = "Sending Data...";
 
-    // Send to Google Script
-    const res = await apiCall('saveFormSchema', { 
-        formName: name, 
-        schema: STUDIO_SCHEMA 
-    });
+    // 4. Force Log to Alert (Temporary Debug)
+    // alert("Saving: " + name + " with " + STUDIO_SCHEMA.length + " questions.");
 
-    if(res.success) {
-        btn.innerText = "Template Saved";
-        btn.style.background = "#2E7D32"; // Success Green
-        setTimeout(() => {
-            btn.innerText = originalText;
-            btn.style.background = "var(--rw-red)";
-            btn.disabled = false;
-        }, 2000);
-    } else {
-        alert("Cloud Sync Failed: " + res.message);
-        btn.innerText = originalText;
-        btn.disabled = false;
+    try {
+        const res = await apiCall('saveFormSchema', { 
+            formName: name, 
+            schema: STUDIO_SCHEMA 
+        });
+
+        if(res.success) {
+            btn.innerText = "Success!";
+            btn.style.background = "green";
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style.background = "var(--rw-red)";
+            }, 2000);
+            
+            // Update local list
+            if(!ALL_FORMS.includes(name)) ALL_FORMS.push(name);
+        } else {
+            alert("SERVER ERROR: " + res.message);
+            btn.innerText = "Failed";
+        }
+    } catch(e) {
+        alert("NETWORK ERROR: " + e.message);
+        btn.innerText = "Error";
     }
 }
 
