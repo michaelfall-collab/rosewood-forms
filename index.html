@@ -127,6 +127,52 @@
             </div>
         </div>
     </div>
+    <div id="view-client-dashboard" class="view hidden">
+        <div class="glass-header" style="justify-content: space-between; margin-bottom: 30px;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <img src="logo.png" style="height: 40px; opacity: 0.8;">
+                <div>
+                    <div style="font-size: 14px; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px;">Welcome Back</div>
+                    <div id="client-dash-name" style="font-size: 24px; font-weight: 700;">Client Name</div>
+                </div>
+            </div>
+            <button class="btn-soft" onclick="logout()">Logout</button>
+        </div>
+
+        <div id="client-tier-badge" style="margin-bottom: 20px; display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+            Tier Level
+        </div>
+
+        <h2 style="font-size: 18px; margin-bottom: 15px; opacity: 0.7;">Your Action Items</h2>
+        
+        <div id="client-forms-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+            </div>
+    </div>
+
+    <div id="view-flagship-form" class="view hidden" style="background: #fff;">
+        <div style="position: sticky; top: 0; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05); z-index: 100;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <button onclick="closeFlagshipForm()" class="btn-text" style="font-size: 24px;">&larr;</button>
+                <div>
+                    <div id="flagship-form-title" style="font-size: 18px; font-weight: 700;">Form Title</div>
+                    <div id="flagship-form-progress" style="font-size: 11px; opacity: 0.5;">0% Completed</div>
+                </div>
+            </div>
+            <button id="btn-save-draft" class="btn-soft" onclick="saveFlagshipData(true)">Save Draft</button>
+        </div>
+
+        <div style="max-width: 680px; margin: 0 auto; padding: 60px 20px 100px 20px;">
+            <div id="flagship-description" style="margin-bottom: 40px; font-size: 16px; line-height: 1.6; opacity: 0.7; border-left: 3px solid var(--accent); padding-left: 20px;">
+                </div>
+            
+            <div id="flagship-canvas">
+                </div>
+
+            <div style="margin-top: 60px; padding-top: 20px; border-top: 1px solid #eee; text-align: right;">
+                <button class="btn-main" style="padding: 15px 40px; font-size: 16px;" onclick="saveFlagshipData(false)">Submit Form</button>
+            </div>
+        </div>
+    </div>
 </div>
     
     <div id="form-picker-modal" class="glass-backdrop">
