@@ -170,7 +170,7 @@
             <div style="max-width: 900px; margin: 0 auto; padding: 15px 30px; display: flex; justify-content: space-between; align-items: flex-start;">
                 
                 <div style="display: flex; gap: 20px; align-items: flex-start;">
-                    <button onclick="closeFlagshipForm()" class="btn-text" style="font-size: 24px; margin-top: -2px; color:#5f6368;">&larr;</button>
+                    <button onclick="closeFlagshipForm()" class="btn-text" style="font-size: 24px; margin-top: -2px; color:#5f6368;" title="Back">&larr;</button>
                     
                     <div>
                         <div id="flagship-form-title" style="font-size: 20px; font-weight: 500; color: #202124; letter-spacing: -0.5px;">
@@ -182,10 +182,17 @@
                     </div>
                 </div>
 
-                <div style="text-align: right;">
-                    <button id="btn-save-draft" class="btn-soft" onclick="saveFlagshipData(true)" style="margin-bottom: 5px;">Save Draft</button>
-                    <div id="flagship-form-progress" style="font-size: 12px; font-weight: 700; color: #137333; letter-spacing: 0.5px;">
-                        0% Completed
+                <div style="text-align: right; display: flex; gap: 15px; align-items: center;">
+                    
+                    <button class="btn-soft" onclick="window.print()" title="Print Form" style="padding: 8px 12px;">
+                        🖨️
+                    </button>
+
+                    <div style="text-align: right;">
+                        <button id="btn-save-draft" class="btn-soft" onclick="saveFlagshipData(true)" style="margin-bottom: 5px;">Save Draft</button>
+                        <div id="flagship-form-progress" style="font-size: 12px; font-weight: 700; color: #137333; letter-spacing: 0.5px;">
+                            0% Completed
+                        </div>
                     </div>
                 </div>
 
