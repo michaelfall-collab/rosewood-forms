@@ -436,24 +436,27 @@ function switchAdminTab(tab) {
 /* --- ROSEWOOD STUDIO LOGIC --- */
 
 async function openStudio(formName) {
-    // 1. Hide Admin, Show Studio
+    // 1. Switch View
     document.getElementById('view-admin').classList.add('hidden');
     document.getElementById('view-studio').classList.remove('hidden');
     
-    // 2. Setup Title
+    // 2. HARD-WIRE THE SAVE BUTTON (The Fix)
+    const saveBtn = document.getElementById('btn-save-studio');
+    // Remove old listeners by cloning (simple trick) or just overwriting onclick
+    saveBtn.onclick = function() { saveStudioChanges(); };
+    
+    // 3. Setup Title
     const titleInput = document.getElementById('studio-form-title-display');
     titleInput.value = (formName === 'New Form') ? "" : formName;
     
-    // 3. Reset Schema and Show Loader
-    STUDIO_SCHEMA = []; // Ensure this is declared at the top of app.js
+    // 4. Reset & Load
+    STUDIO_SCHEMA = [];
     const list = document.getElementById('studio-questions-list');
     list.innerHTML = "<div style='text-align:center; padding:50px; opacity:0.3;'>Accessing Rosewood Cloud...</div>";
     
-    // 4. Load Existing Data
     if(formName !== 'New Form') {
         const res = await apiCall('getSchema', { formName });
         if(res.success && res.schema) {
-            // Map incoming data to our internal schema format
             STUDIO_SCHEMA = res.schema;
         }
     }
@@ -604,45 +607,49 @@ function addOptionManual(index) {
 
 // THE SAVE FIX
 async function saveStudioChanges() {
-    // 1. Get current title from the display input
-    const titleInput = document.getElementById('studio-form-title-display');
-    const name = titleInput ? titleInput.value.trim() : "Unnamed Template";
+    console.log("Save Clicked!"); // Debug log
     
-    // 2. Get the button for UI feedback
+    const titleEl = document.getElementById('studio-form-title-display');
+    const name = titleEl ? titleEl.value.trim() : "";
     const btn = document.getElementById('btn-save-studio');
-    
+
     if(!name) {
-        alert("Please provide a Template Name.");
+        alert("Please enter a Template Name.");
+        if(titleEl) titleEl.focus();
         return;
     }
-
+    
+    // UI Feedback
     const originalText = btn.innerText;
     btn.innerText = "Syncing...";
-    btn.disabled = true;
+    btn.style.opacity = "0.7";
 
-    // 3. Send to GAS
-    const res = await apiCall('saveFormSchema', { 
-        formName: name, 
-        schema: STUDIO_SCHEMA 
-    });
+    try {
+        const res = await apiCall('saveFormSchema', { 
+            formName: name, 
+            schema: STUDIO_SCHEMA 
+        });
 
-    if(res.success) {
-        btn.innerText = "Cloud Synced";
-        btn.style.background = "#2E7D32"; // Success Green
-        setTimeout(() => {
-            btn.innerText = originalText;
-            btn.style.background = "var(--rw-red)";
-            btn.disabled = false;
-        }, 2000);
-        // Refresh local form list
-        if(!ALL_FORMS.includes(name)) ALL_FORMS.push(name);
-    } else {
-        alert("Sync Error: " + res.message);
+        if(res.success) {
+            btn.innerText = "Saved!";
+            btn.style.background = "#2E7D32"; // Green
+            
+            if(!ALL_FORMS.includes(name)) ALL_FORMS.push(name);
+            
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style.background = "var(--rw-red)";
+                btn.style.opacity = "1";
+            }, 2000);
+        } else {
+            alert("Error: " + res.message);
+            btn.innerText = "Retry";
+        }
+    } catch(e) {
+        alert("Network Error: " + e.message);
         btn.innerText = originalText;
-        btn.disabled = false;
     }
 }
-
 function removeOption(fieldIndex, optIndex) {
     STUDIO_SCHEMA[fieldIndex].options.splice(optIndex, 1);
     renderStudioCanvas();
