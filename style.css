@@ -293,6 +293,7 @@ tr:hover td { background: rgba(255,255,255,0.4); }
 /* Hide technical junk in the editor */
 .studio-id-badge {
     font-size: 10px; font-family: monospace; opacity: 0.3;
+}
 /* The Modal Card Itself */
 .glass-card, .glass-dialog {
     background: rgba(255, 255, 255, 0.75); /* Milky Glass */
