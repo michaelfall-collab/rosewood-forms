@@ -175,90 +175,90 @@ let CURRENT_FLAGSHIP_SCHEMA = [];
 let CURRENT_FLAGSHIP_NAME = "";
 let CURRENT_REQUEST_ID = null; // To track the specific request being completed
 
+/* --- UPDATED FLAGSHIP OPENER (Fixes Data Loss) --- */
 async function openFlagshipForm(formName, status, reqId = null) {
     const view = document.getElementById('view-flagship-form');
     const canvas = document.getElementById('flagship-canvas');
     const title = document.getElementById('flagship-form-title');
     const descEl = document.getElementById('flagship-form-desc');
     const printTitle = document.getElementById('print-title');
-    const printDesc = document.getElementById('print-desc');
-    const isLocked = (USER_DATA.role !== 'admin' && status === 'Completed');
-    const saveBtn = document.getElementById('btn-save-draft');
-    const submitBtn = document.querySelector('#view-flagship-form .btn-main'); // The big submit button
-
-    if(isLocked) {
-        if(saveBtn) saveBtn.style.display = 'none';
-        if(submitBtn) submitBtn.style.display = 'none';
-        
-        // Add a visual indicator
-        title.innerHTML += ` <span style="font-size:12px; color:green; border:1px solid green; padding:2px 6px; border-radius:4px; vertical-align:middle;">LOCKED</span>`;
-    } else {
-        if(saveBtn) saveBtn.style.display = 'inline-block';
-        if(submitBtn) submitBtn.style.display = 'inline-block';
-    }
-    // Store Request ID for completion logic
+    
+    // Store Request ID
     CURRENT_REQUEST_ID = reqId;
 
-    // View Switching Logic
+    // View Switching
     view.classList.remove('hidden');
-    document.getElementById('view-client-dashboard').classList.add('hidden'); // Hide Client Dash
-    document.getElementById('view-admin').classList.add('hidden'); // Hide Admin Dash
-    
+    document.getElementById('view-client-dashboard').classList.add('hidden');
+    document.getElementById('view-admin').classList.add('hidden');
     window.scrollTo(0,0);
     
-    // Smart Title Logic (Show on Screen AND Print)
+    // Smart Title
     const cleanName = formName.trim();
     const displayName = cleanName.match(/form$/i) ? cleanName : cleanName + " Form";
-    
-    title.innerText = displayName; // Screen
-    printTitle.innerText = displayName; // Print
+    title.innerText = displayName;
+    printTitle.innerText = displayName;
     
     descEl.style.display = 'none'; 
     canvas.innerHTML = "<div style='text-align:center; padding:50px; opacity:0.5;'>Loading Form...</div>";
     
     CURRENT_FLAGSHIP_NAME = formName;
 
-    // Fetch Schema
-    const res = await apiCall('getSchema', { formName });
-    if(res.success) {
-        CURRENT_FLAGSHIP_SCHEMA = res.schema;
-        
-        // Determine whose answers to load
-        let answers = {};
-        if (USER_DATA.role === 'admin' && CURRENT_ADMIN_CLIENT) {
-            // Admin is viewing a client
-            answers = CURRENT_ADMIN_CLIENT.answers || {};
-            // Update subtitle for Admin
-            descEl.innerText = `Viewing Data for: ${CURRENT_ADMIN_CLIENT.name}`;
-            descEl.style.display = 'block';
-            descEl.style.color = 'var(--accent)';
-            descEl.style.fontWeight = 'bold';
-        } else {
-
-        }
-        
-        // Render
-        renderFlagshipCanvas(canvas, descEl, answers);
-        
-        // If meta description exists, overwrite the Admin subtitle or show it for client
-        const meta = CURRENT_FLAGSHIP_SCHEMA.find(f => f.key === 'meta_description');
-        if(meta && meta.label) {
-            if (USER_DATA.role === 'admin') {
-                // Combine them for admin: "Description • Viewing Client: Name"
-                descEl.innerHTML = `${meta.label} <br><span style="color:var(--accent); font-weight:600; font-size:11px; text-transform:uppercase;">Editing: ${CURRENT_ADMIN_CLIENT.name}</span>`;
-            } else {
-                descEl.innerText = meta.label;
-            }
-            descEl.style.display = "block";
-            printDesc.innerText = meta.label;
-        }
-
-        updateProgress(); 
-    } else {
+    // 1. Fetch Schema
+    const schemaRes = await apiCall('getSchema', { formName });
+    
+    if(!schemaRes.success) {
         canvas.innerHTML = "<div style='color:red; text-align:center;'>Error loading form.</div>";
+        return;
     }
-}
+    
+    CURRENT_FLAGSHIP_SCHEMA = schemaRes.schema;
 
+    // 2. FETCH FRESH ANSWERS (Crucial Fix)
+    // Determine whose answers we need
+    let targetId = null;
+    if (USER_DATA.role === 'admin' && CURRENT_ADMIN_CLIENT) {
+        targetId = CURRENT_ADMIN_CLIENT.id;
+    } else {
+        targetId = USER_DATA.id;
+    }
+
+    // Call the new backend function
+    const answerRes = await apiCall('getAnswers', { id: targetId });
+    const freshAnswers = answerRes.success ? answerRes.answers : {};
+
+    // 3. Determine Lock State
+    const isLocked = (USER_DATA.role !== 'admin' && status === 'Completed');
+    
+    // Toggle Buttons based on Lock
+    const saveBtn = document.getElementById('btn-save-draft');
+    const submitBtn = document.querySelector('#view-flagship-form .btn-main'); 
+    
+    if(isLocked) {
+        if(saveBtn) saveBtn.style.display = 'none';
+        if(submitBtn) submitBtn.style.display = 'none';
+        title.innerHTML += ` <span style="font-size:12px; color:green; border:1px solid green; padding:2px 6px; border-radius:4px; vertical-align:middle;">LOCKED</span>`;
+    } else {
+        if(saveBtn) saveBtn.style.display = 'inline-block';
+        if(submitBtn) submitBtn.style.display = 'inline-block';
+    }
+
+    // 4. Render
+    renderFlagshipCanvas(canvas, descEl, freshAnswers, isLocked);
+
+    // Handle Descriptions
+    const meta = CURRENT_FLAGSHIP_SCHEMA.find(f => f.key === 'meta_description');
+    if(meta && meta.label) {
+        if (USER_DATA.role === 'admin') {
+            descEl.innerHTML = `${meta.label} <br><span style="color:var(--accent); font-weight:600; font-size:11px; text-transform:uppercase;">Editing: ${CURRENT_ADMIN_CLIENT.name}</span>`;
+        } else {
+            descEl.innerText = meta.label;
+        }
+        descEl.style.display = "block";
+        document.getElementById('print-desc').innerText = meta.label;
+    }
+
+    updateProgress();
+}
 function renderFlagshipCanvas(canvas, descEl, preloadedAnswers = {}) {
     canvas.innerHTML = "";
     
