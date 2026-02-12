@@ -458,7 +458,7 @@ tr:hover td { background: rgba(255,255,255,0.4); }
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.05); /* Subtle default */
+    background: rgba(0, 0, 0, 0.05);
     color: #1d1d1f;
     display: flex;
     align-items: center;
@@ -466,10 +466,12 @@ tr:hover td { background: rgba(255,255,255,0.4); }
     font-size: 18px;
     font-weight: bold;
     cursor: pointer;
-    z-index: 20; /* Ensure it sits ON TOP of the card click area */
+    z-index: 20; 
     transition: all 0.2s ease;
-    opacity: 0; /* Hidden by default for clean look */
-    transform: scale(0.8);
+    
+    /* FORCE VISIBILITY */
+    opacity: 1; 
+    transform: scale(1);
 }
 
 /* Show button when hovering the CARD */
@@ -478,7 +480,6 @@ tr:hover td { background: rgba(255,255,255,0.4); }
     transform: scale(1);
 }
 
-/* Red Hover Effect for the button itself */
 .btn-delete-card:hover {
     background: #d32f2f;
     color: #ffffff;
