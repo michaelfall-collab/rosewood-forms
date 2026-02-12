@@ -206,7 +206,34 @@
             </div>
         </div>
     </div>
+    <div id="settings-modal" class="glass-backdrop">
+        <div class="glass-card" style="width: 400px; height: auto;">
+            <div class="glass-header">
+                <div class="glass-title">System Settings</div>
+                <button onclick="document.getElementById('settings-modal').classList.remove('active')" class="btn-text">&times;</button>
+            </div>
+            <div class="glass-content" style="padding:20px;">
+                 <p style="opacity:0.6; font-size:14px;">Global configuration for Rosewood Forms.</p>
+                 
+                 <div class="notion-group">
+                    <label class="notion-label">Admin Password</label>
+                    <input type="password" value="********" disabled class="notion-input" style="opacity:0.5; cursor:not-allowed;">
+                    <div style="font-size:10px; color:#999; margin-top:5px;">Change in Google Sheets (Home Tab)</div>
+                 </div>
     
+                 <div class="notion-group">
+                    <label class="notion-label">Theme Accent</label>
+                    <select class="notion-select">
+                        <option>Rosewood Red</option>
+                        <option>Obsidian</option>
+                    </select>
+                 </div>
+            </div>
+            <div class="glass-footer">
+                <button class="btn-main" onclick="document.getElementById('settings-modal').classList.remove('active')">Close</button>
+            </div>
+        </div>
+    </div>
     <script src="app.js"></script>
 </body>
 </html>
