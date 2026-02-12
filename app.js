@@ -289,7 +289,9 @@ function renderFlagshipCanvas(canvas, descEl, preloadedAnswers = {}) {
         } else if (USER_DATA.role === 'client' && USER_DATA.answers) { // We need to ensure USER_DATA has answers
             val = USER_DATA.answers[field.key] || "";
         }
-
+        const disabledAttr = isLocked ? 'disabled' : '';
+        const lockedStyle = isLocked ? 'cursor: not-allowed; opacity: 0.7; background: #f5f5f5;' : '';
+       
         if (field.type === 'textarea') {
             input = document.createElement('textarea');
             input.className = "flagship-input";
@@ -299,6 +301,9 @@ function renderFlagshipCanvas(canvas, descEl, preloadedAnswers = {}) {
                 this.style.height = "auto";
                 this.style.height = (this.scrollHeight) + "px";
                 updateProgress();
+            if(isLocked) {
+                input.disabled = true;
+                input.style.cssText += lockedStyle;    
             };
             setTimeout(() => input.dispatchEvent(new Event('input')), 100); 
         } else if (field.type === 'select') {
@@ -313,6 +318,8 @@ function renderFlagshipCanvas(canvas, descEl, preloadedAnswers = {}) {
                     radio.name = field.key;
                     radio.value = opt.trim();
                     if(val === opt.trim()) radio.checked = true; // Pre-fill
+                    if(isLocked) {
+                        radio.disabled = true;
                     radio.onchange = updateProgress;
                     
                     row.appendChild(radio);
@@ -325,6 +332,9 @@ function renderFlagshipCanvas(canvas, descEl, preloadedAnswers = {}) {
             input.type = "text";
             input.className = "flagship-input";
             input.value = val;
+            if(isLocked) {
+                input.disabled = true;
+                input.style.cssText += lockedStyle;
             input.oninput = updateProgress;
         }
 
