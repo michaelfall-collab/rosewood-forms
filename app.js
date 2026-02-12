@@ -665,3 +665,19 @@ window.addEventListener('DOMContentLoaded', () => {
 function openSignUpModal() {
     rwAlert("Rosewood Forms is currently Invite Only.<br><br>Please contact your administrator to receive your access code.", "Private Access");
 }
+/* --- SETTINGS & THEME --- */
+function changeTheme(themeName) {
+    const root = document.documentElement;
+    
+    if (themeName === 'Obsidian') {
+        // Switch to Mono/Black theme
+        root.style.setProperty('--accent', '#1d1d1f'); // Black accent
+        // Optional: You can darken other parts here if you want a true Dark Mode later
+    } else {
+        // Default Rosewood Red
+        root.style.setProperty('--accent', '#A92F3D');
+    }
+    
+    // Save preference (optional, resets on reload currently)
+    console.log("Theme switched to:", themeName);
+}
