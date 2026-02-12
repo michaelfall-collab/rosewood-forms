@@ -471,10 +471,11 @@ function renderStudioCanvas() {
     if(!list) return;
     list.innerHTML = "";
     
-    // Filter technical markers
-    const visibleSchema = STUDIO_SCHEMA.filter(f => f.key !== 'init_marker');
+    // FIX: Loop through the REAL STUDIO_SCHEMA so indices (0, 1, 2...) match perfectly
+    STUDIO_SCHEMA.forEach((field, index) => {
+        // Skip the technical marker, but DO NOT disrupt the index count
+        if (field.key === 'init_marker') return;
 
-    visibleSchema.forEach((field, index) => {
         const block = document.createElement('div');
         block.className = "studio-question-block";
         
@@ -491,7 +492,8 @@ function renderStudioCanvas() {
                         </div>
                     `).join('')}
                     <div style="display:flex; gap:10px; margin-top:10px;">
-                        <input type="text" id="opt-input-${index}" class="studio-option-input" placeholder="+ New Option">
+                        <input type="text" id="opt-input-${index}" class="studio-option-input" 
+                            placeholder="+ New Option">
                         <button class="btn-main small" onclick="addOptionManual(${index})">Add</button>
                     </div>
                 </div>
@@ -517,7 +519,6 @@ function renderStudioCanvas() {
         list.appendChild(block);
     });
 }
-
 // Logic to add options without needing "Enter"
 function addOptionManual(index) {
     markUnsaved();
@@ -625,6 +626,9 @@ function markUnsaved() {
     }
 }
 async function saveStudioChanges() {
+    if (document.activeElement) { document.activeElement.blur(); }
+
+    const titleEl = document.getElementById('studio-form-title-display');
     const titleEl = document.getElementById('studio-form-title-display');
     const name = titleEl ? titleEl.value.trim() : "";
     const btn = document.getElementById('btn-save-studio');
