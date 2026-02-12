@@ -624,12 +624,14 @@ function renderFormTemplatesGrid() {
                 <div class="card-label">Create New Form</div>
             </div>
             ${ALL_FORMS.map(form => `
-                <div class="template-card" onclick="openStudio('${form}')">
-                    <div title="Delete Form" 
-                         onclick="deleteForm('${form}', event)"
-                         style="position:absolute; top:5px; right:8px; color:#d32f2f; font-weight:bold; opacity:0.6; padding:5px; font-size:16px; z-index:10;">
+                <div class="template-card" onclick="openStudio('${form.replace(/'/g, "\\'")}')">
+                    <div class="btn-delete-card" 
+                         title="Delete Form"
+                         data-name="${form}" 
+                         onclick="deleteForm(this.getAttribute('data-name'), event)">
                          &times;
                     </div>
+                    
                     <div class="form-icon" style="font-size:32px; margin-bottom:15px; opacity:0.8;">📄</div>
                     <div class="card-label" style="font-weight:600; font-size:14px;">${form}</div>
                     <div style="font-size:10px; color:#999; margin-top:5px;">Click to Edit</div>
