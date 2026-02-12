@@ -465,7 +465,7 @@ function closeStudio() {
         document.getElementById('view-admin').classList.remove('hidden');
         initAdmin(); // Refresh the dashboard
     }
-
+}
 function renderStudioCanvas() {
     const list = document.getElementById('studio-questions-list');
     if(!list) return;
@@ -607,7 +607,6 @@ function renderFormTemplatesGrid() {
     `;
 }
 
-// PASTE AT THE VERY BOTTOM OF app.js
 async function saveStudioChanges() {
     const titleEl = document.getElementById('studio-form-title-display');
     const name = titleEl ? titleEl.value.trim() : "";
