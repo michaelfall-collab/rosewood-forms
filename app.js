@@ -491,9 +491,7 @@ function renderStudioCanvas() {
                         </div>
                     `).join('')}
                     <div style="display:flex; gap:10px; margin-top:10px;">
-                        <input type="text" id="opt-input-${index}" class="btn-soft small" 
-                            style="width:140px; border:1px solid #ddd; padding:6px 12px; background:#fff;" 
-                            placeholder="+ Option Name">
+                        <input type="text" id="opt-input-${index}" class="studio-option-input" placeholder="+ New Option">
                         <button class="btn-main small" onclick="addOptionManual(${index})">Add</button>
                     </div>
                 </div>
@@ -522,6 +520,7 @@ function renderStudioCanvas() {
 
 // Logic to add options without needing "Enter"
 function addOptionManual(index) {
+    markUnsaved();
     const input = document.getElementById(`opt-input-${index}`);
     if(!input) return;
     
@@ -543,12 +542,14 @@ function addOptionManual(index) {
 }
 
 function removeOption(fieldIndex, optIndex) {
+    markUnsaved();
     STUDIO_SCHEMA[fieldIndex].options.splice(optIndex, 1);
     renderStudioCanvas();
 }
 
 function addStudioQuestion() {
     // Add default text field
+    markUnsaved();
     STUDIO_SCHEMA.push({
         section: "General",
         label: "New Question",
@@ -563,6 +564,7 @@ function addStudioQuestion() {
 }
 
 function deleteStudioField(index) {
+    markUnsaved();
     if(confirm("Delete this question?")) {
         STUDIO_SCHEMA.splice(index, 1);
         renderStudioCanvas();
@@ -571,6 +573,13 @@ function deleteStudioField(index) {
 
 function updateStudioField(index, prop, val) {
     STUDIO_SCHEMA[index][prop] = val;
+    markUnsaved(); // Reset "Saved" button
+    
+    // ONLY re-render if we changed the TYPE (to show/hide options)
+    // If we changed the label, do NOT re-render (or we lose focus/cursor position)
+    if(prop === 'type') {
+        renderStudioCanvas();
+    }
 }
 
 function cycleType(index) {
@@ -606,7 +615,15 @@ function renderFormTemplatesGrid() {
         </div>
     `;
 }
-
+function markUnsaved() {
+    const btn = document.getElementById('btn-save-studio');
+    // Only reset if it currently says "Saved!" or "Syncing..."
+    if(btn && (btn.innerText === "Saved!" || btn.innerText === "Syncing...")) {
+        btn.innerText = "Save Cloud Template";
+        btn.style.background = "var(--rw-red)";
+        btn.style.opacity = "1";
+    }
+}
 async function saveStudioChanges() {
     const titleEl = document.getElementById('studio-form-title-display');
     const name = titleEl ? titleEl.value.trim() : "";
