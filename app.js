@@ -958,3 +958,30 @@ function changeTheme(themeName) {
         root.style.setProperty('--accent', '#A92F3D');
     }
 }
+// --- FIX: Add Request Deletion for Admins ---
+async function deleteRequest(reqId) {
+    if(!await rwConfirm("Are you sure you want to delete this assignment?", "Revoke Form")) return;
+    
+    // We can reuse the 'deleteClient' logic pattern in the backend or add a specific action
+    // For now, let's add a backend handler for 'deleteRequest'
+    const res = await apiCall('deleteRequest', { reqId });
+    if(res.success) {
+        rwAlert("Request deleted.");
+        // Refresh the view
+        if(CURRENT_ADMIN_CLIENT) openPushModal(CURRENT_ADMIN_CLIENT);
+    } else {
+        rwAlert("Error: " + res.message);
+    }
+}
+function togglePassword() {
+    const input = document.getElementById('login-pass');
+    const btn = document.getElementById('toggle-pass-btn'); // Ensure your HTML button has this ID
+    
+    if (input.type === "password") {
+        input.type = "text";
+        btn.style.opacity = "1"; // Visual feedback
+    } else {
+        input.type = "password";
+        btn.style.opacity = "0.5";
+    }
+}
