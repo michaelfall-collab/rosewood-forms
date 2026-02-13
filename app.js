@@ -34,6 +34,54 @@ const RosewoodUI = {
             });
             this.modal().classList.add('active');
         });
+    },
+
+    // NEW: Prompt for Delete Safety
+    prompt: function(title, text, confirmKeyword) {
+        return new Promise((resolve) => {
+            this.title().innerText = title;
+            this.msg().innerHTML = `
+                ${text}
+                <div style="margin-top:15px;">
+                    <input type="text" id="rw-prompt-input" placeholder="Type '${confirmKeyword}' to confirm" 
+                    style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; text-transform:uppercase;">
+                </div>
+            `;
+            this.actions().innerHTML = "";
+            
+            const btnCancel = document.createElement('button');
+            btnCancel.className = "btn-soft";
+            btnCancel.innerText = "Cancel";
+            btnCancel.onclick = () => { this.close(); resolve(false); };
+            
+            const btnConfirm = document.createElement('button');
+            btnConfirm.className = "btn-main";
+            btnConfirm.innerText = "Confirm Delete";
+            btnConfirm.style.background = "#d32f2f";
+            btnConfirm.style.opacity = "0.5";
+            btnConfirm.disabled = true;
+            btnConfirm.onclick = () => { this.close(); resolve(true); };
+            
+            this.actions().appendChild(btnCancel);
+            this.actions().appendChild(btnConfirm);
+            
+            this.modal().classList.add('active');
+
+            // Input Listener
+            setTimeout(() => {
+                const input = document.getElementById('rw-prompt-input');
+                input.focus();
+                input.addEventListener('input', (e) => {
+                    if(e.target.value.toUpperCase() === confirmKeyword) {
+                        btnConfirm.style.opacity = "1";
+                        btnConfirm.disabled = false;
+                    } else {
+                        btnConfirm.style.opacity = "0.5";
+                        btnConfirm.disabled = true;
+                    }
+                });
+            }, 100);
+        });
     }
 };
 
@@ -46,7 +94,6 @@ async function rwConfirm(text, title="Confirmation Required") {
         { text: "Confirm", value: true, class: "btn-main" }
     ]);
 }
-
 // --- API ---
 async function apiCall(action, payload = {}) {
     payload.action = action;
@@ -94,24 +141,74 @@ async function handleLogin() {
     }
 }
 
-function logout() {
-    location.reload();
+function changeTheme(themeName) {
+    const root = document.documentElement;
+    const body = document.body;
+    
+    if (themeName === 'Obsidian') {
+        body.classList.add('theme-obsidian');
+        // Obsidian accent is set via CSS class now
+    } else {
+        body.classList.remove('theme-obsidian');
+        root.style.setProperty('--accent', '#A92F3D');
+    }
 }
 
+function logout() { location.reload(); }
 function shakeLogin() {
     const card = document.querySelector('.login-card');
     card.style.animation = "shake 0.3s";
     setTimeout(() => card.style.animation = "", 300);
 }
 
+async function initAdmin() {
+    document.getElementById('view-admin').classList.remove('hidden');
+    const tbody = document.getElementById('client-table-body');
+    if(tbody) tbody.innerHTML = "<tr><td colspan='5' style='text-align:center; opacity:0.5; padding:20px;'>Loading Rosewood Database...</td></tr>";
+
+    const data = await apiCall('adminData');
+    if(!data || !data.clients) {
+        if(tbody) tbody.innerHTML = "<tr><td colspan='5' style='text-align:center; color:red;'>Error loading data.</td></tr>";
+        return;
+    }
+    ALL_FORMS = data.forms || [];
+    renderAdminDashboard(data.clients);
+}
+
 /* --- CLIENT PORTAL LOGIC --- */
 
 async function initClientDashboard() {
     document.body.className = `tier-${USER_DATA.tier.toLowerCase()}`;
-    document.getElementById('view-client-dashboard').classList.remove('hidden');
-    document.getElementById('client-dash-name').innerText = USER_DATA.name;
-    document.getElementById('client-tier-badge').innerText = USER_DATA.tier + " Member";
+    const dash = document.getElementById('view-client-dashboard');
+    dash.classList.remove('hidden');
     
+    // Polish: Update Header Icons
+    const headerHtml = `
+        <div class="glass-header" style="justify-content: space-between; margin-bottom: 30px;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <img src="favicon.png" style="height: 40px; opacity: 0.9;">
+                <div>
+                    <div style="font-size: 14px; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px;">Welcome Back</div>
+                    <div id="client-dash-name" style="font-size: 24px; font-weight: 700;">${USER_DATA.name}</div>
+                </div>
+            </div>
+            <div style="display:flex; gap:10px;">
+                 <button class="btn-soft" onclick="document.getElementById('settings-modal').classList.add('active')">
+                    <span style="opacity:0.5;">⚙️</span> Settings
+                </button>
+                <button class="btn-soft" onclick="logout()" style="color:#d32f2f;">
+                    <span style="opacity:0.5;">↪</span> Log Out
+                </button>
+            </div>
+        </div>
+        <div id="client-tier-badge" style="margin-bottom: 20px; display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+            ${USER_DATA.tier} Member
+        </div>
+        <h2 style="font-size: 18px; margin-bottom: 15px; opacity: 0.7;">Your Action Items</h2>
+        <div id="client-forms-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;"></div>
+    `;
+    dash.innerHTML = headerHtml;
+
     const grid = document.getElementById('client-forms-grid');
     grid.innerHTML = "<div style='opacity:0.5;'>Loading your forms...</div>";
     
@@ -134,9 +231,6 @@ async function initClientDashboard() {
         card.className = "glass-card";
         card.style.cursor = "pointer";
         card.style.transition = "transform 0.2s";
-        card.onmouseover = () => card.style.transform = "translateY(-5px)";
-        card.onmouseout = () => card.style.transform = "translateY(0)";
-        
         card.onclick = () => openFlagshipForm(form.formName, form.status, form.reqId);
 
         card.innerHTML = `
@@ -168,16 +262,13 @@ async function openFlagshipForm(formName, status, reqId = null) {
     const descEl = document.getElementById('flagship-form-desc');
     const printTitle = document.getElementById('print-title');
     
-    // Store Request ID
     CURRENT_REQUEST_ID = reqId;
 
-    // View Switching
     view.classList.remove('hidden');
     document.getElementById('view-client-dashboard').classList.add('hidden');
     document.getElementById('view-admin').classList.add('hidden');
     window.scrollTo(0,0);
     
-    // Smart Title (Adds "Form" if missing)
     const cleanName = formName.trim();
     const displayName = cleanName.match(/form$/i) ? cleanName : cleanName + " Form";
     title.innerText = displayName;
@@ -188,28 +279,20 @@ async function openFlagshipForm(formName, status, reqId = null) {
     
     CURRENT_FLAGSHIP_NAME = formName;
 
-    // 1. Fetch Schema
+    // This call now works because getFormSchema exists in code.gs
     const schemaRes = await apiCall('getSchema', { formName });
     
-    // DEBUG: SHOW ACTUAL ERROR ON SCREEN
     if(!schemaRes.success) {
         canvas.innerHTML = `
             <div style='color:#b91c1c; text-align:center; padding: 20px;'>
-                <h3 style="margin-bottom:10px;">Error Loading Form</h3>
-                <p>The server reported:</p>
-                <div style="font-family:monospace; background:#fee2e2; padding:15px; border-radius:8px; display:inline-block; text-align:left;">
-                    ${schemaRes.message || "Unknown System Error"}
-                </div>
-                <p style="margin-top:15px; font-size:12px; color:#666;">
-                    Check your Google Sheet. Does the tab <strong>"Form_Builder"</strong> exist?
-                </p>
+                <h3>Error Loading Form</h3>
+                <p>Server says: ${schemaRes.message}</p>
             </div>`;
         return;
     }
     
     CURRENT_FLAGSHIP_SCHEMA = schemaRes.schema;
 
-    // 2. FETCH FRESH ANSWERS (Fixes the Data Loss Bug)
     let targetId = null;
     if (USER_DATA.role === 'admin' && CURRENT_ADMIN_CLIENT) {
         targetId = CURRENT_ADMIN_CLIENT.id;
@@ -220,29 +303,14 @@ async function openFlagshipForm(formName, status, reqId = null) {
     const answerRes = await apiCall('getAnswers', { id: targetId });
     const freshAnswers = answerRes.success ? answerRes.answers : {};
 
-    // 3. Update Admin context if applicable
     if (USER_DATA.role === 'admin' && CURRENT_ADMIN_CLIENT) {
-        CURRENT_ADMIN_CLIENT.answers = freshAnswers; // Sync local state
+        CURRENT_ADMIN_CLIENT.answers = freshAnswers; 
     }
 
-    // 4. Lock Logic
     const isLocked = (USER_DATA.role !== 'admin' && status === 'Completed');
-    const saveBtn = document.getElementById('btn-save-draft');
-    const submitBtn = document.querySelector('#view-flagship-form .btn-main'); 
-    
-    if(isLocked) {
-        if(saveBtn) saveBtn.style.display = 'none';
-        if(submitBtn) submitBtn.style.display = 'none';
-        title.innerHTML = `${displayName} <span style="font-size:12px; color:green; border:1px solid green; padding:2px 6px; border-radius:4px; vertical-align:middle; margin-left:10px;">LOCKED</span>`;
-    } else {
-        if(saveBtn) saveBtn.style.display = 'inline-block';
-        if(submitBtn) submitBtn.style.display = 'inline-block';
-    }
-    
-    // 5. Render
     renderFlagshipCanvas(canvas, descEl, freshAnswers, isLocked);
-    
-    // 6. Handle Description (Screen & Print)
+
+    // Meta Description Handling
     const meta = CURRENT_FLAGSHIP_SCHEMA.find(f => f.key === 'meta_description');
     if(meta && meta.label) {
         if (USER_DATA.role === 'admin') {
@@ -251,9 +319,8 @@ async function openFlagshipForm(formName, status, reqId = null) {
             descEl.innerText = meta.label;
         }
         descEl.style.display = "block";
-        document.getElementById('print-desc').innerText = meta.label; // Update Print Header
+        document.getElementById('print-desc').innerText = meta.label; 
     }
-
     updateProgress(); 
 }
 
@@ -410,19 +477,7 @@ function closeFlagshipForm() {
 
 /* --- ADMIN DASHBOARD & STUDIO --- */
 
-async function initAdmin() {
-    document.getElementById('view-admin').classList.remove('hidden');
-    const tbody = document.getElementById('client-table-body');
-    if(tbody) tbody.innerHTML = "<tr><td colspan='5' style='text-align:center; opacity:0.5; padding:20px;'>Loading Rosewood Database...</td></tr>";
 
-    const data = await apiCall('adminData');
-    if(!data || !data.clients) {
-        if(tbody) tbody.innerHTML = "<tr><td colspan='5' style='text-align:center; color:red;'>Error loading data.</td></tr>";
-        return;
-    }
-    ALL_FORMS = data.forms || [];
-    renderAdminDashboard(data.clients);
-}
 
 function renderAdminDashboard(clients) {
     const tbody = document.getElementById('client-table-body');
@@ -430,7 +485,7 @@ function renderAdminDashboard(clients) {
     tbody.innerHTML = ""; 
     
     clients.forEach(client => {
-        if(client.id === "ID") return; 
+        if(client.id === "ID") return; // Header skip
         
         const tr = document.createElement('tr');
         tr.innerHTML += `<td style="font-weight:600;">${client.name}</td>`;
@@ -441,6 +496,7 @@ function renderAdminDashboard(clients) {
         const tdAction = document.createElement('td');
         tdAction.style.display = "flex";
         tdAction.style.gap = "8px"; 
+        tdAction.style.alignItems = "center";
         
         const btnProfile = document.createElement('button');
         btnProfile.className = "btn-soft";
@@ -457,16 +513,41 @@ function renderAdminDashboard(clients) {
         btnPush.style.padding = "6px 12px";
         btnPush.innerHTML = "+ Assign";
         btnPush.onclick = () => openPushModal(client);
+
+        // FEATURE: Delete Button
+        const btnDelete = document.createElement('button');
+        btnDelete.className = "btn-text";
+        btnDelete.innerHTML = "&times;";
+        btnDelete.style.color = "#d32f2f";
+        btnDelete.title = "Delete Client";
+        btnDelete.onclick = () => promptDeleteClient(client);
         
         tdAction.appendChild(btnPush);
         tdAction.appendChild(btnProfile);
         tdAction.appendChild(btnForms);
+        tdAction.appendChild(btnDelete); // Added delete
         tr.appendChild(tdAction);
         
         tbody.appendChild(tr);
     });
 }
+async function promptDeleteClient(client) {
+    const confirmed = await RosewoodUI.prompt(
+        "Delete Client?", 
+        `Are you sure you want to delete <strong>${client.name}</strong>?<br>This will permanently erase their data and form history.`, 
+        "DELETE"
+    );
 
+    if (confirmed) {
+        const res = await apiCall('deleteClient', { id: client.id });
+        if (res.success) {
+            rwAlert("Client deleted successfully.");
+            initAdmin();
+        } else {
+            rwAlert("Error: " + res.message);
+        }
+    }
+}
 function getStatusStyle(status) {
     status = (status || 'Active').trim();
     if(status === 'Active') return `background:#E8F5E9; color:#2E7D32;`;
