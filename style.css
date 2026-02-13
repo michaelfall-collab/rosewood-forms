@@ -1,767 +1,372 @@
-/* --- ROSEWOOD "VISION" THEME (v4.0) --- */
+/* --- ROSEWOOD FORMS: MASTER STYLESHEET (v4.2 Stable) --- */
 @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
 
+/* --- 1. CORE VARIABLES & THEME --- */
 :root {
-    /* Brand & Glass Palette */
+    /* DEFAULT (LIGHT THEME) */
     --glass-surface: rgba(255, 255, 255, 0.65);
     --glass-border: rgba(255, 255, 255, 0.4);
     --glass-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    --text-main: #1d1d1f; /* Apple "Almost Black" */
-    --obsidian: #1d1d1f;  /* <--- ADDED THIS DEFINITION */
+    --text-main: #1d1d1f;
     --text-muted: #86868b;
-    --accent: #A92F3D; /* Rosewood Red */
+    --accent: #A92F3D; 
     --bg-gradient: radial-gradient(circle at 50% 0%, #f5f5f7 0%, #e8e8ed 100%);
+    --card-bg: #fff;
+    --input-bg: rgba(0,0,0,0.03);
+    --sidebar-width: 280px;
+    --header-height: 70px;
 }
 
+/* --- OBSIDIAN DARK MODE --- */
+body.theme-obsidian {
+    --glass-surface: rgba(20, 20, 20, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    --text-main: #f5f5f7;
+    --text-muted: #a1a1a6;
+    --accent: #d32f2f;
+    --bg-gradient: linear-gradient(135deg, #1a1a1a 0%, #000000 100%);
+    --card-bg: #1c1c1e;
+    --input-bg: rgba(255,255,255,0.1);
+}
+
+/* --- 2. GLOBAL RESET --- */
+* { box-sizing: border-box; outline: none; }
 body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
     background: var(--bg-gradient);
     color: var(--text-main);
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
-    margin: 0; min-height: 100vh;
-    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
-/* --- UTILITIES --- */
+/* Typography Utilities */
+h1, h2, h3, h4 { margin: 0; font-weight: 600; letter-spacing: -0.02em; }
+a { color: var(--accent); text-decoration: none; cursor: pointer; }
 .hidden { display: none !important; }
-.full-screen-center { 
-    display: flex; justify-content: center; align-items: center; 
-    height: 100vh; width: 100vw; 
-}
 
-/* --- GLASS COMPONENTS --- */
-
-/* 1. The Login Card */
-.login-card {
-    background: rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(25px) saturate(180%);
-    -webkit-backdrop-filter: blur(25px) saturate(180%);
-    padding: 60px 40px;
-    border-radius: 24px;
+/* --- 3. GLASS COMPONENTS --- */
+.glass-card {
+    background: var(--glass-surface);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
+    border-radius: 16px;
     box-shadow: var(--glass-shadow);
-    text-align: center; width: 340px;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s, background 0.3s;
 }
 
-/* 2. The Main Layout (Admin) */
-.admin-container {
-    max-width: 1000px; margin: 60px auto;
-    padding: 0 20px;
-}
-/* Modal Header */
 .glass-header {
-    padding: 20px 24px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 20px;
+    border-bottom: 1px solid var(--glass-border);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(255, 255, 255, 0.4);
 }
-.glass-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--obsidian);
-    letter-spacing: -0.02em;
-}
-/* Modal Body */
-.glass-content {
-    padding: 24px;
-    overflow-y: auto;
-    max-height: 70vh;
-}
-/* Modal Footer */
+
+.glass-content { padding: 20px; }
+
 .glass-footer {
-    padding: 16px 24px;
-    background: rgba(255, 255, 255, 0.3);
-    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 15px 20px;
+    background: rgba(0,0,0,0.02);
+    border-top: 1px solid var(--glass-border);
     display: flex;
     justify-content: flex-end;
     gap: 10px;
 }
-.glass-header-bar {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 40px;
-}
 
-/* 3. The Table (Floating Glass) */
-.glass-table-container {
-    background: rgba(255, 255, 255, 0.5);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-radius: 20px;
-    border: 1px solid var(--glass-border);
-    box-shadow: 0 10px 40px -10px rgba(0,0,0,0.05);
-    overflow: hidden; padding: 5px;
-}
-/* --- FORM ELEMENTS (Notion Style) --- */
-
-.notion-group {
-    margin-bottom: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-.notion-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    color: #888;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    margin-left: 4px;
-}
-
-.notion-input, .notion-select {
-    width: 100%;
-    padding: 12px 14px;
-    box-sizing: border-box; /* <--- THIS FIXES THE HORIZONTAL SCROLL */
-    border-radius: 12px;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    background: rgba(255, 255, 255, 0.6);
-    font-size: 14px;
-    color: var(--obsidian);
-    transition: all 0.2s ease;
-    outline: none;
+/* Buttons */
+button {
     font-family: inherit;
-}
-
-.notion-input:focus, .notion-select:focus {
-    background: #fff;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
-}
-
-.notion-input:disabled {
-    opacity: 0.6;
-    background: rgba(0,0,0,0.02);
-    cursor: not-allowed;
-}
-
-table { width: 100%; border-collapse: collapse; }
-th { 
-    text-align: left; padding: 20px; 
-    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
-    color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.05);
-}
-td { 
-    padding: 20px; font-size: 14px; font-weight: 500;
-    border-bottom: 1px solid rgba(0,0,0,0.03); color: var(--text-main);
-}
-tr:last-child td { border-bottom: none; }
-tr:hover td { background: rgba(255,255,255,0.4); }
-
-/* --- ROSEWOOD STUDIO: FULL-SCREEN CANVAS --- */
-
-/* Force Modals to Center Correctly */
-.glass-backdrop {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.2); /* Subtle dim */
-    backdrop-filter: blur(8px);      /* Heavy blur */
-    -webkit-backdrop-filter: blur(8px);
-    z-index: 999;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-}
-.glass-backdrop.active {
-    opacity: 1;
-    pointer-events: all;
-}
-
-/* --- ROSEWOOD STUDIO: CLEAN LAYOUT --- */
-#view-studio {
-    position: fixed; 
-    top: 0; 
-    left: 0; 
-    width: 100%; /* CHANGED from 100vw to 100% to respect scrollbars */
-    height: 100vh;
-    background: #F0F0F2; 
-    z-index: 5000;
-    display: flex; 
-    flex-direction: column;
-    overflow: hidden; /* Prevents body scroll, relies on .studio-scroll-area */
-}
-
-/* ADD THIS CLASS (It was missing, causing layout issues) */
-.studio-scroll-area {
-    flex: 1; /* Fills remaining space below banner */
-    overflow-y: auto; /* Allows scrolling ONLY the form, not the banner */
-    padding-bottom: 50px;
-    width: 100%;
-}
-
-.studio-paper {
-    background: white;
-    width: 100%;
-    max-width: 850px; /* Standard Letter aspect ratio */
-    margin: 0 auto;
-    min-height: 1100px;
-    padding: 80px 100px;
-    box-shadow: 0 0 1px rgba(0,0,0,0.1), 0 20px 40px rgba(0,0,0,0.05);
-    border-radius: 2px;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Question Blocks & Dividers */
-.studio-question-block {
-    background: #fff;
-    border: 1px solid #E0E0E0; /* Distinct border */
-    border-radius: 12px;       /* Rounded corners */
-    margin-bottom: 20px;       /* Space between cards */
-    padding: 25px;             /* Internal spacing */
-    box-shadow: 0 2px 8px rgba(0,0,0,0.03); /* Subtle lift */
-    transition: box-shadow 0.2s, border-color 0.2s;
-}
-.studio-question-block:hover {
-    border-color: #ccc;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-/* PDF Font Styles */
-.studio-pdf-label {
-    font-family: 'Libre Baskerville', serif;
-    font-size: 16px;
-    color: var(--bark);
-    line-height: 1.5;
-    margin-bottom: 12px;
-    display: block;
-    width: 100%;
-    border: none; background: transparent;
-}
-.studio-pdf-label:focus { outline: none; border-bottom: 1px solid var(--rw-red); }
-
-/* Slick Multiple Choice Creator */
-.choice-pill-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-/* Fix for the "Add Option" input looking like a button */
-.studio-option-input {
-    width: 140px; 
-    border: 1px solid #ddd; 
-    padding: 6px 12px; 
-    border-radius: 6px; /* Square edges = clearly an input */
-    background: #fff;
-    font-size: 13px;
-    outline: none;
-    transition: 0.2s;
-}
-.studio-option-input:focus { border-color: var(--accent); }
-.choice-pill {
-    background: #FFFFFF;
-    border: 1px solid #E0E0E0; /* Subtle border */
-    padding: 6px 12px;
-    border-radius: 6px; /* 6px = Premium "Card" corner (Not round) */
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
-    color: var(--text-main);
-    display: flex; 
-    align-items: center; 
-    gap: 10px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.03); /* Tiny lift */
+    cursor: pointer;
     transition: all 0.2s;
-}
-.choice-pill button { 
-    background: none; 
-    border: none; 
-    color: #C0C0C0; /* Very subtle default state */
-    cursor: pointer; 
-    padding: 0; 
-    font-size: 16px; 
-    line-height: 1;
-    transition: color 0.2s;
-}
-.choice-pill button:hover { 
-    color: #1d1d1f; 
-}
-.choice-pill:hover {
-    border-color: #ccc;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
-/* Premium Block Hover */
-.studio-block {
-    margin-bottom: 2rem;
-    padding: 15px;
-    border-radius: 12px;
-    border: 1px solid transparent;
-    transition: 0.2s;
-}
-.studio-block:hover {
-    background: rgba(0,0,0,0.02);
-    border-color: rgba(0,0,0,0.05);
-}
-
-/* Hide technical junk in the editor */
-.studio-id-badge {
-    font-size: 10px; font-family: monospace; opacity: 0.3;
-}
-/* The Modal Card Itself */
-.glass-card, .glass-dialog {
-    background: rgba(255, 255, 255, 0.75); /* Milky Glass */
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    box-shadow: 
-        0 20px 40px rgba(0, 0, 0, 0.1), 
-        0 0 0 1px rgba(255, 255, 255, 0.5) inset;
-    border-radius: 24px;
-    padding: 0; /* Content handles padding */
-    width: 480px;
-    max-width: 90vw;
-    transform: scale(0.95) translateY(10px);
-    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-    overflow: hidden; /* Clips the header */
-    display: flex;
-    flex-direction: column;
-}
-.glass-backdrop.active .glass-card, 
-.glass-backdrop.active .glass-dialog {
-    transform: scale(1) translateY(0);
-}
-
-/* --- BUTTONS (Soft Touch) --- */
-.btn-soft {
-    background: rgba(255,255,255,0.8);
-    border: 1px solid rgba(0,0,0,0.05);
-    color: var(--text-main);
-    padding: 10px 18px; border-radius: 100px;
-    font-size: 13px; font-weight: 600; cursor: pointer;
-    transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-    display: inline-flex; align-items: center; gap: 6px;
-}
-.btn-soft:hover { 
-    background: #fff; transform: scale(1.02); 
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+    border-radius: 8px;
+    border: none;
 }
 
 .btn-main {
-    background: var(--text-main); color: #fff;
-    border: none; padding: 12px 24px; border-radius: 100px;
-    font-size: 14px; font-weight: 600; cursor: pointer;
-    transition: all 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    background: var(--accent);
+    color: white;
+    padding: 10px 20px;
+    box-shadow: 0 4px 12px rgba(169, 47, 61, 0.3);
 }
-.btn-main:hover { transform: scale(1.03); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+.btn-main:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(169, 47, 61, 0.4); opacity: 0.95; }
+.btn-main:active { transform: translateY(0); }
 
-/* --- INPUTS --- */
-.modern-input, .glass-input {
-    width: 100%; padding: 14px; margin-bottom: 15px;
-    background: rgba(0,0,0,0.03); border: 1px solid transparent;
-    border-radius: 12px; font-size: 15px; color: var(--text-main);
-    transition: 0.2s; box-sizing: border-box;
+.btn-soft {
+    background: rgba(125,125,125,0.1);
+    color: var(--text-main);
+    border: 1px solid var(--glass-border);
+    padding: 10px 16px;
 }
-.modern-input:focus { 
-    background: #fff; border-color: var(--accent); outline: none; 
-    box-shadow: 0 0 0 4px rgba(169, 47, 61, 0.1); 
+.btn-soft:hover { background: rgba(125,125,125,0.2); }
+
+.btn-text {
+    background: transparent;
+    color: var(--text-muted);
+    padding: 5px 10px;
+}
+.btn-text:hover { color: var(--text-main); text-decoration: underline; }
+
+/* Inputs */
+.modern-input, .notion-input, .flagship-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    background: var(--input-bg);
+    color: var(--text-main);
+    font-size: 14px;
+    transition: 0.2s;
+}
+.modern-input:focus, .flagship-input:focus {
+    background: var(--card-bg);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(169, 47, 61, 0.1);
 }
 
-/* Logo Sizing */
-.logo-login {
-    width: 60px; /* Much smaller and sharper */
-    height: auto;
-    margin-bottom: 20px;
-    opacity: 0.9;
+/* --- 4. VIEW: LOGIN --- */
+.login-container {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
 }
+
+.login-card {
+    width: 100%;
+    max-width: 400px;
+    padding: 40px;
+    text-align: center;
+    background: var(--glass-surface);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    box-shadow: var(--glass-shadow);
+}
+
+.login-logo { width: 80px; margin-bottom: 20px; }
+.login-title { font-size: 24px; margin-bottom: 10px; }
+.login-subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 30px; }
 
 @keyframes shake {
-    0% { transform: translateX(0); }
+    0%, 100% { transform: translateX(0); }
     25% { transform: translateX(-5px); }
-    50% { transform: translateX(5px); }
-    75% { transform: translateX(-5px); }
-    100% { transform: translateX(0); }
+    75% { transform: translateX(5px); }
 }
 
-
-/* The Label Editor */
-.studio-label-input {
-    font-family: 'Libre Baskerville'; font-size: 16px; color: var(--text-main);
-    width: 100%; border: none; background: transparent; padding: 0;
-}
-.studio-label-input:focus { outline: none; border-bottom: 1px solid var(--accent); }
-
-/* The Type Badge */
-.type-badge {
-    font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
-    background: #eee; padding: 2px 6px; border-radius: 4px; color: #666;
-    margin-bottom: 5px; display: inline-block; cursor: pointer;
+/* --- 5. VIEW: ADMIN DASHBOARD --- */
+.admin-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
 }
 
-/* Controls that appear on hover */
-.studio-controls {
-    position: absolute; right: 10px; top: 10px;
-    opacity: 0; transition: 0.2s; display: flex; gap: 5px;
-}
-.studio-block:hover .studio-controls { opacity: 1; }
-
-/* The "Card" Grid for the Dashboard */
-.template-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;
-    padding: 20px 0;
-}
-.template-card {
-    position: relative;
-    background: rgba(255,255,255,0.6);
-    border: 1px solid rgba(255,255,255,0.4);
-    border-radius: 16px; padding: 25px;
-    text-align: center; cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.template-card:hover {
-    position: relative;
-    background: #fff; transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-}
-.template-icon { font-size: 32px; margin-bottom: 15px; opacity: 0.8; }
-.template-title { font-weight: 600; font-size: 14px; color: var(--text-main); }
-
-/* --- ROSEWOOD STUDIO: OBSIDIAN BANNER --- */
-.studio-top-banner {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%; 
-    height: 90px;
-    background: #1A1716;
+.glass-header-bar {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    z-index: 6000;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-    /* Increase padding to ensure button is never cut off */
-    padding: 0 40px; 
-    box-sizing: border-box; /* Critical for padding to work correctly */
-}
-
-.studio-top-banner .btn-soft {
-    background: rgba(255,255,255,0.08);
-    color: #fff; border: 1px solid rgba(255,255,255,0.1);
-    padding: 12px 24px; border-radius: 50px;
-}
-.studio-top-banner .btn-soft:hover { background: rgba(255,255,255,0.15); }
-
-/* Adjust Paper to account for thicker banner */
-.studio-paper {
-    margin-top: 130px !important;
-    padding: 100px 120px !important;
-}
-
-/* Premium Select Box */
-.studio-type-selector {
-    font-size: 13px; font-weight: 700; color: var(--text-muted);
-    border: 1px solid transparent; background: transparent;
-    padding: 5px 10px; border-radius: 6px; cursor: pointer;
-    transition: 0.2s;
-}
-.studio-type-selector:hover { background: rgba(0,0,0,0.05); color: var(--rw-red); }
-
-/* --- ROSEWOOD STUDIO: CLEAN LAYOUT --- */
-
-#view-studio {
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: #F0F0F2; 
-    z-index: 5000; /* High enough to cover admin, but standard positioning */
-    display: flex; flex-direction: column;
-    overflow: hidden; /* Prevent body scroll, we scroll the paper area instead */
-}
-
-/* --- ROSEWOOD STUDIO: ALIGNED LAYOUT --- */
-
-/* --- ROSEWOOD STUDIO: ALIGNED LAYOUT (FIXED) --- */
-
-/* Update these two classes */
-
-/* --- ROSEWOOD STUDIO: FIXED BANNER --- */
-.studio-top-banner {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0; /* Snaps to the scrollbar edge, preventing overflow */
-    height: 90px;
-    background: #1A1716;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 6000;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-    /* Safety padding ensures content never touches the very edge */
-    padding: 0 20px; 
-}
-
-.studio-banner-content {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    width: 100%;
-    max-width: 1050px;
-}
-/* Force alignment so title never moves */
-.studio-banner-content > :nth-child(1) { justify-self: start; }
-.studio-banner-content > :nth-child(2) { justify-self: center; }
-.studio-banner-content > :nth-child(3) { justify-self: end; }
-/* Ensure the paper matches this width */
-.studio-paper {
-    width: 850px;
-    max-width: 90vw;
-    margin: 130px auto 100px auto; /* Center horizontally, push down for banner */
-    padding: 80px 100px;
-    background: white;
-    box-shadow: 0 0 1px rgba(0,0,0,0.1), 0 20px 40px rgba(0,0,0,0.05);
-}
-/* Description Input under the title */
-.studio-pdf-description {
-    font-family: 'SF Pro Display', sans-serif;
-    font-size: 14px;
-    color: var(--text-muted);
-    width: 100%;
-    border: none;
-    background: transparent;
     margin-bottom: 30px;
-    resize: none;
-    line-height: 1.5;
-}
-.studio-pdf-description:focus {
-    outline: none;
-    border-bottom: 1px solid var(--accent);
 }
 
-/* Delete Question Button (Trash Icon) */
-.btn-delete-q {
-    background: transparent;
-    border: none;
-    color: #999;
-    font-size: 18px;
-    cursor: pointer;
-    padding: 0 0 0 10px;
-    transition: 0.2s;
-    line-height: 1;
-}
-.btn-delete-q:hover {
-    color: #d32f2f; /* Red on hover */
-    transform: scale(1.1);
-}
-/* --- PREMIUM DELETE BUTTON (Template Cards) --- */
-.btn-delete-card {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, 0.05);
-    color: #1d1d1f;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    font-weight: bold;
-    cursor: pointer;
-    z-index: 20; 
-    transition: all 0.2s ease;
-    
-    /* FORCE VISIBILITY */
-    opacity: 1; 
-    transform: scale(1);
-}
-
-/* Show button when hovering the CARD */
-.template-card:hover .btn-delete-card {
-    opacity: 1;
-    transform: scale(1);
-}
-
-.btn-delete-card:hover {
-    background: #d32f2f;
-    color: #ffffff;
-    box-shadow: 0 4px 10px rgba(211, 47, 47, 0.3);
-}
-
-@keyframes floatUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Ensure modal text is readable on glass */
-#rw-modal-msg {
-    color: var(--obsidian);
-    font-weight: 500;
-}
-/* Standard Button Overrides */
-.btn-text {
-    background: none;
-    border: none;
-    font-size: 20px;
-    color: #999;
-    cursor: pointer;
-    width: 30px; 
-    height: 30px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-}
-.btn-text:hover { background: rgba(0,0,0,0.05); color: #333; }
-
-/* Status Badges inside Modals */
-.badge-select {
-    appearance: none;
-    font-weight: 600;
-    cursor: pointer;
-    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23333%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px top 50%;
-    background-size: 10px auto;
-}
-/* --- CLIENT TIERS --- */
-/* These classes are applied to the BODY tag by JS */
-
-/* Gold Tier (Luxurious) */
-body.tier-gold {
-    --accent: #B8860B; /* Dark Gold */
-    --bg-gradient: radial-gradient(circle at 50% 0%, #FFF8E1 0%, #FFFFFF 100%);
-}
-body.tier-gold #client-tier-badge {
-    background: linear-gradient(45deg, #FFD700, #FDB931);
-    color: #5c4002;
-    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
-}
-
-/* Silver Tier (Professional) */
-body.tier-silver {
-    --accent: #546E7A; /* Blue Grey */
-    --bg-gradient: radial-gradient(circle at 50% 0%, #ECEFF1 0%, #FFFFFF 100%);
-}
-body.tier-silver #client-tier-badge {
-    background: linear-gradient(45deg, #E0E0E0, #BDBDBD);
-    color: #424242;
-}
-
-/* Bronze Tier (Standard) */
-body.tier-bronze {
-    --accent: #8D6E63; /* Brown */
-}
-body.tier-bronze #client-tier-badge {
-    background: #EFEBE9;
-    color: #5D4037;
-    border: 1px solid #D7CCC8;
-}
-
-/* --- FLAGSHIP FORM STYLES --- */
-.flagship-canvas-container {
-    max-width: 800px; /* Widened from 680px */
-    margin: 0 auto;
-    padding: 40px 40px 120px 40px; /* More breathing room */
-}
-.flagship-field-group {
-    margin-bottom: 40px;
-    background: #fff;
-    /* Optional: Card style for each question? Uncomment if desired */
-    /* padding: 20px; border: 1px solid #eee; border-radius: 12px; */
-}
-
-.flagship-label {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 12px;
-    display: block;
-    color: #202124; /* Google Black */
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-}
-
-.flagship-input {
+.modern-table {
     width: 100%;
-    padding: 16px 20px; /* Generous padding */
-    font-size: 16px;
-    color: #3c4043;
-    
-    /* The "Cartoon" Look: Thicker, darker border */
-    border: 2px solid #dadce0; 
-    border-radius: 8px; /* Slightly squarer than before */
-    
-    background: #fff;
-    transition: all 0.2s ease-in-out;
-    box-sizing: border-box; /* Fixes the horizontal scroll/width issue */
+    border-collapse: collapse;
 }
-.flagship-input:focus {
-    border-color: #1a73e8; /* Google Blue */
-    background: #fff;      /* Clean white, no tinted fill */
-    box-shadow: 0 4px 12px rgba(26, 115, 232, 0.15); /* Soft blue glow */
-    outline: none;
+.modern-table th {
+    text-align: left;
+    padding: 15px 20px;
+    color: var(--text-muted);
+    font-weight: 500;
+    font-size: 12px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--glass-border);
 }
-.flagship-input::placeholder {
-    color: #bdc1c6;
+.modern-table td {
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--glass-border);
+    font-size: 14px;
 }
-.flagship-input[type="radio"] { width: auto; margin-right: 10px; }
+.modern-table tr:last-child td { border-bottom: none; }
+.modern-table tr:hover td { background: rgba(0,0,0,0.02); }
 
-/* Subtlety for the description text */
-.field-helper {
-    font-size: 13px; color: #888; margin-top: 8px;
+/* --- 6. VIEW: CLIENT PORTAL --- */
+#view-client-dashboard {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 0 20px;
 }
-.flagship-radio-row {
+
+/* --- 7. VIEW: ROSEWOOD STUDIO (Builder) --- */
+.studio-container {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.studio-sidebar {
+    width: 300px;
+    background: var(--glass-surface);
+    border-right: 1px solid var(--glass-border);
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.studio-main {
+    flex: 1;
+    background: rgba(0,0,0,0.02);
+    padding: 40px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.studio-paper {
+    width: 800px;
+    background: var(--card-bg);
+    min-height: 1000px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    padding: 60px;
+    border-radius: 4px;
+    position: relative;
+    transition: background 0.3s;
+}
+body.theme-obsidian .studio-paper { box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+
+.studio-toolbar-item {
+    background: var(--card-bg);
+    border: 1px solid var(--glass-border);
+    padding: 10px;
+    border-radius: 6px;
+    cursor: grab;
     display: flex;
     align-items: center;
-    padding: 12px 16px;
-    border: 2px solid #dadce0;
-    border-radius: 8px;
+    gap: 10px;
+    font-size: 13px;
+    margin-bottom: 8px;
+    transition: transform 0.2s;
+}
+.studio-toolbar-item:hover { transform: translateX(5px); border-color: var(--accent); }
+
+/* --- 8. VIEW: FLAGSHIP VIEWER (The Form) --- */
+.flagship-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 60px 20px;
+}
+
+.flagship-paper {
+    background: var(--glass-surface);
+    backdrop-filter: blur(30px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 60px;
+    box-shadow: var(--glass-shadow);
+    position: relative;
+}
+
+.flagship-field-group { margin-bottom: 30px; }
+.flagship-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 15px;
+    color: var(--text-main);
+}
+.flagship-desc {
+    font-size: 13px;
+    color: var(--text-muted);
     margin-bottom: 10px;
-    cursor: pointer;
-    transition: all 0.1s;
-}
-.flagship-radio-row:hover {
-    background: #f8f9fa;
-    border-color: #bdc1c6;
-}
-.flagship-radio-row input {
-    margin-right: 15px;
-    accent-color: #1a73e8; /* Blue checks */
-    width: 18px; 
-    height: 18px;
+    line-height: 1.4;
 }
 
-/* Hide Print Header on Screen */
-#print-header { display: none; }
-
-#view-client-dashboard {
-    max-width: 1200px; /* Limits width on big screens */
-    margin: 0 auto;    /* Centers the container */
-    padding: 40px;     /* Adds breathing room */
+/* --- 9. MODALS --- */
+.glass-dialog {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    width: 90%; max-width: 500px;
+    background: var(--glass-surface);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 30px;
+    z-index: 2000;
+    opacity: 0; pointer-events: none;
+    transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 40px 80px rgba(0,0,0,0.4);
 }
-/* --- CLIENT DASHBOARD FIX (Centering) --- */
-#view-client-dashboard {
-    max-width: 1200px; /* Limits width on big screens */
-    margin: 0 auto;    /* Centers the container */
-    padding: 40px;     /* Adds breathing room */
+.glass-dialog.active {
+    opacity: 1; pointer-events: all;
+    transform: translate(-50%, -50%) scale(1);
+}
+.modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(5px);
+    opacity: 0; pointer-events: none;
+    z-index: 1999;
+    transition: 0.3s;
+}
+.glass-dialog.active + .modal-overlay,
+.glass-dialog.active ~ .modal-overlay { 
+    opacity: 1; pointer-events: all; 
 }
 
-/* --- PRINT ENGINE REPAIR --- */
-@media print {
-    /* RESET LAYOUT */
-    body, #view-flagship-form {
-        background: #fff !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        overflow: visible !important;
-        height: auto !important;
-        width: 100% !important;
+/* --- 10. MOBILE OPTIMIZATION (NEW) --- */
+@media (max-width: 768px) {
+    /* Adjust container widths */
+    .admin-container, #view-client-dashboard, .flagship-container {
+        width: 100%; padding: 15px; margin-top: 10px;
     }
 
-    /* HEADER FIX: Ensure it stays at top */
-    #print-header {
-        display: block !important;
-        width: 100%;
-        margin-bottom: 20px;
-        /* Do NOT use position: fixed here, it causes the centering bug */
-        position: relative; 
+    /* Header adjustments */
+    .glass-header-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
     }
     
-    /* PREVENT PAGE BREAKS IN WEIRD SPOTS */
-    .flagship-field-group {
-        break-inside: avoid; 
-        page-break-inside: avoid;
-        border: 1px solid #000;
-        margin-bottom: 15px;
+    /* Tables: Stack them for mobile */
+    .modern-table thead { display: none; }
+    .modern-table tr {
+        display: flex; flex-direction: column;
+        background: rgba(255,255,255,0.05);
+        margin-bottom: 15px; border-radius: 12px; padding: 15px;
+        border: 1px solid var(--glass-border);
+    }
+    .modern-table td {
+        border: none; padding: 5px 0;
+        display: flex; justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
     }
 
-    /* FORCE TEXT WRAPPING */
-    .flagship-input, textarea.flagship-input {
-        white-space: pre-wrap; /* Preserves newlines but wraps text */
-        overflow: hidden; /* Hides scrollbars */
+    /* Client Grid */
+    #client-forms-grid {
+        grid-template-columns: 1fr; /* Single column cards */
     }
+
+    /* Studio: Force vertical layout */
+    .studio-container { flex-direction: column; height: auto; }
+    .studio-sidebar { width: 100%; height: auto; max-height: 200px; }
+    .studio-main { padding: 10px; }
+    .studio-paper { width: 100%; padding: 20px; min-height: 600px; }
+
+    /* Flagship Viewer */
+    .flagship-paper { padding: 25px; border-radius: 16px; }
+    .flagship-label { font-size: 14px; }
+    
+    /* Login */
+    .login-card { padding: 30px 20px; }
 }
