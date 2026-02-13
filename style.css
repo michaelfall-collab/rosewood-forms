@@ -1,7 +1,6 @@
-/* --- ROSEWOOD "VISION" THEME (v4.3 STABLE) --- */
+/* --- ROSEWOOD "VISION" THEME (v4.3 - STABILIZED) --- */
 @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
 
-/* --- 1. CORE VARIABLES & THEME --- */
 :root {
     /* DEFAULT (LIGHT THEME) */
     --glass-surface: rgba(255, 255, 255, 0.65);
@@ -9,293 +8,467 @@
     --glass-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     
     --text-main: #1d1d1f;   /* Apple "Almost Black" */
+    --obsidian: #1d1d1f;    /* Primary Text Color */
     --text-muted: #86868b;
     --accent: #A92F3D;      /* Rosewood Red */
     
     --bg-gradient: radial-gradient(circle at 50% 0%, #f5f5f7 0%, #e8e8ed 100%);
     --card-bg: #fff;
-    --input-bg: rgba(0,0,0,0.03);
-    
-    /* Layout Constants */
-    --sidebar-width: 280px;
-    --header-height: 70px;
+    --input-bg: rgba(255, 255, 255, 0.6);
+    --input-border: rgba(0, 0, 0, 0.08);
 }
 
-/* --- OBSIDIAN DARK MODE --- */
+/* --- OBSIDIAN DARK MODE (New Feature) --- */
+/* This remaps the variables above when the class is added to body */
 body.theme-obsidian {
-    --glass-surface: rgba(20, 20, 20, 0.85); /* Dark Glass */
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --glass-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    --glass-surface: rgba(20, 20, 20, 0.85); 
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --glass-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
     
     --text-main: #f5f5f7;   /* Off-White */
+    --obsidian: #f5f5f7;    /* Remap 'obsidian' variable to white for dark mode */
     --text-muted: #a1a1a6;
-    --accent: #ef5350;      /* Brighter Red for Dark Mode */
+    --accent: #ef5350;      /* Brighter Red for readability */
     
-    --bg-gradient: linear-gradient(135deg, #1a1a1a 0%, #000000 100%);
+    --bg-gradient: linear-gradient(135deg, #101010 0%, #000000 100%);
     --card-bg: #1c1c1e;
-    --input-bg: rgba(255,255,255,0.1);
+    --input-bg: rgba(255, 255, 255, 0.1);
+    --input-border: rgba(255, 255, 255, 0.1);
 }
-
-/* --- 2. GLOBAL RESET --- */
-* { box-sizing: border-box; outline: none; }
 
 body {
-    margin: 0;
-    padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
     background: var(--bg-gradient);
     color: var(--text-main);
-    min-height: 100vh;
-    transition: background 0.3s ease, color 0.3s ease;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+    margin: 0; min-height: 100vh;
     -webkit-font-smoothing: antialiased;
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
-/* Typography Utilities */
-h1, h2, h3, h4 { margin: 0; font-weight: 600; letter-spacing: -0.02em; }
-a { color: var(--accent); text-decoration: none; cursor: pointer; }
+/* --- UTILITIES --- */
 .hidden { display: none !important; }
 .full-screen-center { 
     display: flex; justify-content: center; align-items: center; 
     height: 100vh; width: 100vw; 
 }
 
-/* --- 3. GLASS COMPONENTS --- */
-.glass-card {
-    background: var(--glass-surface);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
-    border-radius: 16px;
-    box-shadow: var(--glass-shadow);
-    overflow: hidden;
-    transition: transform 0.2s, box-shadow 0.2s, background 0.3s;
-}
+/* --- GLASS COMPONENTS --- */
 
-/* Headers */
-.glass-header {
-    padding: 20px 24px;
-    border-bottom: 1px solid var(--glass-border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.05);
-}
-.glass-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text-main); /* FIXED: Was var(--obsidian) */
-    letter-spacing: -0.02em;
-}
-
-/* Body & Footer */
-.glass-content { padding: 24px; overflow-y: auto; max-height: 70vh; }
-.glass-footer {
-    padding: 16px 24px;
-    background: rgba(0,0,0,0.02);
-    border-top: 1px solid var(--glass-border);
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-}
-
-/* --- 4. BUTTONS & INPUTS --- */
-button {
-    font-family: inherit; font-size: 14px; font-weight: 500;
-    cursor: pointer; transition: all 0.2s; border-radius: 8px; border: none;
-}
-
-/* Main Action Button */
-.btn-main {
-    background: var(--accent); color: white;
-    padding: 10px 20px;
-    box-shadow: 0 4px 12px rgba(169, 47, 61, 0.3);
-}
-.btn-main:hover { transform: translateY(-1px); opacity: 0.9; box-shadow: 0 6px 16px rgba(169, 47, 61, 0.4); }
-
-/* Soft/Secondary Button */
-.btn-soft {
-    background: rgba(125,125,125,0.1);
-    color: var(--text-main);
-    border: 1px solid var(--glass-border);
-    padding: 10px 16px;
-}
-.btn-soft:hover { background: rgba(125,125,125,0.2); }
-
-/* Text Link Button */
-.btn-text {
-    background: transparent; color: var(--text-muted);
-    padding: 5px 10px;
-}
-.btn-text:hover { color: var(--text-main); }
-
-/* Inputs (Global) */
-.modern-input, .notion-input, .flagship-input, .notion-select {
-    width: 100%;
-    padding: 12px 16px;
-    border: 1px solid var(--glass-border);
-    border-radius: 8px;
-    background: var(--input-bg);
-    color: var(--text-main); /* FIXED: Was var(--obsidian) */
-    font-size: 14px;
-    transition: 0.2s;
-    font-family: inherit;
-}
-.modern-input:focus, .notion-input:focus, .flagship-input:focus {
-    background: var(--card-bg);
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(169, 47, 61, 0.1);
-}
-
-/* --- 5. VIEW: LOGIN --- */
+/* 1. The Login Card */
 .login-card {
     background: var(--glass-surface);
-    backdrop-filter: blur(25px);
+    backdrop-filter: blur(25px) saturate(180%);
+    -webkit-backdrop-filter: blur(25px) saturate(180%);
     padding: 60px 40px;
     border-radius: 24px;
     border: 1px solid var(--glass-border);
     box-shadow: var(--glass-shadow);
     text-align: center; width: 340px;
 }
-.logo-login { width: 80px; margin-bottom: 20px; opacity: 0.9; }
-
-@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    75% { transform: translateX(5px); }
+.logo-login {
+    width: 60px; height: auto; margin-bottom: 20px; opacity: 0.9;
 }
 
-/* --- 6. VIEW: ADMIN DASHBOARD --- */
+/* 2. The Main Layout (Admin) */
 .admin-container {
     max-width: 1000px; margin: 60px auto;
     padding: 0 20px;
 }
+/* Modal Header */
+.glass-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--glass-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05); /* Adaptive transparency */
+}
+.glass-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--obsidian);
+    letter-spacing: -0.02em;
+}
+/* Modal Body */
+.glass-content {
+    padding: 24px;
+    overflow-y: auto;
+    max-height: 70vh;
+}
+/* Modal Footer */
+.glass-footer {
+    padding: 16px 24px;
+    background: rgba(0, 0, 0, 0.02);
+    border-top: 1px solid var(--glass-border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
 .glass-header-bar {
     display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 30px;
+    margin-bottom: 40px;
 }
 
-/* Floating Table Container */
+/* 3. The Table (Floating Glass) */
 .glass-table-container {
     background: var(--glass-surface);
     backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-radius: 20px;
     border: 1px solid var(--glass-border);
+    box-shadow: 0 10px 40px -10px rgba(0,0,0,0.05);
     overflow: hidden; padding: 5px;
 }
-.modern-table { width: 100%; border-collapse: collapse; }
-.modern-table th {
-    text-align: left; padding: 15px 20px;
-    color: var(--text-muted); font-weight: 500; font-size: 12px;
-    text-transform: uppercase; border-bottom: 1px solid var(--glass-border);
-}
-.modern-table td {
-    padding: 15px 20px; border-bottom: 1px solid var(--glass-border);
-    font-size: 14px; color: var(--text-main);
-}
-.modern-table tr:last-child td { border-bottom: none; }
-.modern-table tr:hover td { background: rgba(125,125,125,0.05); }
 
-/* --- 7. VIEW: CLIENT PORTAL --- */
-#view-client-dashboard {
-    max-width: 1200px; margin: 0 auto; padding: 40px;
-}
-/* Client Status Badges */
-body.tier-gold { --accent: #B8860B; }
-body.tier-gold #client-tier-badge { background: linear-gradient(45deg, #FFD700, #FDB931); color: #5c4002; }
-body.tier-silver { --accent: #546E7A; }
-body.tier-silver #client-tier-badge { background: linear-gradient(45deg, #E0E0E0, #BDBDBD); color: #424242; }
-body.tier-bronze { --accent: #8D6E63; }
-body.tier-bronze #client-tier-badge { background: #EFEBE9; color: #5D4037; }
+/* --- FORM ELEMENTS (Notion Style) --- */
 
-/* --- 8. VIEW: ROSEWOOD STUDIO (Builder) --- */
+.notion-group {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.notion-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    margin-left: 4px;
+}
+
+.notion-input, .notion-select, .modern-input {
+    width: 100%;
+    padding: 12px 14px;
+    box-sizing: border-box; 
+    border-radius: 12px;
+    border: 1px solid var(--input-border);
+    background: var(--input-bg);
+    font-size: 14px;
+    color: var(--obsidian);
+    transition: all 0.2s ease;
+    outline: none;
+    font-family: inherit;
+}
+
+.notion-input:focus, .notion-select:focus, .modern-input:focus {
+    background: var(--card-bg);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(169, 47, 61, 0.1);
+}
+
+.notion-input:disabled {
+    opacity: 0.6;
+    background: rgba(0,0,0,0.02);
+    cursor: not-allowed;
+}
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; }
+th { 
+    text-align: left; padding: 20px; 
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text-muted); border-bottom: 1px solid var(--glass-border);
+}
+td { 
+    padding: 20px; font-size: 14px; font-weight: 500;
+    border-bottom: 1px solid var(--glass-border); color: var(--text-main);
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(125,125,125,0.05); }
+
+/* --- ROSEWOOD STUDIO: FULL-SCREEN CANVAS --- */
+
+.glass-backdrop {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.2); 
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+.glass-backdrop.active {
+    opacity: 1; pointer-events: all;
+}
+
+/* --- ROSEWOOD STUDIO: LAYOUT --- */
 #view-studio {
-    position: fixed; top: 0; left: 0; 
-    width: 100%; height: 100vh;
+    position: fixed; 
+    top: 0; left: 0; width: 100%; height: 100vh;
     background: #F0F0F2; 
     z-index: 5000;
-    display: flex; flex-direction: column; overflow: hidden;
+    display: flex; flex-direction: column;
+    overflow: hidden; 
 }
+
+/* Studio Top Banner */
 .studio-top-banner {
-    background: #1A1716; height: 90px;
-    display: flex; justify-content: center; align-items: center;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 90px;
+    background: #1A1716;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 6000;
     box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-    padding: 0 40px;
+    padding: 0 20px; 
 }
+
 .studio-banner-content {
-    display: grid; grid-template-columns: 1fr auto 1fr;
-    align-items: center; width: 100%; max-width: 1050px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    width: 100%; max-width: 1050px;
 }
+.studio-banner-content > :nth-child(1) { justify-self: start; }
+.studio-banner-content > :nth-child(2) { justify-self: center; }
+.studio-banner-content > :nth-child(3) { justify-self: end; }
+
 .studio-scroll-area {
-    flex: 1; overflow-y: auto; width: 100%; padding-bottom: 50px;
+    flex: 1; 
+    overflow-y: auto; 
+    padding-bottom: 50px;
+    width: 100%;
 }
+
 .studio-paper {
-    background: white;
-    width: 850px; max-width: 90vw;
-    margin: 40px auto; padding: 80px 100px;
+    background: var(--card-bg);
+    width: 850px;
+    max-width: 90vw;
+    margin: 130px auto 100px auto; 
+    padding: 80px 100px;
     box-shadow: 0 0 1px rgba(0,0,0,0.1), 0 20px 40px rgba(0,0,0,0.05);
-    min-height: 1100px;
+    border-radius: 2px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
 }
 
-/* Studio Components */
+/* Question Blocks */
 .studio-question-block {
-    background: #fff; border: 1px solid #E0E0E0;
-    border-radius: 12px; margin-bottom: 20px; padding: 25px;
-    transition: 0.2s;
+    background: var(--card-bg);
+    border: 1px solid var(--glass-border); 
+    border-radius: 12px;       
+    margin-bottom: 20px;       
+    padding: 25px;             
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03); 
+    transition: box-shadow 0.2s, border-color 0.2s;
 }
-.studio-question-block:hover { border-color: #ccc; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-
+.studio-question-block:hover {
+    border-color: #ccc;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
 .studio-pdf-label {
-    font-family: 'Libre Baskerville', serif; font-size: 16px;
-    color: #1d1d1f; border: none; background: transparent; width: 100%;
+    font-family: 'Libre Baskerville', serif;
+    font-size: 16px;
+    color: var(--obsidian);
+    line-height: 1.5;
+    margin-bottom: 12px;
+    display: block; width: 100%;
+    border: none; background: transparent;
 }
+.studio-pdf-label:focus { outline: none; border-bottom: 1px solid var(--accent); }
+
+.studio-pdf-description {
+    font-family: 'SF Pro Display', sans-serif;
+    font-size: 14px; color: var(--text-muted);
+    width: 100%; border: none; background: transparent;
+    margin-bottom: 30px; resize: none; line-height: 1.5;
+}
+.studio-pdf-description:focus { outline: none; border-bottom: 1px solid var(--accent); }
+
+/* Slick Multiple Choice Creator */
+.choice-pill-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.studio-option-input {
+    width: 140px; 
+    border: 1px solid #ddd; 
+    padding: 6px 12px; 
+    border-radius: 6px; 
+    background: #fff;
+    font-size: 13px; outline: none; transition: 0.2s;
+}
+.studio-option-input:focus { border-color: var(--accent); }
+
+.choice-pill {
+    background: #FFFFFF;
+    border: 1px solid #E0E0E0; 
+    padding: 6px 12px;
+    border-radius: 6px; 
+    font-size: 13px; font-weight: 500;
+    color: #1d1d1f;
+    display: flex; align-items: center; gap: 10px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    transition: all 0.2s;
+}
+.choice-pill button { 
+    background: none; border: none; color: #C0C0C0; 
+    cursor: pointer; padding: 0; font-size: 16px; line-height: 1;
+}
+.choice-pill button:hover { color: #1d1d1f; }
+.choice-pill:hover { border-color: #ccc; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+
+/* Controls that appear on hover */
 .studio-controls {
     position: absolute; right: 10px; top: 10px;
     opacity: 0; transition: 0.2s; display: flex; gap: 5px;
 }
 .studio-question-block:hover .studio-controls { opacity: 1; }
 
-/* --- 9. VIEW: FLAGSHIP VIEWER (The Form) --- */
+.btn-delete-q {
+    background: transparent; border: none; color: #999;
+    font-size: 18px; cursor: pointer; padding: 0 0 0 10px;
+    line-height: 1; transition: 0.2s;
+}
+.btn-delete-q:hover { color: #d32f2f; transform: scale(1.1); }
+
+/* The Modal Card Itself */
+.glass-card, .glass-dialog {
+    background: var(--glass-surface); 
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    border-radius: 24px;
+    padding: 0; 
+    width: 480px; max-width: 90vw;
+    transform: scale(0.95) translateY(10px);
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    overflow: hidden; 
+    display: flex; flex-direction: column;
+}
+.glass-backdrop.active .glass-card, 
+.glass-backdrop.active .glass-dialog {
+    transform: scale(1) translateY(0);
+}
+
+/* --- BUTTONS --- */
+.btn-soft {
+    background: rgba(125,125,125,0.1);
+    border: 1px solid var(--glass-border);
+    color: var(--text-main);
+    padding: 10px 18px; border-radius: 100px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-soft:hover { 
+    background: rgba(125,125,125,0.2); transform: scale(1.02); 
+}
+
+.btn-main {
+    background: var(--accent); color: white;
+    border: none; padding: 12px 24px; border-radius: 100px;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: all 0.2s; box-shadow: 0 4px 15px rgba(169, 47, 61, 0.3);
+}
+.btn-main:hover { transform: scale(1.03); box-shadow: 0 6px 20px rgba(169, 47, 61, 0.4); }
+
+.btn-text {
+    background: none; border: none; font-size: 20px;
+    color: var(--text-muted); cursor: pointer;
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+}
+.btn-text:hover { background: rgba(0,0,0,0.05); color: var(--text-main); }
+
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+    100% { transform: translateX(0); }
+}
+
+/* Dashboard Grid */
+.template-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;
+    padding: 20px 0;
+}
+.template-card {
+    position: relative;
+    background: var(--glass-surface);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px; padding: 25px;
+    text-align: center; cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.template-card:hover {
+    background: var(--card-bg); transform: translateY(-5px);
+    box-shadow: var(--glass-shadow);
+}
+.template-icon { font-size: 32px; margin-bottom: 15px; opacity: 0.8; }
+.template-title { font-weight: 600; font-size: 14px; color: var(--text-main); }
+
+.btn-delete-card {
+    position: absolute; top: 10px; right: 10px;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(0, 0, 0, 0.05); color: var(--text-main);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: bold; cursor: pointer;
+    z-index: 20; opacity: 1; transition: all 0.2s ease;
+}
+.btn-delete-card:hover { background: #d32f2f; color: #fff; }
+
+/* --- CLIENT TIERS --- */
+body.tier-gold { --accent: #B8860B; --bg-gradient: radial-gradient(circle at 50% 0%, #FFF8E1 0%, #FFFFFF 100%); }
+body.tier-gold #client-tier-badge { background: linear-gradient(45deg, #FFD700, #FDB931); color: #5c4002; }
+
+body.tier-silver { --accent: #546E7A; --bg-gradient: radial-gradient(circle at 50% 0%, #ECEFF1 0%, #FFFFFF 100%); }
+body.tier-silver #client-tier-badge { background: linear-gradient(45deg, #E0E0E0, #BDBDBD); color: #424242; }
+
+body.tier-bronze { --accent: #8D6E63; }
+body.tier-bronze #client-tier-badge { background: #EFEBE9; color: #5D4037; border: 1px solid #D7CCC8; }
+
+/* --- FLAGSHIP FORM STYLES --- */
 .flagship-canvas-container {
     max-width: 800px; margin: 0 auto;
     padding: 40px 40px 120px 40px;
 }
+.flagship-field-group {
+    margin-bottom: 40px; background: transparent;
+}
 .flagship-label {
     font-size: 16px; font-weight: 600; margin-bottom: 12px;
-    display: block; color: var(--text-main);
+    display: block; color: var(--obsidian);
 }
 .flagship-input {
-    border: 2px solid rgba(0,0,0,0.1); border-radius: 8px;
-    background: var(--card-bg);
+    width: 100%; padding: 16px 20px;
+    font-size: 16px; color: var(--obsidian);
+    border: 2px solid var(--glass-border);
+    border-radius: 8px; background: var(--card-bg);
+    transition: all 0.2s ease-in-out;
+    box-sizing: border-box; 
 }
-.flagship-input:focus { border-color: #1a73e8; box-shadow: 0 4px 12px rgba(26, 115, 232, 0.15); }
-
-/* --- 10. MODALS --- */
-.glass-backdrop {
-    position: fixed; inset: 0;
-    background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(5px);
-    z-index: 999;
-    display: flex; justify-content: center; align-items: center;
-    opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+.flagship-input:focus {
+    border-color: var(--accent); background: var(--card-bg);
+    box-shadow: 0 4px 12px rgba(169, 47, 61, 0.15); outline: none;
 }
-.glass-backdrop.active { opacity: 1; pointer-events: all; }
+.flagship-input::placeholder { color: var(--text-muted); }
 
-.glass-dialog {
-    background: var(--glass-surface);
-    backdrop-filter: blur(20px);
-    width: 480px; max-width: 90vw;
-    border-radius: 24px;
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow);
-    transform: scale(0.95) translateY(10px);
-    transition: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-    display: flex; flex-direction: column; overflow: hidden;
+.field-helper { font-size: 13px; color: var(--text-muted); margin-top: 8px; }
+
+.flagship-radio-row {
+    display: flex; align-items: center; padding: 12px 16px;
+    border: 2px solid var(--glass-border); border-radius: 8px;
+    margin-bottom: 10px; cursor: pointer; transition: all 0.1s;
+    color: var(--obsidian);
 }
-.glass-backdrop.active .glass-dialog { transform: scale(1) translateY(0); }
+.flagship-radio-row:hover { background: var(--glass-surface); border-color: var(--text-muted); }
+.flagship-radio-row input { margin-right: 15px; width: 18px; height: 18px; accent-color: var(--accent); }
 
-.notion-group { margin-bottom: 20px; display: flex; flex-direction: column; gap: 6px; }
-.notion-label { font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-left: 4px; }
+#view-client-dashboard {
+    max-width: 1200px; margin: 0 auto; padding: 40px;
+}
 
-/* --- 11. MOBILE OPTIMIZATION --- */
+#print-header { display: none; }
+
+/* --- 12. MOBILE OPTIMIZATION (NEW) --- */
 @media (max-width: 768px) {
     /* Login */
     .login-card { width: 85%; padding: 40px 20px; }
@@ -310,10 +483,17 @@ body.tier-bronze #client-tier-badge { background: #EFEBE9; color: #5D4037; }
         display: flex; flex-direction: column;
         background: rgba(125,125,125,0.05);
         margin-bottom: 15px; border-radius: 12px; padding: 15px;
+        border: 1px solid var(--glass-border);
     }
     .modern-table td {
         border: none; padding: 5px 0;
         display: flex; justify-content: space-between; align-items: center;
+        text-align: right; /* Values right aligned */
+    }
+    .modern-table td::before {
+        /* Optional: Add headers via CSS if needed, or just rely on context */
+        content: attr(data-label); 
+        font-weight: 700; opacity: 0.5; text-align: left;
     }
     
     /* Client Grid */
@@ -322,21 +502,22 @@ body.tier-bronze #client-tier-badge { background: #EFEBE9; color: #5D4037; }
     /* Studio */
     .studio-top-banner { height: auto; padding: 15px; flex-direction: column; gap: 10px; }
     .studio-banner-content { display: flex; flex-direction: column; gap: 10px; }
-    .studio-paper { width: 100%; margin: 20px 0; padding: 30px; border-radius: 0; }
+    .studio-paper { width: 100%; margin: 20px 0; padding: 30px; border-radius: 0; min-height: 500px; }
     
     /* Flagship */
     .flagship-canvas-container { padding: 20px; }
     .glass-dialog { width: 95%; }
 }
 
-/* --- 12. PRINT STYLES --- */
+/* --- PRINT ENGINE REPAIR --- */
 @media print {
     body, #view-flagship-form {
         background: #fff !important; margin: 0 !important;
         padding: 0 !important; overflow: visible !important;
         height: auto !important; width: 100% !important;
     }
-    #print-header { display: block !important; margin-bottom: 20px; }
-    .flagship-field-group { break-inside: avoid; border: 1px solid #000; margin-bottom: 15px; }
-    .btn-main, .btn-soft, .glass-header, .glass-footer { display: none !important; }
+    #print-header { display: block !important; width: 100%; margin-bottom: 20px; position: relative; }
+    .flagship-field-group { break-inside: avoid; page-break-inside: avoid; border: 1px solid #000; margin-bottom: 15px; }
+    .flagship-input, textarea.flagship-input { white-space: pre-wrap; overflow: hidden; border: none; }
+    .btn-main, .btn-soft, .glass-header, .glass-footer, .studio-top-banner { display: none !important; }
 }
