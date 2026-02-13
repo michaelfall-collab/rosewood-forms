@@ -521,3 +521,73 @@ body.tier-bronze #client-tier-badge { background: #EFEBE9; color: #5D4037; borde
     .flagship-input, textarea.flagship-input { white-space: pre-wrap; overflow: hidden; border: none; }
     .btn-main, .btn-soft, .glass-header, .glass-footer, .studio-top-banner { display: none !important; }
 }
+/* --- CRITICAL FIXES (Paste at bottom of style.css) --- */
+
+/* 1. OBSIDIAN MODE: FORCE FULL DARK THEME */
+body.theme-obsidian {
+    /* Overwrite the core variables */
+    --bg-gradient: linear-gradient(135deg, #000000 0%, #1a1a1a 100%) !important;
+    --card-bg: #1c1c1e !important;
+    --text-main: #f5f5f7 !important;
+    --text-muted: #a1a1a6 !important;
+    --glass-surface: rgba(20, 20, 20, 0.9) !important;
+    --glass-border: rgba(255, 255, 255, 0.15) !important;
+    --input-bg: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Force specific elements to update in Dark Mode */
+body.theme-obsidian .studio-paper,
+body.theme-obsidian .flagship-paper,
+body.theme-obsidian .login-card {
+    background: #1c1c1e !important;
+    color: #f5f5f7 !important;
+    border-color: rgba(255,255,255,0.1) !important;
+}
+
+body.theme-obsidian .flagship-input,
+body.theme-obsidian .modern-input {
+    background: rgba(0,0,0,0.3) !important;
+    color: white !important;
+    border-color: rgba(255,255,255,0.2) !important;
+}
+
+body.theme-obsidian .glass-title,
+body.theme-obsidian h1, 
+body.theme-obsidian h2, 
+body.theme-obsidian h3 {
+    color: white !important;
+}
+
+/* 2. ROSEWOOD STUDIO BUTTON FIX */
+/* Restores the visibility and clickable area of Studio controls */
+.studio-controls {
+    opacity: 0; 
+    transition: 0.2s;
+    background: var(--card-bg); /* Matches card so it doesn't look weird */
+    padding: 5px;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+}
+.studio-question-block:hover .studio-controls {
+    opacity: 1;
+}
+
+/* Fix specific buttons inside Studio */
+.btn-soft {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    /* Ensure they are visible in both modes */
+    background: rgba(125,125,125,0.1); 
+    border: 1px solid var(--glass-border);
+    color: var(--text-main);
+}
+
+/* 3. FLAGSHIP VIEWER: PRESERVE OLD STYLE */
+/* Ensures the paper looks like a piece of paper, even in dark mode */
+.flagship-paper {
+    box-shadow: 0 20px 50px -10px rgba(0,0,0,0.3);
+}
