@@ -1,10 +1,9 @@
 // --- CONFIGURATION ---
-// Replace these with your actual Supabase keys
 const SUPABASE_URL = "https://epytlgfjtucnewxlaldd.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVweXRsZ2ZqdHVjbmV3eGxhbGRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNTQwNjEsImV4cCI6MjA4NjgzMDA2MX0.6cjCGri0WnwXx22jaoFod1ToIIxd2VJEHWLaMY1qmVE";
 
-// Initialize the client
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// FIX: We name this 'sb' instead of 'supabase' to avoid conflict with the library
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // --- STATE ---
 let USER_DATA = null;
@@ -106,13 +105,12 @@ async function apiCall(action, payload = {}) {
     try {
         /* --- 1. LOGIN --- */
         if (action === 'login') {
-            // ADMIN LOGIN (Hardcoded for now, like your CSV)
             if (payload.u.toLowerCase() === 'admin' && payload.p === 'rosewood2026') {
                 return { success: true, user: { role: 'admin', name: 'Administrator', tier: 'Gold' } };
             }
 
-            // CLIENT LOGIN (Check Database)
-            const { data, error } = await supabase
+            // Use 'sb' here
+            const { data, error } = await sb
                 .from('clients')
                 .select('*')
                 .eq('name', payload.u)
@@ -123,10 +121,9 @@ async function apiCall(action, payload = {}) {
             return { success: true, user: { ...data, role: 'client' } };
         }
 
-        /* --- 2. CLIENT DASHBOARD (Get Requests) --- */
+        /* --- 2. CLIENT DASHBOARD --- */
         if (action === 'clientData') {
-            // Fetch requests AND the linked form title in one shot
-            const { data, error } = await supabase
+            const { data, error } = await sb
                 .from('requests')
                 .select(`
                     id, 
@@ -138,7 +135,6 @@ async function apiCall(action, payload = {}) {
             
             if (error) throw error;
 
-            // Map it to match your old app's expected format
             const formattedForms = data.map(r => ({
                 reqId: r.id,
                 status: r.status,
@@ -149,10 +145,9 @@ async function apiCall(action, payload = {}) {
             return { success: true, forms: formattedForms };
         }
 
-        /* --- 3. GET FORM SCHEMA (Load the Questions) --- */
+        /* --- 3. GET FORM SCHEMA --- */
         if (action === 'getSchema') {
-            // First get the Form ID
-            const { data: formData, error: formError } = await supabase
+            const { data: formData, error: formError } = await sb
                 .from('forms')
                 .select('id, description')
                 .eq('title', payload.formName)
@@ -160,8 +155,7 @@ async function apiCall(action, payload = {}) {
             
             if (formError || !formData) throw new Error("Form not found");
 
-            // Then get the questions
-            const { data: questions, error: qError } = await supabase
+            const { data: questions, error: qError } = await sb
                 .from('questions')
                 .select('*')
                 .eq('form_id', formData.id)
@@ -169,7 +163,6 @@ async function apiCall(action, payload = {}) {
 
             if (qError) throw qError;
 
-            // Add the meta_description manually (since we moved it to the forms table)
             if (formData.description) {
                 questions.unshift({ key: 'meta_description', type: 'hidden', label: formData.description });
             }
@@ -179,18 +172,15 @@ async function apiCall(action, payload = {}) {
 
         /* --- 4. SAVE ANSWERS --- */
         if (action === 'saveData') {
-            // 1. Fetch current data
-            const { data: client } = await supabase
+            const { data: client } = await sb
                 .from('clients')
                 .select('project_data')
                 .eq('id', payload.u)
                 .single();
 
-            // 2. Merge new answers with old answers
             const updatedData = { ...client.project_data, ...payload.data };
 
-            // 3. Save back to DB
-            const { error } = await supabase
+            const { error } = await sb
                 .from('clients')
                 .update({ project_data: updatedData })
                 .eq('id', payload.u);
@@ -201,8 +191,8 @@ async function apiCall(action, payload = {}) {
 
         /* --- 5. ADMIN DASHBOARD --- */
         if (action === 'adminData') {
-            const { data: clients } = await supabase.from('clients').select('*').order('id');
-            const { data: forms } = await supabase.from('forms').select('title');
+            const { data: clients } = await sb.from('clients').select('*').order('id');
+            const { data: forms } = await sb.from('forms').select('title');
             
             return { 
                 success: true, 
@@ -211,7 +201,6 @@ async function apiCall(action, payload = {}) {
             };
         }
         
-        // Fallback
         return { success: false, message: "Unknown Action" };
 
     } catch (e) {
