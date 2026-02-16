@@ -820,7 +820,7 @@ function renderAdminDashboard(clients) {
         
         const btnForms = document.createElement('button');
         btnForms.className = "btn-soft";
-        btnForms.innerHTML = "View Data";
+        btnForms.innerHTML = "View Forms";
         btnForms.onclick = () => openFormPicker(client); 
 
         const btnPush = document.createElement('button');
@@ -917,30 +917,66 @@ async function saveClientChanges() {
     }
 }
 
-function openFormPicker(client) {
+async function openFormPicker(client) {
     CURRENT_ADMIN_CLIENT = client;
     const modal = document.getElementById('form-picker-modal');
     const container = document.getElementById('form-list-container');
-    container.innerHTML = ""; 
     
-    if(ALL_FORMS.length === 0) {
-        container.innerHTML = "<p style='text-align:center; opacity:0.5;'>No forms found.</p>";
+    // 1. Show Loading State (because we are now fetching data)
+    container.innerHTML = "<p style='text-align:center; opacity:0.5; padding:20px;'>Loading assigned forms...</p>";
+    modal.classList.add('active');
+
+    // 2. Fetch the ACTUAL assigned forms (Reusing your Client Dashboard API)
+    const res = await apiCall('clientData', { id: client.id });
+    
+    container.innerHTML = ""; // Clear loading message
+
+    // 3. Handle Empty State
+    if (!res.success || !res.forms || res.forms.length === 0) {
+        container.innerHTML = `
+            <div style="text-align:center; padding:20px; opacity:0.6;">
+                <div style="font-size:24px; margin-bottom:10px;">📭</div>
+                No forms assigned yet.<br>
+                <span style="font-size:12px;">Click "+ Assign" to push a form.</span>
+            </div>`;
+        return;
     }
 
-    ALL_FORMS.forEach(form => {
+    // 4. Render the List (With Status Badges!)
+    res.forms.forEach(form => {
         const btn = document.createElement('button');
         btn.className = "btn-soft"; 
         btn.style.width = "100%";
         btn.style.marginBottom = "10px";
         btn.style.justifyContent = "space-between";
-        btn.innerHTML = `<span>${form}</span> <span style="opacity:0.3;">→</span>`;
+        btn.style.display = "flex";
+        btn.style.alignItems = "center";
+        
+        // Color coding for status
+        const isComplete = form.status === 'Completed';
+        const statusBg = isComplete ? '#E8F5E9' : '#FFF3E0';
+        const statusColor = isComplete ? '#2E7D32' : '#E65100';
+
+        btn.innerHTML = `
+            <div style="text-align:left;">
+                <div style="font-weight:600;">${form.formName}</div>
+                <div style="font-size:10px; opacity:0.6;">${new Date(form.date).toLocaleDateString()}</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-size:10px; background:${statusBg}; color:${statusColor}; padding:2px 8px; border-radius:10px; font-weight:700;">
+                    ${form.status}
+                </span>
+                <span style="opacity:0.3;">→</span>
+            </div>
+        `;
+        
         btn.onclick = () => {
             modal.classList.remove('active');
-            openFlagshipForm(form); 
+            // Pass the specific status so the form viewer knows if it's locked or not
+            openFlagshipForm(form.formName, form.status, form.reqId); 
         };
         container.appendChild(btn);
     });
-    modal.classList.add('active');
 }
 
 /* --- STUDIO & TEMPLATES --- */
