@@ -536,7 +536,6 @@ async function initAdmin() {
 /* --- CLIENT PORTAL LOGIC --- */
 
 async function initClientDashboard() {
-    document.body.className = `tier-${USER_DATA.tier.toLowerCase()}`;
     const dash = document.getElementById('view-client-dashboard');
     dash.classList.remove('hidden');
     
@@ -554,9 +553,6 @@ async function initClientDashboard() {
                 <button class="btn-soft" onclick="openSettings()">⚙️ Settings</button>
                 <button class="btn-soft" onclick="logout()">Logout</button>
             </div>
-        </div>
-        <div id="client-tier-badge" style="margin-bottom: 20px; display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
-            ${USER_DATA.tier} Member
         </div>
         <div id="dashboard-content-area">
             <div style='opacity:0.5; padding:20px;'>Loading your forms...</div>
@@ -856,12 +852,12 @@ function renderAdminDashboard(clients) {
     tbody.innerHTML = ""; 
     
     clients.forEach(client => {
-        if(client.id === "ID") return; // Header skip
+        if(client.id === "ID") return; 
         
         const tr = document.createElement('tr');
         tr.innerHTML += `<td style="font-weight:600;">${client.name}</td>`;
         tr.innerHTML += `<td><span style="font-family:monospace; background:rgba(0,0,0,0.05); padding:4px 8px; border-radius:6px; font-size:12px;">${client.code}</span></td>`;
-        tr.innerHTML += `<td><span style="${getTierStyle(client.tier)}">${client.tier}</span></td>`;
+        // REMOVED TIER COLUMN HERE
         tr.innerHTML += `<td><span style="${getStatusStyle(client.status)} padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;">${client.status || 'Active'}</span></td>`;
         
         const tdAction = document.createElement('td');
@@ -885,18 +881,17 @@ function renderAdminDashboard(clients) {
         btnPush.innerHTML = "+ Assign";
         btnPush.onclick = () => openPushModal(client);
 
-        // FEATURE: Delete Button
         const btnDelete = document.createElement('button');
         btnDelete.className = "btn-text";
         btnDelete.innerHTML = "&times;";
         btnDelete.style.color = "#d32f2f";
-        btnDelete.title = "Delete Client";
+        btnDelete.title = "Delete Member"; // Renamed
         btnDelete.onclick = () => promptDeleteClient(client);
         
         tdAction.appendChild(btnPush);
         tdAction.appendChild(btnProfile);
         tdAction.appendChild(btnForms);
-        tdAction.appendChild(btnDelete); // Added delete
+        tdAction.appendChild(btnDelete);
         tr.appendChild(tdAction);
         
         tbody.appendChild(tr);
@@ -938,17 +933,18 @@ function getTierStyle(tier) {
 
 function openClientEditor(client) {
     if(!client) {
-        client = { id: "", name: "", code: "", tier: "Bronze", status: "Active" };
-        document.getElementById('ce-title').innerText = "New Client";
+        // REMOVED tier default
+        client = { id: "", name: "", code: "", status: "Active" };
+        document.getElementById('ce-title').innerText = "New Member"; // Renamed
     } else {
-        document.getElementById('ce-title').innerText = "Edit Client";
+        document.getElementById('ce-title').innerText = "Edit Member"; // Renamed
     }
     CURRENT_ADMIN_CLIENT = client;
     const modal = document.getElementById('admin-modal');
     document.getElementById('ce-id').value = client.id;
     document.getElementById('ce-name').value = client.name;
     document.getElementById('ce-code').value = client.code;
-    document.getElementById('ce-tier').value = client.tier;
+    // REMOVED: document.getElementById('ce-tier').value = client.tier;
     document.getElementById('ce-status').value = client.status || "Active";
     modal.classList.add('active');
 }
@@ -961,10 +957,11 @@ async function saveClientChanges() {
     const id = document.getElementById('ce-id').value;
     const name = document.getElementById('ce-name').value;
     const code = document.getElementById('ce-code').value;
-    const tier = document.getElementById('ce-tier').value;
+    // REMOVED: const tier = ...
     const status = document.getElementById('ce-status').value;
 
-    const res = await apiCall('saveClient', { id, name, code, tier, status });
+    // REMOVED tier from payload
+    const res = await apiCall('saveClient', { id, name, code, status });
     if(res.success) {
         closeClientEditor();
         initAdmin(); 
