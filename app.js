@@ -615,6 +615,7 @@ async function openFlagshipForm(formName, status, reqId = null) {
     const title = document.getElementById('flagship-form-title');
     const descEl = document.getElementById('flagship-form-desc');
     const printTitle = document.getElementById('print-title');
+    modal.setAttribute('data-form-name', formName);
     
     CURRENT_REQUEST_ID = reqId;
 
