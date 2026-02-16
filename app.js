@@ -145,7 +145,6 @@ async function apiCall(action, payload = {}) {
             return { success: true, forms: formattedForms };
         }
 
-        /* --- 3. GET FORM SCHEMA --- */
         /* --- 3. GET FORM SCHEMA (Smart Version) --- */
         if (action === 'getSchema') {
             
@@ -220,7 +219,19 @@ async function apiCall(action, payload = {}) {
             if (error) throw error;
             return { success: true };
         }
-
+        /* --- 4.5 GET EXISTING ANSWERS (Missing Piece) --- */
+        if (action === 'getAnswers') {
+            const { data, error } = await sb
+                .from('clients')
+                .select('project_data')
+                .eq('id', payload.id)
+                .single();
+            
+            if (error) throw error;
+            // Return empty object if no answers yet
+            return { success: true, answers: data.project_data || {} };
+        }
+        
         /* --- 5. ADMIN DASHBOARD --- */
         if (action === 'adminData') {
             const { data: clientsRaw } = await sb.from('clients').select('*').order('id');
