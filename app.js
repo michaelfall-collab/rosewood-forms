@@ -48,7 +48,7 @@ const RosewoodUI = {
                 ${text}
                 <div style="margin-top:15px;">
                     <input type="text" id="rw-prompt-input" placeholder="Type '${confirmKeyword}' to confirm" 
-                    style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; text-transform:uppercase;">
+                    style="width: calc(100% - 22px); padding:10px; border:1px solid #ccc; border-radius:6px; text-transform:uppercase;">
                 </div>
             `;
             this.actions().innerHTML = "";
@@ -528,43 +528,43 @@ async function initClientDashboard() {
     grid.innerHTML = "<div style='opacity:0.5;'>Loading your forms...</div>";
     
     const res = await apiCall('clientData', { id: USER_DATA.id });
-    grid.innerHTML = ""; 
-    
-    if(!res.forms || res.forms.length === 0) {
-        grid.innerHTML = `
-            <div class="glass-card" style="grid-column: 1 / -1; text-align:center; padding:40px;">
-                <div style="font-size:40px; margin-bottom:10px;">☕</div>
-                <div style="font-weight:600;">All caught up!</div>
-                <div style="opacity:0.6; font-size:14px;">No forms are currently assigned to you.</div>
-            </div>`;
-        return;
+    if (!res.forms) return;
+
+    const pendingForms = res.forms.filter(f => f.status !== 'Completed');
+    const completedForms = res.forms.filter(f => f.status === 'Completed');
+
+    let html = `<h2 style="font-size: 18px; margin-bottom: 15px; opacity: 0.7;">Active Tasks</h2>
+                <div id="pending-grid" class="template-grid"></div>`;
+
+    if (completedForms.length > 0) {
+        html += `
+            <div class="completed-toggle" onclick="document.getElementById('completed-section').classList.toggle('hidden')">
+                <span>Show Completed Forms (${completedForms.length})</span> ▾
+            </div>
+            <div id="completed-section" class="template-grid hidden"></div>`;
     }
+    
+    dash.innerHTML += html;
 
-    res.forms.forEach(form => {
-        const isCompleted = (form.status === 'Completed');
-        const card = document.createElement('div');
-        card.className = "glass-card";
-        card.style.cursor = "pointer";
-        card.style.transition = "transform 0.2s";
-        card.onclick = () => openFlagshipForm(form.formName, form.status, form.reqId);
+    const renderCard = (form) => {
+        const isComp = form.status === 'Completed';
+        return `
+            <div class="glass-card ${isComp ? 'status-completed' : 'status-pending'}" onclick="openFlagshipForm('${form.formName}', '${form.status}', '${form.reqId}')">
+                <div class="glass-header" style="background:transparent; border:none;">
+                    <span style="font-size:10px; font-weight:800; text-transform:uppercase;">${form.status}</span>
+                    ${isComp ? '✅' : '📝'}
+                </div>
+                <div class="glass-content" style="padding-top:0;">
+                    <div style="font-size:18px; font-weight:700;">${form.formName}</div>
+                    <div style="font-size:11px; opacity:0.5; margin-top:5px;">${new Date(form.date).toLocaleDateString()}</div>
+                </div>
+            </div>`;
+    };
 
-        card.innerHTML = `
-            <div class="glass-header" style="border:none; padding-bottom:0;">
-                <div style="font-size:12px; font-weight:700; color:var(--accent); text-transform:uppercase;">${form.status}</div>
-                ${isCompleted ? '✅' : '📝'}
-            </div>
-            <div class="glass-content" style="padding-top:10px;">
-                <div style="font-size:18px; font-weight:700; margin-bottom:5px;">${form.formName}</div>
-                <div style="font-size:12px; opacity:0.6;">Assigned: ${new Date(form.date).toLocaleDateString()}</div>
-            </div>
-            <div class="glass-footer" style="background:transparent; border:none; padding-top:0;">
-                <span style="font-size:12px; font-weight:600; color:var(--text-main); opacity:0.8;">
-                    ${isCompleted ? 'View Submission' : 'Start Now &rarr;'}
-                </span>
-            </div>
-        `;
-        grid.appendChild(card);
-    });
+    document.getElementById('pending-grid').innerHTML = pendingForms.map(renderCard).join('') || "<p style='opacity:0.5;'>No pending tasks.</p>";
+    if (completedForms.length > 0) {
+        document.getElementById('completed-section').innerHTML = completedForms.map(renderCard).join('');
+    }
 }
 
 /* --- FLAGSHIP FORM RENDERER (Unified) --- */
@@ -1161,9 +1161,10 @@ function removeOption(fieldIndex, optIndex) {
 
 function markUnsaved() {
     const btn = document.getElementById('btn-save-studio');
-    if(btn && (btn.innerText === "Saved!" || btn.innerText === "Syncing...")) {
+    if (btn) {
         btn.innerText = "Save Cloud Template";
-        btn.style.background = "var(--rw-red)";
+        btn.style.color = "var(--rw-red)";
+        btn.style.borderColor = "var(--rw-red)";
     }
 }
 
@@ -1218,7 +1219,8 @@ async function saveStudioChanges() {
             CURRENT_STUDIO_FORM = newName;
             if(!ALL_FORMS.includes(newName)) ALL_FORMS.push(newName);
             btn.innerText = "Saved!";
-            btn.style.background = "#2E7D32"; 
+            btn.style.color = "#2E7D32";
+            btn.style.borderColor = "#2E7D32";
             setTimeout(() => {
                 btn.innerText = "Save Cloud Template";
                 btn.style.background = "var(--rw-red)";
