@@ -792,74 +792,52 @@ body.tier-bronze #client-tier-badge {
     padding: 40px;     /* Adds breathing room */
 }
 
-/* --- MATERIAL EXPRESSIVE PRINT ENGINE --- */
 @media print {
-    /* 1. Nuke everything except the active form */
+    /* Clean Slate */
     body * { visibility: hidden !important; background: white !important; }
     #flagship-form-modal, #flagship-form-modal * { visibility: visible !important; }
-    
-    /* 2. Reset the container to a flat document */
+
     #flagship-form-modal {
         position: absolute !important;
-        left: 0 !important;
-        top: 0 !important;
-        width: 100% !important;
-        height: auto !important;
-        display: block !important;
+        top: 0; left: 0; width: 100%;
         background: white !important;
         box-shadow: none !important;
-        border: none !important;
-        transform: none !important;
+        display: block !important;
     }
 
-    /* 3. Material Sectioning: Give every group a clear border and title */
+    /* SECTION STYLE (Material Expressive) */
     .notion-group {
-        visibility: visible !important;
-        display: block !important;
         margin-bottom: 30px !important;
         padding: 20px !important;
-        border: 2px solid #1A1716 !important; /* Bold Material Border */
-        border-radius: 12px !important;
+        background: #fdfdfd !important;
+        border: 2px solid #1a1716 !important; /* Thick "Pronounced" border */
+        border-radius: 0px !important; /* Sharp Material look */
         page-break-inside: avoid;
     }
 
     .notion-label {
-        font-family: 'Inter', sans-serif !important;
-        font-size: 16px !important;
+        font-size: 16pt !important;
         color: #000 !important;
-        font-weight: 800 !important;
-        text-transform: uppercase !important;
-        letter-spacing: 0.5px !important;
-        margin-bottom: 12px !important;
+        font-weight: 900 !important;
+        text-transform: uppercase;
+        border-bottom: 2px solid #1a1716;
+        margin-bottom: 15px !important;
+        padding-bottom: 5px;
     }
 
-    /* 4. Pronounced Inputs (Solid Fill) */
+    /* INPUT STYLE (Pronounced Opaque) */
     .notion-input, .notion-textarea {
-        visibility: visible !important;
-        background: #f4f4f4 !important; /* Solid Opaque Fill */
-        border: 1px solid #ccc !important;
-        border-radius: 8px !important;
-        padding: 12px !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
-        color: #333 !important;
+        background: #f4f4f4 !important; /* Solid gray fill */
+        border: 2px solid #1a1716 !important;
+        border-radius: 4px !important;
+        font-size: 12pt !important;
+        padding: 10px !important;
+        min-height: 40px;
     }
 
-    /* 5. Hide the UI Clutter */
+    /* Remove UI Clutter */
     .btn-main, .btn-soft, .btn-text, .glass-header, .studio-top-banner {
         display: none !important;
-    }
-
-    /* 6. Add a Professional Header */
-    #flagship-form-modal::before {
-        content: "ROSEWOOD STUDIO - CLIENT DATA EXPORT";
-        display: block;
-        font-weight: 900;
-        font-size: 20px;
-        margin-bottom: 40px;
-        color: #1A1716;
-        border-bottom: 4px solid #1A1716;
-        padding-bottom: 10px;
     }
 }
 
