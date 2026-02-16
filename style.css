@@ -864,11 +864,30 @@ body.tier-bronze #client-tier-badge {
     /* 2. Admin Layout: Stack Sidebar over Content */
     .admin-container {
         display: flex;
+        flex-direction: column !important; /* Critical Fix */
+        justify-content: flex-start !important;
         width: 100%;
-        height: 100vh;
+        height: 100vh; /* Full viewport height */
         overflow: hidden;
+        padding: 0 !important;
+    }
+    .glass-header-bar {
+        flex-direction: column !important;
+        height: auto !important;
+        padding: 15px !important;
+        gap: 10px !important;
+        flex-shrink: 0; /* Prevents header from shrinking */
     }
 
+    /* FIX: Table container takes remaining space */
+    .glass-table-container {
+        flex: 1;
+        width: 100%;
+        overflow-y: auto;
+        border-radius: 0;
+        margin: 0;
+        padding-bottom: 80px; /* Space for scrolling */
+    }
     .sidebar {
         position: fixed !important;
         left: -100%;
