@@ -11,6 +11,11 @@
     --text-muted: #86868b;
     --accent: #A92F3D; /* Rosewood Red */
     --bg-gradient: radial-gradient(circle at 50% 0%, #f5f5f7 0%, #e8e8ed 100%);
+    --clay-shadow-outer: 10px 10px 20px rgba(0, 0, 0, 0.08), 
+                         -10px -10px 20px rgba(255, 255, 255, 0.8);
+    --clay-shadow-inner: inset 6px 6px 12px rgba(0,0,0,0.03), 
+                         inset -6px -6px 12px rgba(255,255,255,0.7);
+    --clay-radius: 35px;
 }
 
 body {
@@ -317,13 +322,13 @@ tr:hover td { background: rgba(255,255,255,0.4); }
 }
 /* --- RESTORED MODAL GLASS STYLE --- */
 .glass-card, .glass-dialog {
-    background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(20px) saturate(180%);
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(25px) saturate(200%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-    border-radius: 24px !important; /* Forces the rounded corners back */
-    transform: scale(0.95) translateY(10px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: var(--clay-shadow-outer), var(--clay-shadow-inner) !important;
+    border-radius: var(--clay-radius) !important;
+    transform: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
     overflow: hidden;
     display: flex;
@@ -342,9 +347,10 @@ tr:hover td { background: rgba(255,255,255,0.4); }
 }
 
 .glass-card:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-    filter: brightness(1.05);
+    transform: translateY(-5px) scale(1.01);
+    box-shadow: 15px 15px 30px rgba(0, 0, 0, 0.1), 
+                -15px -15px 30px rgba(255, 255, 255, 0.9),
+                inset 2px 2px 5px rgba(0,0,0,0.02) !important;
 }
 /* Status Shading */
 .status-pending { background: rgba(255, 243, 224, 0.5) !important; border-left: 4px solid #E65100; }
@@ -813,5 +819,42 @@ body.tier-bronze #client-tier-badge {
     .flagship-input, textarea.flagship-input {
         white-space: pre-wrap; /* Preserves newlines but wraps text */
         overflow: hidden; /* Hides scrollbars */
+    }
+}
+/* --- MOBILE OPTIMIZATION (Industry Standard) --- */
+@media (max-width: 768px) {
+    /* 1. Stack the grid to single column */
+    .template-grid {
+        grid-template-columns: 1fr !important;
+        gap: 15px;
+        padding: 10px;
+    }
+
+    /* 2. Adjust the sidebar/main layout */
+    .admin-container {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        height: auto;
+        padding: 15px;
+        flex-direction: row; /* Turn sidebar into a top-bar on mobile */
+        overflow-x: auto;
+    }
+
+    /* 3. Make buttons and inputs larger for thumbs */
+    .btn-main, .btn-soft, .notion-input {
+        padding: 14px 20px;
+        font-size: 16px; /* Prevents iOS from auto-zooming on inputs */
+    }
+
+    /* 4. Shrink headers so they fit */
+    h1 { font-size: 24px; }
+    .glass-header { 
+        padding: 15px; 
+        flex-direction: column; 
+        align-items: flex-start;
+        gap: 10px;
     }
 }
