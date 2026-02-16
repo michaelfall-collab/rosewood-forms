@@ -792,102 +792,81 @@ body.tier-bronze #client-tier-badge {
     padding: 40px;     /* Adds breathing room */
 }
 
-/* --- PRINT ENGINE REPAIR --- */
+/* --- PROFESSIONAL PRINT ENGINE --- */
 @media print {
-    /* RESET LAYOUT */
-    body, #view-flagship-form {
-        background: #fff !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        overflow: visible !important;
-        height: auto !important;
-        width: 100% !important;
-    }
-
-    /* HEADER FIX: Ensure it stays at top */
-    #print-header {
-        display: block !important;
-        width: 100%;
-        margin-bottom: 20px;
-        /* Do NOT use position: fixed here, it causes the centering bug */
-        position: relative; 
-    }
+    /* Hide everything except the form */
+    body * { visibility: hidden; background: white !important; }
+    #flagship-form-modal, #flagship-form-modal * { visibility: visible; }
     
-    /* PREVENT PAGE BREAKS IN WEIRD SPOTS */
-    .flagship-field-group {
-        break-inside: avoid; 
-        page-break-inside: avoid;
-        border: 1px solid #000;
-        margin-bottom: 15px;
-    }
-
-    /* FORCE TEXT WRAPPING */
-    .flagship-input, textarea.flagship-input {
-        white-space: pre-wrap; /* Preserves newlines but wraps text */
-        overflow: hidden; /* Hides scrollbars */
-    }
-}
-/* --- MOBILE OPTIMIZATION (Industry Standard) --- */
-@media (max-width: 600px) {
-    /* Force the viewport to behave */
-    html, body {
-        overflow-x: hidden;
-        width: 100%;
-        margin: 0;
-        padding: 0;
-    }
-
-    /* Stack everything */
-    .admin-container {
-        display: block !important; /* Kill the Flex layout */
-    }
-
-    /* Convert Sidebar to a scrolling top-menu */
-    .sidebar {
-        width: 100% !important;
-        height: auto !important;
-        padding: 10px !important;
-        flex-direction: row !important;
-        overflow-x: auto;
-        border-right: none;
-        border-bottom: 1px solid rgba(0,0,0,0.05);
-        position: sticky;
+    #flagship-form-modal {
+        position: absolute;
+        left: 0;
         top: 0;
-        z-index: 100;
-    }
-
-    /* Fix the scrunched buttons */
-    .sidebar button {
-        white-space: nowrap;
-        padding: 10px 15px !important;
-    }
-
-    /* Dashboard adjustments */
-    .main-content {
-        padding: 15px !important;
-        width: 100% !important;
-        box-sizing: border-box;
-    }
-
-    .glass-header {
-        flex-direction: column;
-        align-items: flex-start !important;
-        gap: 15px;
-    }
-
-    /* Fix the "Scrunched" Grid */
-    .template-grid {
-        grid-template-columns: 1fr !important; /* Single column only */
         width: 100%;
+        box-shadow: none !important;
+        border: none !important;
+        background: white !important;
     }
 
-    /* Ensure modals don't go off-screen */
-    .glass-card, .glass-dialog {
-        width: 95% !important;
-        max-width: none !important;
-        margin: 10px auto;
+    /* Hide buttons and interactive UI */
+    .btn-main, .btn-soft, .btn-text, .glass-header button { display: none !important; }
+
+    /* Format Questions for Paper */
+    .notion-group {
+        margin-bottom: 25px;
+        page-break-inside: avoid;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+    }
+
+    .notion-label {
+        font-size: 14px !important;
+        color: black !important;
+        font-weight: 700 !important;
+        margin-bottom: 8px !important;
+    }
+
+    /* Transform inputs into clean lines or boxes */
+    .notion-input, .notion-textarea {
+        border: none !important;
+        border-bottom: 1px solid #000 !important;
+        background: transparent !important;
+        border-radius: 0 !important;
+        padding: 5px 0 !important;
     }
 }
+
+/* Mobile Sidebar Styles */
+@media (max-width: 768px) {
+    .menu-trigger { display: block !important; }
+
+    .sidebar {
+        position: fixed;
+        left: -280px; /* Hidden off-screen */
+        top: 0;
+        height: 100vh !important;
+        width: 280px !important;
+        background: white;
+        z-index: 1000;
+        transition: left 0.3s ease;
+        box-shadow: 20px 0 50px rgba(0,0,0,0.1);
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    .sidebar.mobile-active {
+        left: 0; /* Slides in */
+    }
+
+    .sidebar button {
+        width: 100%;
+        text-align: left;
+        padding: 15px !important;
+        border-radius: 0;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+}
+
 #view-login .glass-card {
     background: white !important; /* Login needs to be clean/crisp */
     box-shadow: 0 20px 40px rgba(0,0,0,0.1) !important;
