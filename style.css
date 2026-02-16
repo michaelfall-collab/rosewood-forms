@@ -792,66 +792,129 @@ body.tier-bronze #client-tier-badge {
     padding: 40px;     /* Adds breathing room */
 }
 
-/* --- PROFESSIONAL PRINT ENGINE --- */
+/* --- MATERIAL EXPRESSIVE PRINT ENGINE --- */
 @media print {
-    /* Hide everything except the form */
-    body * { visibility: hidden; background: white !important; }
-    #flagship-form-modal, #flagship-form-modal * { visibility: visible; }
+    /* 1. Nuke everything except the active form */
+    body * { visibility: hidden !important; background: white !important; }
+    #flagship-form-modal, #flagship-form-modal * { visibility: visible !important; }
     
+    /* 2. Reset the container to a flat document */
     #flagship-form-modal {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        display: block !important;
+        background: white !important;
         box-shadow: none !important;
         border: none !important;
-        background: white !important;
+        transform: none !important;
     }
 
-    /* Hide buttons and interactive UI */
-    .btn-main, .btn-soft, .btn-text, .glass-header button { display: none !important; }
-
-    /* Format Questions for Paper */
+    /* 3. Material Sectioning: Give every group a clear border and title */
     .notion-group {
-        margin-bottom: 25px;
+        visibility: visible !important;
+        display: block !important;
+        margin-bottom: 30px !important;
+        padding: 20px !important;
+        border: 2px solid #1A1716 !important; /* Bold Material Border */
+        border-radius: 12px !important;
         page-break-inside: avoid;
-        border-bottom: 1px solid #eee;
-        padding-bottom: 10px;
     }
 
     .notion-label {
-        font-size: 14px !important;
-        color: black !important;
-        font-weight: 700 !important;
-        margin-bottom: 8px !important;
+        font-family: 'Inter', sans-serif !important;
+        font-size: 16px !important;
+        color: #000 !important;
+        font-weight: 800 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        margin-bottom: 12px !important;
     }
 
-    /* Transform inputs into clean lines or boxes */
+    /* 4. Pronounced Inputs (Solid Fill) */
     .notion-input, .notion-textarea {
-        border: none !important;
-        border-bottom: 1px solid #000 !important;
-        background: transparent !important;
-        border-radius: 0 !important;
-        padding: 5px 0 !important;
+        visibility: visible !important;
+        background: #f4f4f4 !important; /* Solid Opaque Fill */
+        border: 1px solid #ccc !important;
+        border-radius: 8px !important;
+        padding: 12px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        color: #333 !important;
+    }
+
+    /* 5. Hide the UI Clutter */
+    .btn-main, .btn-soft, .btn-text, .glass-header, .studio-top-banner {
+        display: none !important;
+    }
+
+    /* 6. Add a Professional Header */
+    #flagship-form-modal::before {
+        content: "ROSEWOOD STUDIO - CLIENT DATA EXPORT";
+        display: block;
+        font-weight: 900;
+        font-size: 20px;
+        margin-bottom: 40px;
+        color: #1A1716;
+        border-bottom: 4px solid #1A1716;
+        padding-bottom: 10px;
     }
 }
 
 /* Mobile Sidebar Styles */
-@media (max-width: 768px) {
+@media (max-width: 600px) {
     .menu-trigger { display: block !important; }
 
+    .admin-container {
+        display: block !important;
+        overflow-x: hidden !important;
+    }
+    /* 2. Fix the header from pushing settings off-screen */
+    .glass-header {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 15px;
+    }
+
+    .glass-header div {
+        width: 100% !important;
+        display: flex !important;
+        justify-content: space-between; /* Keeps settings/logout visible */
+    }
+
+    /* 3. Fix "New Client" button cutoff */
+    .main-content {
+        padding: 10px !important;
+        margin-top: 20px;
+    }
+
+    /* Ensure table-like lists wrap */
+    .client-list-item {
+        display: flex;
+        flex-direction: column !important;
+        height: auto !important;
+        padding: 15px !important;
+    }
+    
     .sidebar {
-        position: fixed;
-        left: -280px; /* Hidden off-screen */
+        position: fixed !important;
         top: 0;
+        left: -100% !important; /* Start completely off-screen */
+        width: 260px !important;
         height: 100vh !important;
-        width: 280px !important;
-        background: white;
-        z-index: 1000;
-        transition: left 0.3s ease;
-        box-shadow: 20px 0 50px rgba(0,0,0,0.1);
+        background: white !important;
+        z-index: 9999 !important;
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         display: flex !important;
         flex-direction: column !important;
+        box-shadow: 10px 0 30px rgba(0,0,0,0.2);
+        padding: 20px !important;
+    }
+
+    .sidebar.mobile-open {
+        left: 0 !important;
     }
 
     .sidebar.mobile-active {
@@ -864,6 +927,16 @@ body.tier-bronze #client-tier-badge {
         padding: 15px !important;
         border-radius: 0;
         border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    .hamburger-btn {
+        display: block !important;
+        background: var(--rw-red);
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
     }
 }
 
