@@ -1408,9 +1408,6 @@ async function openSettings() {
     const modal = document.getElementById('settings-modal');
     const input = document.getElementById('new-password-input');
     
-    // 1. Determine the "Current" password
-    // For clients, it's stored in USER_DATA.access_code
-    // For admin, we have to fetch it from the DB since it's not in the local USER_DATA object
     let currentPass = "";
     
     if (USER_DATA.role === 'client') {
@@ -1433,6 +1430,11 @@ async function openSettings() {
     } else {
         adminPanel.classList.add('hidden');
     }
+}
+/* --- NEW: Mobile Menu Toggle --- */
+function toggleMobileMenu() {
+    const sidebar = document.querySelector('.sidebar');
+    sidebar.classList.toggle('mobile-active');
 }
 function toggleSettingsPass() {
     const input = document.getElementById('new-password-input');
