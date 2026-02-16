@@ -75,25 +75,24 @@
             <div id="panel-clients">
                 <div style="display:flex; justify-content:space-between; align-items:end; margin-bottom:30px;">
                     <div>
-                        <h1 style="margin:0; font-size:32px;">Client Database</h1>
-                        <p style="margin:5px 0 0 0; opacity:0.6;">Manage questionnaires and project data.</p>
+                        <h1 style="margin:0; font-size:32px;">Member Database</h1>
+                        <p style="margin:5px 0 0 0; opacity:0.6;">Manage access and project data.</p>
                     </div>
-                    <button class="btn-main small" onclick="openClientEditor()">+ New Client</button>
+                    <button class="btn-main small" onclick="openClientEditor()">+ New Member</button>
                 </div>
-
+            
                 <div class="table-card">
                     <table class="modern-table">
                         <thead>
                             <tr>
-                                <th>Client Name</th>
+                                <th>Member Name</th>
                                 <th>Code</th>
-                                <th>Membership Tier</th>
                                 <th>Status</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
                         <tbody id="client-table-body">
-                            </tbody>
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -255,26 +254,16 @@
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="notion-group" style="grid-column: span 2;">
-                        <label class="notion-label">Client Name</label>
+                        <label class="notion-label">Member Name</label>
                         <input type="text" id="ce-name" class="notion-input" placeholder="e.g. Acme Corp">
                     </div>
-    
-                    <div class="notion-group">
-                        <label class="notion-label">Access Code</label>
+            
+                    <div class="notion-group" style="grid-column: span 2;"> <label class="notion-label">Access Code</label>
                         <input type="text" id="ce-code" class="notion-input" style="font-family: monospace; letter-spacing: 1px;">
                     </div>
     
-                    <div class="notion-group">
-                        <label class="notion-label">Tier</label>
-                        <select id="ce-tier" class="notion-select badge-select">
-                            <option value="Bronze">Bronze (Standard)</option>
-                            <option value="Silver">Silver (Pro)</option>
-                            <option value="Gold">Gold (VIP)</option>
-                        </select>
-                    </div>
-    
                     <div class="notion-group" style="grid-column: span 2;">
-                        <label class="notion-label">Project Status</label>
+                        <label class="notion-label">Account Status</label>
                         <select id="ce-status" class="notion-select badge-select">
                             <option value="Active">🟢 Active</option>
                             <option value="Graduated">🎓 Graduated</option>
