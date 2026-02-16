@@ -1,5 +1,10 @@
 // --- CONFIGURATION ---
-const API_URL = "https://script.google.com/macros/s/AKfycbx551oCMIdzsB1CcmDSCwrSxQ0kgavsOQFJcnkm3LF7Sq3mqaOunwDEPhg7xPC_LKZuig/exec"; 
+// Replace these with your actual Supabase keys
+const SUPABASE_URL = "https://epytlgfjtucnewxlaldd.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVweXRsZ2ZqdHVjbmV3eGxhbGRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNTQwNjEsImV4cCI6MjA4NjgzMDA2MX0.6cjCGri0WnwXx22jaoFod1ToIIxd2VJEHWLaMY1qmVE";
+
+// Initialize the client
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // --- STATE ---
 let USER_DATA = null;
@@ -94,17 +99,123 @@ async function rwConfirm(text, title="Confirmation Required") {
         { text: "Confirm", value: true, class: "btn-main" }
     ]);
 }
-// --- API ---
+// --- API (Supabase Version) ---
 async function apiCall(action, payload = {}) {
-    payload.action = action;
+    console.log(`📡 API Calling: ${action}`, payload);
+    
     try {
-        const response = await fetch(API_URL, {
-            method: "POST",
-            body: JSON.stringify(payload)
-        });
-        return await response.json();
+        /* --- 1. LOGIN --- */
+        if (action === 'login') {
+            // ADMIN LOGIN (Hardcoded for now, like your CSV)
+            if (payload.u.toLowerCase() === 'admin' && payload.p === 'rosewood2026') {
+                return { success: true, user: { role: 'admin', name: 'Administrator', tier: 'Gold' } };
+            }
+
+            // CLIENT LOGIN (Check Database)
+            const { data, error } = await supabase
+                .from('clients')
+                .select('*')
+                .eq('name', payload.u)
+                .eq('access_code', payload.p)
+                .single();
+
+            if (error || !data) return { success: false, message: "Invalid credentials" };
+            return { success: true, user: { ...data, role: 'client' } };
+        }
+
+        /* --- 2. CLIENT DASHBOARD (Get Requests) --- */
+        if (action === 'clientData') {
+            // Fetch requests AND the linked form title in one shot
+            const { data, error } = await supabase
+                .from('requests')
+                .select(`
+                    id, 
+                    status, 
+                    created_at,
+                    forms ( title, slug ) 
+                `)
+                .eq('client_id', payload.id);
+            
+            if (error) throw error;
+
+            // Map it to match your old app's expected format
+            const formattedForms = data.map(r => ({
+                reqId: r.id,
+                status: r.status,
+                date: r.created_at,
+                formName: r.forms.title 
+            }));
+
+            return { success: true, forms: formattedForms };
+        }
+
+        /* --- 3. GET FORM SCHEMA (Load the Questions) --- */
+        if (action === 'getSchema') {
+            // First get the Form ID
+            const { data: formData, error: formError } = await supabase
+                .from('forms')
+                .select('id, description')
+                .eq('title', payload.formName)
+                .single();
+            
+            if (formError || !formData) throw new Error("Form not found");
+
+            // Then get the questions
+            const { data: questions, error: qError } = await supabase
+                .from('questions')
+                .select('*')
+                .eq('form_id', formData.id)
+                .order('sort_order', { ascending: true });
+
+            if (qError) throw qError;
+
+            // Add the meta_description manually (since we moved it to the forms table)
+            if (formData.description) {
+                questions.unshift({ key: 'meta_description', type: 'hidden', label: formData.description });
+            }
+
+            return { success: true, schema: questions };
+        }
+
+        /* --- 4. SAVE ANSWERS --- */
+        if (action === 'saveData') {
+            // 1. Fetch current data
+            const { data: client } = await supabase
+                .from('clients')
+                .select('project_data')
+                .eq('id', payload.u)
+                .single();
+
+            // 2. Merge new answers with old answers
+            const updatedData = { ...client.project_data, ...payload.data };
+
+            // 3. Save back to DB
+            const { error } = await supabase
+                .from('clients')
+                .update({ project_data: updatedData })
+                .eq('id', payload.u);
+
+            if (error) throw error;
+            return { success: true };
+        }
+
+        /* --- 5. ADMIN DASHBOARD --- */
+        if (action === 'adminData') {
+            const { data: clients } = await supabase.from('clients').select('*').order('id');
+            const { data: forms } = await supabase.from('forms').select('title');
+            
+            return { 
+                success: true, 
+                clients: clients, 
+                forms: forms.map(f => f.title) 
+            };
+        }
+        
+        // Fallback
+        return { success: false, message: "Unknown Action" };
+
     } catch (e) {
-        rwAlert("Connection Error: " + e.message);
+        console.error("Supabase Error:", e);
         return { success: false, message: e.message };
     }
 }
