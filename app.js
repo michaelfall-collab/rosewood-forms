@@ -328,7 +328,76 @@ async function apiCall(action, payload = {}) {
              if (error) throw error;
              return { success: true };
         }
-        
+        /* --- 4.98 DELETE FORM (Studio) --- */
+        if (action === 'deleteForm') {
+            const { error } = await sb
+                .from('forms')
+                .delete()
+                .eq('title', payload.formName);
+            
+            if (error) throw error;
+            return { success: true };
+        }
+
+        /* --- 4.99 SAVE FORM SCHEMA (The Complex One) --- */
+        if (action === 'saveFormSchema') {
+            const schema = payload.schema;
+            const formTitle = payload.formName;
+            
+            // 1. Extract Description (Hidden field in your UI)
+            const metaBlock = schema.find(q => q.key === 'meta_description');
+            const description = metaBlock ? metaBlock.label : "";
+            
+            // 2. Upsert the Form (Create if new, Update if exists)
+            // We use 'slug' or 'title' to match. 
+            const slug = formTitle.toLowerCase().replace(/ /g, '-');
+            
+            const { data: form, error: formError } = await sb
+                .from('forms')
+                .upsert({ 
+                    title: formTitle, 
+                    slug: slug,
+                    description: description 
+                }, { onConflict: 'title' }) // Match by Title
+                .select()
+                .single();
+            
+            if (formError) throw formError;
+            const formId = form.id;
+
+            // 3. Delete OLD Questions (Full Replace Strategy)
+            // This is safer than trying to update individual questions
+            const { error: delError } = await sb
+                .from('questions')
+                .delete()
+                .eq('form_id', formId);
+            
+            if (delError) throw delError;
+
+            // 4. Format NEW Questions for Insert
+            const questionsToInsert = schema
+                .filter(q => q.key !== 'meta_description') // Don't save meta as a question
+                .map((q, index) => ({
+                    form_id: formId,
+                    section: q.section || 'General',
+                    label: q.label,
+                    key: q.key,
+                    type: q.type,
+                    options: q.options || [],
+                    privacy: q.visibility || 'Public', // Map 'visibility' to 'privacy'
+                    sort_order: index
+                }));
+
+            if (questionsToInsert.length > 0) {
+                const { error: insError } = await sb
+                    .from('questions')
+                    .insert(questionsToInsert);
+                
+                if (insError) throw insError;
+            }
+
+            return { success: true };
+        }
         /* --- 5. ADMIN DASHBOARD --- */
         if (action === 'adminData') {
             const { data: clientsRaw } = await sb.from('clients').select('*').order('id');
