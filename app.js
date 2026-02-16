@@ -538,6 +538,7 @@ async function initClientDashboard() {
                 </div>
             </div>
             <div style="display:flex; gap:10px;">
+                <button class="btn-soft" onclick="openSettings()">⚙️ Settings</button>
                 <button class="btn-soft" onclick="logout()">Logout</button>
             </div>
         </div>
@@ -1402,4 +1403,38 @@ async function handlePasswordUpdate() {
     } else {
         rwAlert("Failed to update password: " + res.message);
     }
+}
+async function openSettings() {
+    const modal = document.getElementById('settings-modal');
+    const input = document.getElementById('new-password-input');
+    
+    // 1. Determine the "Current" password
+    // For clients, it's stored in USER_DATA.access_code
+    // For admin, we have to fetch it from the DB since it's not in the local USER_DATA object
+    let currentPass = "";
+    
+    if (USER_DATA.role === 'client') {
+        currentPass = USER_DATA.access_code;
+    } else {
+        // Fetch current admin pass from the DB
+        const { data } = await sb.from('admin_settings').select('admin_password').eq('id', 1).single();
+        currentPass = data ? data.admin_password : "";
+    }
+
+    // 2. Populate the input and show modal
+    input.value = currentPass;
+    input.type = "password"; // Default to hidden for privacy
+    modal.classList.add('active');
+    
+    // 3. Admin-only sections (Theme, etc.)
+    const adminPanel = document.getElementById('admin-only-settings');
+    if (USER_DATA.role === 'admin') {
+        adminPanel.classList.remove('hidden');
+    } else {
+        adminPanel.classList.add('hidden');
+    }
+}
+function toggleSettingsPass() {
+    const input = document.getElementById('new-password-input');
+    input.type = input.type === "password" ? "text" : "password";
 }
