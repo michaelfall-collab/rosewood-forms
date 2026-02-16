@@ -317,9 +317,15 @@
             </div>
             <div class="glass-content" style="padding:20px;">
                  <div class="notion-group">
-                    <label class="notion-label">Change Password</label>
-                    <input type="password" id="new-password-input" class="notion-input" placeholder="Enter new password">
-                 </div>
+                    <label class="notion-label">Your Password</label>
+                    <div style="position: relative; display: flex; align-items: center;">
+                        <input type="password" id="new-password-input" class="notion-input" style="width: 100%; padding-right: 40px;">
+                        <span onclick="toggleSettingsPass()" style="position: absolute; right: 10px; cursor: pointer; opacity: 0.5;">👁️</span>
+                    </div>
+                    <small style="display: block; margin-top: 8px; opacity: 0.5; font-size: 11px;">
+                        Update this field and click save to change your access code.
+                    </small>
+                </div>
                  <button class="btn-main" style="width:100%;" onclick="handlePasswordUpdate()">Update Password</button>
                  
                  <hr style="margin: 20px 0; opacity: 0.1;">
