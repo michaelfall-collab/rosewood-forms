@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0", maximum-scale=1.0, user-scalable=no">
     <title>Rosewood Forms</title>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="style.css">
@@ -51,6 +51,7 @@
 
     <div id="view-admin" class="hidden admin-container">
         <div class="glass-header-bar">
+            <button class="menu-trigger btn-soft" onclick="toggleMobileMenu()" style="display: none;">☰ Menu</button>
             <div style="display:flex; align-items:center; gap:15px;">
                 <img src="favicon.png" style="height:40px; width:auto; opacity:0.9;">
                 
@@ -145,6 +146,7 @@
     </div>
     <div id="view-client-dashboard" class="view hidden">
         <div class="glass-header" style="justify-content: space-between; margin-bottom: 30px;">
+            <button class="menu-trigger btn-soft" onclick="toggleMobileMenu()" style="display: none;">☰ Menu</button>
             <div style="display: flex; align-items: center; gap: 15px;">
                 <img src="logo.png" style="height: 40px; opacity: 0.8;">
                 <div>
