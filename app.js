@@ -1387,3 +1387,19 @@ function toggleLoginPass() {
         input.type = "password";
     }
 }
+async function handlePasswordUpdate() {
+    const newPass = document.getElementById('new-password-input').value;
+    if (!newPass) return rwAlert("Please enter a new password.");
+
+    const action = (USER_DATA.role === 'admin') ? 'updateAdminPassword' : 'updateClientPassword';
+    const payload = { newPassword: newPass, id: USER_DATA.id };
+
+    const res = await apiCall(action, payload);
+    if (res.success) {
+        rwAlert("Password updated successfully!");
+        document.getElementById('settings-modal').classList.remove('active');
+        document.getElementById('new-password-input').value = "";
+    } else {
+        rwAlert("Failed to update password: " + res.message);
+    }
+}
