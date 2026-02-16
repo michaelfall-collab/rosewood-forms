@@ -1085,3 +1085,14 @@ function togglePassword() {
         btn.style.opacity = "0.5";
     }
 }
+/* --- HELPER FUNCTIONS --- */
+
+function toggleLoginPass() {
+    const input = document.getElementById('login-pass');
+    // Simple toggle: text <-> password
+    if (input.type === "password") {
+        input.type = "text";
+    } else {
+        input.type = "password";
+    }
+}
