@@ -497,8 +497,8 @@ async function initClientDashboard() {
     const dash = document.getElementById('view-client-dashboard');
     dash.classList.remove('hidden');
     
-    // Polish: Update Header Icons
-    const headerHtml = `
+    // 1. Set the Header first
+    dash.innerHTML = `
         <div class="glass-header" style="justify-content: space-between; margin-bottom: 30px;">
             <div style="display: flex; align-items: center; gap: 15px;">
                 <img src="favicon.png" style="height: 40px; opacity: 0.9;">
@@ -508,63 +508,71 @@ async function initClientDashboard() {
                 </div>
             </div>
             <div style="display:flex; gap:10px;">
-                 <button class="btn-soft" onclick="document.getElementById('settings-modal').classList.add('active')">
-                    <span style="opacity:0.5;">⚙️</span> Settings
-                </button>
-                <button class="btn-soft" onclick="logout()" style="color:#d32f2f;">
-                    <span style="opacity:0.5;">↪</span> Log Out
-                </button>
+                <button class="btn-soft" onclick="logout()">Logout</button>
             </div>
         </div>
         <div id="client-tier-badge" style="margin-bottom: 20px; display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
             ${USER_DATA.tier} Member
         </div>
-        <h2 style="font-size: 18px; margin-bottom: 15px; opacity: 0.7;">Your Action Items</h2>
-        <div id="client-forms-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;"></div>
+        <div id="dashboard-content-area">
+            <div style='opacity:0.5; padding:20px;'>Loading your forms...</div>
+        </div>
     `;
-    dash.innerHTML = headerHtml;
 
-    const grid = document.getElementById('client-forms-grid');
-    grid.innerHTML = "<div style='opacity:0.5;'>Loading your forms...</div>";
-    
+    // 2. Fetch Data
     const res = await apiCall('clientData', { id: USER_DATA.id });
-    if (!res.forms) return;
+    const contentArea = document.getElementById('dashboard-content-area');
+    
+    // 3. CLEAR the loading message immediately
+    contentArea.innerHTML = ""; 
+
+    if (!res.forms || res.forms.length === 0) {
+        contentArea.innerHTML = `<p style='opacity:0.5; text-align:center; padding:40px;'>All caught up! No forms assigned.</p>`;
+        return;
+    }
 
     const pendingForms = res.forms.filter(f => f.status !== 'Completed');
     const completedForms = res.forms.filter(f => f.status === 'Completed');
 
-    let html = `<h2 style="font-size: 18px; margin-bottom: 15px; opacity: 0.7;">Active Tasks</h2>
-                <div id="pending-grid" class="template-grid"></div>`;
-
-    if (completedForms.length > 0) {
-        html += `
-            <div class="completed-toggle" onclick="document.getElementById('completed-section').classList.toggle('hidden')">
-                <span>Show Completed Forms (${completedForms.length})</span> ▾
-            </div>
-            <div id="completed-section" class="template-grid hidden"></div>`;
-    }
+    // 4. Render Active Section
+    let dashboardHtml = `<h2 style="font-size: 18px; margin-bottom: 15px; opacity: 0.7;">Your Action Items</h2>
+                         <div class="template-grid">`;
     
-    dash.innerHTML += html;
+    pendingForms.forEach(form => {
+        dashboardHtml += renderDashboardCard(form);
+    });
+    dashboardHtml += `</div>`;
 
-    const renderCard = (form) => {
-        const isComp = form.status === 'Completed';
-        return `
-            <div class="glass-card ${isComp ? 'status-completed' : 'status-pending'}" onclick="openFlagshipForm('${form.formName}', '${form.status}', '${form.reqId}')">
-                <div class="glass-header" style="background:transparent; border:none;">
-                    <span style="font-size:10px; font-weight:800; text-transform:uppercase;">${form.status}</span>
-                    ${isComp ? '✅' : '📝'}
-                </div>
-                <div class="glass-content" style="padding-top:0;">
-                    <div style="font-size:18px; font-weight:700;">${form.formName}</div>
-                    <div style="font-size:11px; opacity:0.5; margin-top:5px;">${new Date(form.date).toLocaleDateString()}</div>
-                </div>
-            </div>`;
-    };
-
-    document.getElementById('pending-grid').innerHTML = pendingForms.map(renderCard).join('') || "<p style='opacity:0.5;'>No pending tasks.</p>";
+    // 5. Render Completed Section (if any)
     if (completedForms.length > 0) {
-        document.getElementById('completed-section').innerHTML = completedForms.map(renderCard).join('');
+        dashboardHtml += `
+            <div class="completed-toggle" onclick="document.getElementById('completed-section').classList.toggle('hidden')">
+                <span>View Completed Forms (${completedForms.length})</span> ▾
+            </div>
+            <div id="completed-section" class="template-grid hidden">
+                ${completedForms.map(f => renderDashboardCard(f)).join('')}
+            </div>`;
     }
+
+    contentArea.innerHTML = dashboardHtml;
+}
+
+// Helper to keep the card HTML clean
+function renderDashboardCard(form) {
+    const isComp = form.status === 'Completed';
+    return `
+        <div class="glass-card ${isComp ? 'status-completed' : 'status-pending'}" 
+             style="cursor:pointer;"
+             onclick="openFlagshipForm('${form.formName}', '${form.status}', '${form.reqId}')">
+            <div class="glass-header" style="background:transparent; border:none; padding-bottom:0;">
+                <span style="font-size:10px; font-weight:800; text-transform:uppercase;">${form.status}</span>
+                ${isComp ? '✅' : '📝'}
+            </div>
+            <div class="glass-content" style="padding-top:10px;">
+                <div style="font-size:18px; font-weight:700;">${form.formName}</div>
+                <div style="font-size:11px; opacity:0.5; margin-top:5px;">Assigned: ${new Date(form.date).toLocaleDateString()}</div>
+            </div>
+        </div>`;
 }
 
 /* --- FLAGSHIP FORM RENDERER (Unified) --- */
