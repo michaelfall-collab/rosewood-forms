@@ -146,13 +146,45 @@ async function apiCall(action, payload = {}) {
         }
 
         /* --- 3. GET FORM SCHEMA --- */
+        /* --- 3. GET FORM SCHEMA (Smart Version) --- */
         if (action === 'getSchema') {
+            
+            // --- NEW: HANDLE SMART FORM ---
+            if (payload.formName === 'Smart Catch-Up') {
+                // 1. Who is asking? (We need the client ID to find THEIR missing questions)
+                // In your app, USER_DATA.id holds the logged-in client's ID.
+                // NOTE: If an Admin is viewing this, we need the target client's ID.
+                const targetId = (USER_DATA.role === 'admin' && CURRENT_ADMIN_CLIENT) 
+                    ? CURRENT_ADMIN_CLIENT.id 
+                    : USER_DATA.id;
+
+                const { data: missingQuestions, error } = await sb
+                    .from('client_missing_questions')
+                    .select('*')
+                    .eq('client_id', targetId)
+                    .order('sort_order');
+
+                if (error) throw error;
+
+                // Add a nice header
+                missingQuestions.unshift({ 
+                    type: 'hidden', 
+                    key: 'meta_description', 
+                    label: "Here are the items we still need from you to move forward." 
+                });
+
+                return { success: true, schema: missingQuestions };
+            }
+            // -----------------------------
+
+            // ... The existing logic for normal forms stays here ...
             const { data: formData, error: formError } = await sb
                 .from('forms')
                 .select('id, description')
                 .eq('title', payload.formName)
                 .single();
             
+            // ... rest of your existing function ...
             if (formError || !formData) throw new Error("Form not found");
 
             const { data: questions, error: qError } = await sb
@@ -191,9 +223,15 @@ async function apiCall(action, payload = {}) {
 
         /* --- 5. ADMIN DASHBOARD --- */
         if (action === 'adminData') {
-            const { data: clients } = await sb.from('clients').select('*').order('id');
+            const { data: clientsRaw } = await sb.from('clients').select('*').order('id');
             const { data: forms } = await sb.from('forms').select('title');
             
+            // MAP THE DATA: Convert 'access_code' to 'code' for the UI
+            const clients = clientsRaw.map(c => ({
+                ...c,
+                code: c.access_code // <--- The Fix
+            }));
+
             return { 
                 success: true, 
                 clients: clients, 
