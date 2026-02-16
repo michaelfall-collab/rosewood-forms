@@ -1434,8 +1434,9 @@ async function openSettings() {
 /* --- NEW: Mobile Menu Toggle --- */
 function toggleMobileMenu() {
     const sidebar = document.querySelector('.sidebar');
-    sidebar.classList.toggle('mobile-active');
+    sidebar.classList.toggle('mobile-open');
 }
+
 function toggleSettingsPass() {
     const input = document.getElementById('new-password-input');
     input.type = input.type === "password" ? "text" : "password";
