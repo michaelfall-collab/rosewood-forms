@@ -608,17 +608,20 @@ function renderDashboardCard(form) {
 
 /* --- FLAGSHIP FORM RENDERER (Unified) --- */
 
-/* --- UPDATED VIEWER (Debug + Data Loss Fix) --- */
+/* --- UPDATED VIEWER (Fixed ReferenceError + Print Support) --- */
 async function openFlagshipForm(formName, status, reqId = null) {
     const view = document.getElementById('view-flagship-form');
     const canvas = document.getElementById('flagship-canvas');
     const title = document.getElementById('flagship-form-title');
     const descEl = document.getElementById('flagship-form-desc');
     const printTitle = document.getElementById('print-title');
-    modal.setAttribute('data-form-name', formName);
+    
+    // FIX: Changed 'modal' to 'view' so it doesn't crash
+    if (view) view.setAttribute('data-form-name', formName);
     
     CURRENT_REQUEST_ID = reqId;
 
+    // UI Switching
     view.classList.remove('hidden');
     document.getElementById('view-client-dashboard').classList.add('hidden');
     document.getElementById('view-admin').classList.add('hidden');
@@ -627,14 +630,13 @@ async function openFlagshipForm(formName, status, reqId = null) {
     const cleanName = formName.trim();
     const displayName = cleanName.match(/form$/i) ? cleanName : cleanName + " Form";
     title.innerText = displayName;
-    printTitle.innerText = displayName;
+    if (printTitle) printTitle.innerText = displayName;
     
     descEl.style.display = 'none'; 
     canvas.innerHTML = "<div style='text-align:center; padding:50px; opacity:0.5;'>Loading Form...</div>";
     
     CURRENT_FLAGSHIP_NAME = formName;
 
-    // This call now works because getFormSchema exists in code.gs
     const schemaRes = await apiCall('getSchema', { formName });
     
     if(!schemaRes.success) {
@@ -674,7 +676,8 @@ async function openFlagshipForm(formName, status, reqId = null) {
             descEl.innerText = meta.label;
         }
         descEl.style.display = "block";
-        document.getElementById('print-desc').innerText = meta.label; 
+        const pDesc = document.getElementById('print-desc');
+        if (pDesc) pDesc.innerText = meta.label; 
     }
     updateProgress(); 
 }
