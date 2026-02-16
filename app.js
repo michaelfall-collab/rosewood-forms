@@ -317,6 +317,17 @@ async function apiCall(action, payload = {}) {
              if (error) throw error;
              return { success: true };
         }
+
+        /* --- 4.95 MARK COMPLETE (When user submits) --- */
+        if (action === 'completeRequest') {
+             const { error } = await sb
+                .from('requests')
+                .update({ status: 'Completed' })
+                .eq('id', payload.reqId);
+             
+             if (error) throw error;
+             return { success: true };
+        }
         
         /* --- 5. ADMIN DASHBOARD --- */
         if (action === 'adminData') {
