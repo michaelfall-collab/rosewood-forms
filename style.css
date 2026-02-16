@@ -973,25 +973,3 @@ body.tier-bronze #client-tier-badge {
     border: none !important;
     padding: 20px 24px;
 }
-
-/* In style.css */
-
-/* FIX: Override inline styles to match 'Exit' button exactly */
-#btn-save-studio {
-    background: rgba(255,255,255,0.1) !important;
-    color: #fff !important;
-    border: 1px solid rgba(255,255,255,0.2) !important;
-    
-    /* Reset dimensions to match Exit button */
-    padding: 10px 24px !important;
-    border-radius: 50px !important;
-    font-weight: 500 !important;
-    box-shadow: none !important;
-    z-index: 6002;
-}
-
-/* Hover State */
-#btn-save-studio:hover {
-    background: rgba(255,255,255,0.2) !important;
-    border-color: #fff !important;
-}
