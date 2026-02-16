@@ -126,7 +126,8 @@ async function apiCall(action, payload = {}) {
                 .single();
         
             if (error || !data) return { success: false, message: "Invalid credentials" };
-            return { success: true, user: { ...data, role: 'client' } };
+            const role = (data.status === 'Admin') ? 'admin' : 'client';
+            return { success: true, user: { ...data, role: role } };
         }
         
         /* --- NEW: UPDATE ADMIN PASSWORD --- */
@@ -311,12 +312,24 @@ async function apiCall(action, payload = {}) {
         /* --- 4.8 ASSIGN FORM (Push Logic) --- */
         if (action === 'assignForm') {
             // 1. Get Form ID from the Name
-            const { data: form } = await sb
+            let { data: form } = await sb
                 .from('forms')
                 .select('id')
                 .eq('title', payload.formName)
                 .single();
             
+            // FIX: Auto-restore Smart Catch-Up if it was deleted from templates
+            if (!form && payload.formName === 'Smart Catch-Up') {
+                    const { data: newForm, error: createErr } = await sb
+                    .from('forms')
+                    .insert({ title: 'Smart Catch-Up', slug: 'smart-catch-up', description: 'System Generated' })
+                    .select('id')
+                    .single();
+                    
+                    if(createErr) throw createErr;
+                    form = newForm;
+            }
+        
             if (!form) throw new Error("Form template not found.");
 
             // 2. Generate a random Request ID (Keeping your old REQ-XXXX format)
@@ -986,7 +999,7 @@ async function openFormPicker(client) {
     }
 
     // 4. Render the List (With Status Badges!)
-    res.forms.forEach(form => {
+    res.forms.filter(f => f.formName !== 'Smart Catch-Up').forEach(form => {
         const btn = document.createElement('button');
         btn.className = "btn-soft"; 
         btn.style.width = "100%";
@@ -1056,6 +1069,7 @@ function renderFormTemplatesGrid() {
             <div class="card-label">Create New Form</div>
         </div>`;
     ALL_FORMS.forEach(form => {
+        if (form === 'Smart Catch-Up') return; // FIX: Hide Smart Form from Studio
         const safeName = form.replace(/'/g, "\\'");
         html += `
         <div class="template-card" onclick="openStudio('${safeName}')" style="display:flex; flex-direction:column; justify-content:space-between;">
@@ -1290,7 +1304,10 @@ function openPushModal(client) {
         container.innerHTML = "<p style='opacity:0.5;'>No templates available.</p>";
     }
 
-    ALL_FORMS.forEach(form => {
+    const pushList = [...ALL_FORMS];
+    if (!pushList.includes('Smart Catch-Up')) pushList.unshift('Smart Catch-Up');
+
+    pushList.forEach(form => {
         const btn = document.createElement('button');
         btn.className = "btn-soft"; 
         btn.style.width = "100%";
