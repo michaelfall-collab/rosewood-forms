@@ -490,7 +490,7 @@ tr:hover td { background: rgba(255,255,255,0.4); }
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%; 
+    right: 0;
     height: 90px;
     background: #1A1716;
     display: flex;
@@ -498,23 +498,33 @@ tr:hover td { background: rgba(255,255,255,0.4); }
     align-items: center;
     z-index: 6000;
     box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-    /* Increase padding to ensure button is never cut off */
-    padding: 0 40px; 
-    box-sizing: border-box; /* Critical for padding to work correctly */
+    padding: 0 40px; /* Safe padding */
+    box-sizing: border-box;
 }
+.studio-banner-content {
+    display: grid;
+    grid-template-columns: 200px 1fr 200px; /* Fixed width sides ensure absolute centering of title */
+    align-items: center;
+    width: 100%;
+    max-width: 1200px;
+}
+.studio-banner-content > :nth-child(1) { justify-self: start; }
+.studio-banner-content > :nth-child(2) { justify-self: center; text-align: center; }
+.studio-banner-content > :nth-child(3) { justify-self: end; }
 
 .studio-top-banner .btn-soft {
-    background: rgba(255,255,255,0.08);
-    color: #fff; border: 1px solid rgba(255,255,255,0.1);
-    padding: 12px 24px; border-radius: 50px;
+    background: rgba(255,255,255,0.1);
+    color: #fff; 
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 10px 24px; 
+    border-radius: 50px;
+    white-space: nowrap;
 }
-.studio-top-banner .btn-soft:hover { background: rgba(255,255,255,0.15); }
+.studio-top-banner .btn-soft:hover { 
+    background: rgba(255,255,255,0.2); 
+    border-color: #fff;
+}
 
-/* Adjust Paper to account for thicker banner */
-.studio-paper {
-    margin-top: 130px !important;
-    padding: 100px 120px !important;
-}
 
 /* Premium Select Box */
 .studio-type-selector {
@@ -535,35 +545,7 @@ tr:hover td { background: rgba(255,255,255,0.4); }
     overflow: hidden; /* Prevent body scroll, we scroll the paper area instead */
 }
 
-/* --- ROSEWOOD STUDIO: FIXED BANNER --- */
-.studio-top-banner {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0; /* Snaps to the scrollbar edge, preventing overflow */
-    height: 90px;
-    background: #1A1716;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 6000;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-    /* Safety padding ensures content never touches the very edge */
-    padding: 0 20px; 
-}
 
-.studio-banner-content {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    width: 100%;
-    max-width: 1050px;
-}
-/* Force alignment so title never moves */
-.studio-banner-content > :nth-child(1) { justify-self: start; }
-.studio-banner-content > :nth-child(2) { justify-self: center; }
-.studio-banner-content > :nth-child(3) { justify-self: end; }
-/* Ensure the paper matches this width */
 .studio-paper {
     width: 850px;
     max-width: 90vw;
