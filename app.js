@@ -103,22 +103,52 @@ async function apiCall(action, payload = {}) {
     console.log(`📡 API Calling: ${action}`, payload);
     
     try {
-        /* --- 1. LOGIN --- */
+        //* --- UPDATED LOGIN --- */
         if (action === 'login') {
-            if (payload.u.toLowerCase() === 'admin' && payload.p === 'rosewood2026') {
+            // Check Admin Table First
+            const { data: admin, error: adminErr } = await sb
+                .from('admin_settings')
+                .select('*')
+                .eq('admin_username', payload.u)
+                .eq('admin_password', payload.p)
+                .single();
+        
+            if (admin && !adminErr) {
                 return { success: true, user: { role: 'admin', name: 'Administrator', tier: 'Gold' } };
             }
-
-            // Use 'sb' here
+        
+            // Check Client Table
             const { data, error } = await sb
                 .from('clients')
                 .select('*')
                 .eq('name', payload.u)
-                .eq('access_code', payload.p)
+                .eq('access_code', payload.p) // This acts as the password
                 .single();
-
+        
             if (error || !data) return { success: false, message: "Invalid credentials" };
             return { success: true, user: { ...data, role: 'client' } };
+        }
+        
+        /* --- NEW: UPDATE ADMIN PASSWORD --- */
+        if (action === 'updateAdminPassword') {
+            const { error } = await sb
+                .from('admin_settings')
+                .update({ admin_password: payload.newPassword })
+                .eq('id', 1);
+            
+            if (error) throw error;
+            return { success: true };
+        }
+        
+        /* --- NEW: UPDATE CLIENT PASSWORD --- */
+        if (action === 'updateClientPassword') {
+            const { error } = await sb
+                .from('clients')
+                .update({ access_code: payload.newPassword })
+                .eq('id', payload.id);
+            
+            if (error) throw error;
+            return { success: true };
         }
 
         /* --- 2. CLIENT DASHBOARD --- */
