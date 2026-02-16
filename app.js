@@ -231,6 +231,92 @@ async function apiCall(action, payload = {}) {
             // Return empty object if no answers yet
             return { success: true, answers: data.project_data || {} };
         }
+
+        /* --- 4.6 SAVE CLIENT (Admin: Edit/Create) --- */
+        if (action === 'saveClient') {
+            const p = payload;
+            let error;
+
+            if (p.id) {
+                // UPDATE EXISTING
+                const { error: e } = await sb
+                    .from('clients')
+                    .update({ 
+                        name: p.name, 
+                        access_code: p.code, 
+                        tier: p.tier, 
+                        status: p.status 
+                    })
+                    .eq('id', p.id);
+                error = e;
+            } else {
+                // CREATE NEW (Insert)
+                const { error: e } = await sb
+                    .from('clients')
+                    .insert({ 
+                        name: p.name, 
+                        access_code: p.code, 
+                        tier: p.tier, 
+                        status: p.status,
+                        project_data: {} // Start empty
+                    });
+                error = e;
+            }
+
+            if (error) throw error;
+            return { success: true };
+        }
+
+        /* --- 4.7 DELETE CLIENT --- */
+        if (action === 'deleteClient') {
+            const { error } = await sb
+                .from('clients')
+                .delete()
+                .eq('id', payload.id);
+            
+            if (error) throw error;
+            return { success: true };
+        }
+
+        /* --- 4.8 ASSIGN FORM (Push Logic) --- */
+        if (action === 'assignForm') {
+            // 1. Get Form ID from the Name
+            const { data: form } = await sb
+                .from('forms')
+                .select('id')
+                .eq('title', payload.formName)
+                .single();
+            
+            if (!form) throw new Error("Form template not found.");
+
+            // 2. Generate a random Request ID (Keeping your old REQ-XXXX format)
+            const reqId = "REQ-" + Math.floor(Math.random() * 100000);
+
+            // 3. Insert Request
+            const { error } = await sb
+                .from('requests')
+                .insert({
+                    id: reqId,
+                    client_id: payload.id,
+                    form_id: form.id,
+                    status: 'Pending'
+                });
+            
+            if (error) throw error;
+            return { success: true };
+        }
+        
+        /* --- 4.9 DELETE REQUEST (Unassign) --- */
+        if (action === 'deleteRequest') {
+             // You might need to add this button to your UI later if you haven't yet
+             const { error } = await sb
+                .from('requests')
+                .delete()
+                .eq('id', payload.reqId);
+             
+             if (error) throw error;
+             return { success: true };
+        }
         
         /* --- 5. ADMIN DASHBOARD --- */
         if (action === 'adminData') {
